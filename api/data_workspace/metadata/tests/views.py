@@ -82,6 +82,39 @@ class SerializerMethodFieldViewSet(viewsets.ViewSet):
         return Response({})
 
 
+class FloatFieldViewSet(viewsets.ViewSet):
+    class DataWorkspace:
+        table_name = "float_field"
+
+    def get_serializer(self):
+        return serializers.FloatFieldSerializer()
+
+    def list(self, request):
+        return Response({})
+
+
+class DecimalFieldViewSet(viewsets.ViewSet):
+    class DataWorkspace:
+        table_name = "decimal_field"
+
+    def get_serializer(self):
+        return serializers.DecimalFieldSerializer()
+
+    def list(self, request):
+        return Response({})
+
+
+class IntegerFieldViewSet(viewsets.ViewSet):
+    class DataWorkspace:
+        table_name = "integer_field"
+
+    def get_serializer(self):
+        return serializers.IntegerFieldSerializer()
+
+    def list(self, request):
+        return Response({})
+
+
 class AutoPrimaryKeyViewSet(viewsets.ViewSet):
     class DataWorkspace:
         table_name = "auto_primary_key"
@@ -100,6 +133,28 @@ class ExplicitPrimaryKeyViewSet(viewsets.ViewSet):
 
     def get_serializer(self):
         return serializers.ExplicitPrimaryKeySerializer()
+
+    def list(self, request):
+        return Response({})
+
+
+class DateTimeFieldViewSet(viewsets.ViewSet):
+    class DataWorkspace:
+        table_name = "datetime_field"
+
+    def get_serializer(self):
+        return serializers.DateTimeSerializer()
+
+    def list(self, request):
+        return Response({})
+
+
+class ChoiceFieldViewSet(viewsets.ViewSet):
+    class DataWorkspace:
+        table_name = "choice_field"
+
+    def get_serializer(self):
+        return serializers.ChoiceFieldSerializer()
 
     def list(self, request):
         return Response({})

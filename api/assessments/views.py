@@ -83,7 +83,6 @@ class MakeAssessmentsView(generics.UpdateAPIView):
 
 
 def validate_ids(data):
-
     ids = [record["id"] for record in data]
     duplicate_ids = [goa_id for goa_id, count in Counter(ids).items() if count > 1]
 

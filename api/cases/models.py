@@ -120,6 +120,12 @@ class Case(TimestampableModel):
     sla_remaining_days = models.SmallIntegerField(null=True)
     sla_updated_at = models.DateTimeField(null=True)
     additional_contacts = models.ManyToManyField("parties.Party", related_name="case")
+    audit_trail = GenericRelation(
+        "audit_trail.Audit",
+        related_query_name="case",
+        content_type_field="target_content_type",
+        object_id_field="target_object_id",
+    )
     # _previous_status is used during post_save signal to check if the status has changed
     _previous_status = None
 
@@ -382,14 +388,33 @@ class Case(TimestampableModel):
 
         decision_actions = self.get_decision_actions()
         for advice_type in decisions:
+
             decision_actions[advice_type](self)
 
             # NLR is not considered as licence decision
             if advice_type in [AdviceType.APPROVE, AdviceType.REFUSE]:
+                decision = LicenceDecisionType.advice_type_to_decision(advice_type)
+                previous_licence_decision = self.licence_decisions.last()
+
+                previous_decision = None
+                current_decision = decision
+                if previous_licence_decision and decision == LicenceDecisionType.ISSUED:
+                    # In case if it is being issued after an appeal then we want to reflect that in the decision
+                    if previous_licence_decision.decision in [
+                        LicenceDecisionType.REFUSED,
+                        LicenceDecisionType.ISSUED_ON_APPEAL,
+                    ]:
+                        current_decision = LicenceDecisionType.ISSUED_ON_APPEAL
+
+                    # link up to previous instance if the decision remains same
+                    if previous_licence_decision.decision == current_decision:
+                        previous_decision = previous_licence_decision
+
                 LicenceDecision.objects.create(
                     case=self,
-                    decision=LicenceDecisionType.advice_type_to_decision(advice_type),
+                    decision=current_decision,
                     licence=licence,
+                    previous_decision=previous_decision,
                 )
 
             licence_reference = licence.reference_code if licence and advice_type == AdviceType.APPROVE else ""
@@ -421,6 +446,17 @@ class Case(TimestampableModel):
             document.send_exporter_notifications()
 
         logging.info("Licence documents published to exporter, notification sent")
+
+    def delete(self, *args, **kwargs):
+        # This simulates `models.SET_NULL` as a `GenericRelation`, which `audit_trail` is, implicitly does a cascased
+        # delete.
+        # Without doing this we would delete the audit trails associated to this case when this case is deleted and
+        # we want to keep them.
+        self.audit_trail.update(
+            target_content_type=None,
+            target_object_id=None,
+        )
+        return super().delete(*args, **kwargs)
 
 
 class CaseQueue(TimestampableModel):
@@ -810,6 +846,13 @@ class LicenceDecision(TimestampableModel):
     licence = models.ForeignKey(
         "licences.Licence", on_delete=models.DO_NOTHING, related_name="licence_decisions", null=True, blank=True
     )
+    excluded_from_statistics_reason = models.TextField(default=None, blank=True, null=True)
+    previous_decision = models.ForeignKey(
+        "self", related_name="previous_decisions", default=None, null=True, on_delete=models.DO_NOTHING
+    )
+
+    class Meta:
+        ordering = ("created_at",)
 
     def __str__(self):
         return f"{self.case.reference_code} - {self.decision} ({self.created_at})"
