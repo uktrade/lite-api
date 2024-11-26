@@ -136,3 +136,25 @@ class ExplicitPrimaryKeyViewSet(viewsets.ViewSet):
 
     def list(self, request):
         return Response({})
+
+
+class DateTimeFieldViewSet(viewsets.ViewSet):
+    class DataWorkspace:
+        table_name = "datetime_field"
+
+    def get_serializer(self):
+        return serializers.DateTimeSerializer()
+
+    def list(self, request):
+        return Response({})
+
+
+class ChoiceFieldViewSet(viewsets.ViewSet):
+    class DataWorkspace:
+        table_name = "choice_field"
+
+    def get_serializer(self):
+        return serializers.ChoiceFieldSerializer()
+
+    def list(self, request):
+        return Response({})

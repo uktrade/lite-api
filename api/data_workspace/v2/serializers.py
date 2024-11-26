@@ -1,5 +1,6 @@
 import datetime
 import typing
+import uuid
 
 from rest_framework import serializers
 
@@ -9,37 +10,37 @@ from api.applications.models import (
     StandardApplication,
 )
 from api.cases.enums import LicenceDecisionType
-from api.cases.models import Case
+from api.cases.models import LicenceDecision
 from api.staticdata.countries.models import Country
 
 
 class LicenceDecisionSerializer(serializers.ModelSerializer):
-    decision = serializers.SerializerMethodField()
-    decision_made_at = serializers.SerializerMethodField()
+    application_id = serializers.UUIDField(source="case.id")
+    decision_made_at = serializers.DateTimeField(source="created_at")
+    licence_id = serializers.SerializerMethodField()
 
     class Meta:
-        model = Case
+        model = LicenceDecision
         fields = (
             "id",
-            "reference_code",
+            "application_id",
             "decision",
             "decision_made_at",
+            "licence_id",
         )
 
-    def get_decision(self, case) -> str:
-        return case.decision
+    def get_licence_id(self, licence_decision) -> typing.Optional[uuid.UUID]:
+        if licence_decision.decision in [LicenceDecisionType.REFUSED]:
+            return None
 
-    def get_decision_made_at(self, case) -> datetime.datetime:
-        if case.decision not in LicenceDecisionType.decisions():
-            raise ValueError(f"Unknown decision type `{case.decision}`")  # pragma: no cover
+        latest_decision = licence_decision.case.licence_decisions.exclude(
+            excluded_from_statistics_reason__isnull=False
+        ).last()
 
-        return (
-            case.licence_decisions.filter(
-                decision=case.decision,
-            )
-            .earliest("created_at")
-            .created_at
-        )
+        if not latest_decision.licence:
+            return None
+
+        return latest_decision.licence.pk
 
 
 class CountrySerializer(serializers.ModelSerializer):
