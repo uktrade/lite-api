@@ -34,7 +34,6 @@ from api.data_workspace.v2.serializers import (
     GoodDescriptionSerializer,
     GoodSerializer,
     LicenceDecisionSerializer,
-    LicenceDecisionType,
     GoodOnLicenceSerializer,
 )
 from api.licences.enums import LicenceStatus
@@ -124,7 +123,7 @@ def get_closed_statuses():
 class GoodOnLicenceViewSet(BaseViewSet):
     serializer_class = GoodOnLicenceSerializer
     queryset = GoodOnLicence.objects.exclude(
-        licence__case__status__=CaseStatusEnum.DRAFT,
+        licence__case__status__status=CaseStatusEnum.DRAFT,
         licence__status=LicenceStatus.DRAFT,
     )
 
