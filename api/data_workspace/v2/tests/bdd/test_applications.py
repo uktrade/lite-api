@@ -41,18 +41,6 @@ from api.staticdata.statuses.enums import CaseStatusEnum
 scenarios("./scenarios/applications.feature")
 
 
-@pytest.fixture()
-def parse_attributes(parse_table):
-    def _parse_attributes(attributes):
-        kwargs = {}
-        table_data = parse_table(attributes)
-        for key, value in table_data[1:]:
-            kwargs[key] = value
-        return kwargs
-
-    return _parse_attributes
-
-
 def run_processing_time_task(start, up_to):
     processing_time_task_run_date_time = start.replace(hour=22, minute=30)
     up_to = pytz.utc.localize(datetime.datetime.fromisoformat(up_to))
@@ -193,25 +181,6 @@ def exporter_change_status(api_client, exporter_headers):
 def given_draft_standard_application(organisation):
     application = DraftStandardApplicationFactory(
         organisation=organisation,
-    )
-
-    PartyDocumentFactory(
-        party=application.end_user.party,
-        s3_key="party-document",
-        safe=True,
-    )
-
-    return application
-
-
-@given(
-    parsers.parse("a draft standard application with attributes:{attributes}"),
-    target_fixture="draft_standard_application",
-)
-def given_a_draft_standard_application_with_attributes(organisation, parse_attributes, attributes):
-    application = DraftStandardApplicationFactory(
-        organisation=organisation,
-        **parse_attributes(attributes),
     )
 
     PartyDocumentFactory(

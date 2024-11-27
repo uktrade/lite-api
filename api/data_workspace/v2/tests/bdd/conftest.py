@@ -131,6 +131,18 @@ def gov_user_permissions():
 
 
 @pytest.fixture()
+def ogd_advisor(gov_user, gov_user_permissions):
+    gov_user.role = RoleFactory(name="OGD Advisor", type=UserType.INTERNAL)
+    gov_user.role.permissions.set(
+        [
+            GovPermissions.MAINTAIN_FOOTNOTES.name,
+        ]
+    )
+    gov_user.save()
+    return gov_user
+
+
+@pytest.fixture()
 def lu_case_officer(gov_user, gov_user_permissions):
     gov_user.role = RoleFactory(name="Case officer", type=UserType.INTERNAL)
     gov_user.role.permissions.set(
@@ -159,6 +171,11 @@ def lu_senior_manager(lu_user, gov_user_permissions):
 @pytest.fixture()
 def gov_headers(gov_user):
     return {"HTTP_GOV_USER_TOKEN": user_to_token(gov_user.baseuser_ptr)}
+
+
+@pytest.fixture()
+def ogd_advisor_headers(ogd_advisor):
+    return {"HTTP_GOV_USER_TOKEN": user_to_token(ogd_advisor.baseuser_ptr)}
 
 
 @pytest.fixture()
@@ -364,3 +381,34 @@ def check_rows(client, parse_table, unpage_data, table_name, rows):
         expected_data.append({key: value for key, value in zip(keys, row)})
     expected_data = cast_to_types(expected_data, table_metadata["fields"])
     assert actual_data == expected_data
+
+
+@pytest.fixture()
+def parse_attributes(parse_table):
+    def _parse_attributes(attributes):
+        kwargs = {}
+        table_data = parse_table(attributes)
+        for key, value in table_data[1:]:
+            kwargs[key] = value
+        return kwargs
+
+    return _parse_attributes
+
+
+@given(
+    parsers.parse("a draft standard application with attributes:{attributes}"),
+    target_fixture="draft_standard_application",
+)
+def given_a_draft_standard_application_with_attributes(organisation, parse_attributes, attributes):
+    application = DraftStandardApplicationFactory(
+        organisation=organisation,
+        **parse_attributes(attributes),
+    )
+
+    PartyDocumentFactory(
+        party=application.end_user.party,
+        s3_key="party-document",
+        safe=True,
+    )
+
+    return application
