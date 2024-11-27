@@ -3,7 +3,7 @@
 set -e
 
 if [[ "${ENV}" == "prod" ]]; then
-  echo "You can't re-index the prod OpenSearch instance"
+  echo "You can't seed users on prod"
   exit 1
 fi
 
