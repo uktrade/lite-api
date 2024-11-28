@@ -272,24 +272,24 @@ def populate_activity_updates(case_map):
     """
     retrieve the last 2 activities per case for the provided list of cases
     """
-    case_ids = list(case_map.keys())
+    case_ids = list(str(pk) for pk in case_map.keys())
     activities_qs = Audit.objects.get_latest_activities(case_ids, 2)
     # get users data for activities en bulk to reduce query count
-    user_ids = {activity.actor_object_id for activity in activities_qs}
+    user_ids = {str(activity.actor_object_id) for activity in activities_qs}
     users = BaseUser.objects.select_related("exporteruser", "govuser", "govuser__team").filter(id__in=user_ids)
     user_map = {str(user.id): user for user in users}
 
     for activity in activities_qs:
         case_id = None
         # get case id from either of the audit record fields
-        if activity.target_object_id in case_ids:
+        if str(activity.target_object_id) in case_ids:
             case_id = activity.target_object_id
         else:
             case_id = activity.action_object_object_id
         # prepopulate actor for AuditSerializer
-        actor = user_map[activity.actor_object_id]
+        actor = user_map[str(activity.actor_object_id)]
         activity_obj = serialize_case_activity(activity, actor)
-        case = case_map[case_id]
+        case = case_map[str(case_id)]
         if "activity_updates" in case:
             case["activity_updates"].append(activity_obj)
         else:
