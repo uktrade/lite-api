@@ -29,3 +29,21 @@ Scenario: NLR goods not on licence
     Then the `goods_on_licences` table has the following rows:
         | good_id                              | licence_id |
         | aa9736f9-48f5-4d44-ace9-e4b8738591a5 | 847a9a03-c35f-4036-ab8c-8b58d13482ab |
+
+Scenario: Draft licences
+    Given a standard application with the following goods:
+        | id                                   | name                |
+        | f7c674b1-cd5e-4a6d-a1f5-d6ab58149d05 | A controlled good 2 |
+    And a draft licence with attributes:
+        | name | value |
+        | id   | 297e89b9-fc93-4f38-be46-c2ab38914007 |
+    Then the `goods_on_licences` table is empty
+
+Scenario: Draft applications
+    Given a draft standard application with the following goods:
+        | id                                   | name                |
+        | 8262dcf7-d932-4a33-978d-b5aa8a7878ee | A controlled good 3 |
+    And a draft licence with attributes:
+        | name | value |
+        | id   | 2078827b-6d67-406c-becc-41c423720cfc |
+    Then the `goods_on_licences` table is empty

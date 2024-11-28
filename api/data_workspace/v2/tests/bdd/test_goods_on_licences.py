@@ -89,3 +89,18 @@ def the_goods_are_assessed_by_tau_as(
         **gov_headers,
     )
     assert response.status_code == 200, response.content
+
+
+@given(
+    parsers.parse("a draft standard application with the following goods:{goods}"), target_fixture="draft_application"
+)
+def draft_standard_application_with_following_goods(parse_table, goods, draft_application):
+    draft_application.goods.all().delete()
+    good_attributes = parse_table(goods)[1:]
+    for id, name in good_attributes:
+        GoodOnApplicationFactory(
+            application=draft_application,
+            id=id,
+            good__name=name,
+        )
+    return draft_application
