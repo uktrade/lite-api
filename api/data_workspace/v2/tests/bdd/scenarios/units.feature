@@ -2,8 +2,8 @@
 Feature: units Table
 
 Scenario: Units endpoint
-    Given endpoint exists for exporting `units`
-    Then the `units` table should contain the following rows:
+    Given LITE exports `units` data to DW
+    Then the `units` table has the following rows:
         | code | description      |
         | NAR  | Items            |
         | TON  | Tonnes           |

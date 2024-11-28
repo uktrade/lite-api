@@ -147,22 +147,9 @@ class ApplicationViewSet(BaseViewSet):
         table_name = "applications"
 
 
-class UnitViewSet(viewsets.ViewSet):
-    authentication_classes = (DataWorkspaceOnlyAuthentication,)
-    pagination_class = DisableableLimitOffsetPagination
-    renderer_classes = tuple(api_settings.DEFAULT_RENDERER_CLASSES) + (PaginatedCSVRenderer,)
-
-    def list(self, request):
-        units = [{"code": code, "description": description} for code, description in Units.choices]
-        return Response(UnitSerializer(units, many=True).data)
-
-    def retrieve(self, request, pk):
-        units = dict(Units.choices)
-        try:
-            description = units[pk]
-        except KeyError:
-            raise Http404()
-        return Response(UnitSerializer({"code": pk, "description": description}).data)
+class UnitViewSet(BaseViewSet):
+    serializer_class = UnitSerializer
+    queryset = [{"code": code, "description": description} for code, description in Units.choices]
 
     class DataWorkspace:
         table_name = "units"

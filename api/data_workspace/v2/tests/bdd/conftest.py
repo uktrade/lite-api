@@ -366,32 +366,8 @@ def check_rows(client, parse_table, unpage_data, table_name, rows):
     assert actual_data == expected_data
 
 
-@given(parsers.parse("endpoint exists for exporting `{table_name}`"))
+@given(parsers.parse("LITE exports `{table_name}` data to DW"))
 def given_endpoint_exists(client, table_name):
     metadata_url = reverse("data_workspace:v2:table-metadata")
     response = client.get(metadata_url)
     assert table_name in [t["table_name"] for t in response.json()["tables"]]
-
-
-@then(parsers.parse("the `{table_name}` table should contain the following rows:{rows}"))
-def check_rows(client, parse_table, unpage_data, table_name, rows):
-    metadata_url = reverse("data_workspace:v2:table-metadata")
-    response = client.get(metadata_url)
-    tables_metadata = response.json()["tables"]
-    for m in tables_metadata:
-        if m["table_name"] == table_name:
-            table_metadata = m
-            break
-    else:
-        pytest.fail(f"No table called {table_name} found")
-
-    response = client.get(table_metadata["endpoint"])
-    assert response.status_code == status.HTTP_200_OK
-    actual_data = response.data
-
-    parsed_rows = parse_table(rows)
-    keys = parsed_rows[0]
-    expected_data = []
-    for row in parsed_rows[1:]:
-        expected_data.append({key: value for key, value in zip(keys, row)})
-    assert actual_data == expected_data
