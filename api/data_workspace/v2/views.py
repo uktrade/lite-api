@@ -149,9 +149,13 @@ class AssessmentViewSet(BaseViewSet):
     serializer_class = AssessmentSerializer
 
     def get_queryset(self):
-        return ControlListEntry.objects.annotate(
-            good_id=F("goodonapplication__id"),
-        ).exclude(good_id__isnull=True)
+        return (
+            ControlListEntry.objects.annotate(
+                good_id=F("goodonapplication__id"),
+            )
+            .exclude(good_id__isnull=True)
+            .order_by("rating")
+        )
 
     class DataWorkspace:
         table_name = "goods_ratings"
