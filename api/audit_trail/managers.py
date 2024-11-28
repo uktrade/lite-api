@@ -1,7 +1,9 @@
 from typing import List
 from actstream.gfk import GFKQuerySet, GFKManager
 from django.contrib.contenttypes.models import ContentType
+from django.db import models
 from django.db.models import Q, OuterRef
+from django.db.models.functions import Cast
 
 from api.cases.models import Case
 from api.staticdata.statuses.libraries.case_status_validate import is_case_status_draft
@@ -52,8 +54,15 @@ class AuditManager(GFKManager):
             # iterate over audit records once and add max of 'number_of_results' matching
             # action_object_content_type or target_content_type (up to 2x'number_of_results' total)
             top_x_per_case[:number_of_results]
-        return self.get_queryset().filter(
-            Q(id__in=top_x_per_case.values("id")),
-            Q(target_object_id__in=case_ids, target_content_type=obj_type)
-            | Q(action_object_object_id__in=case_ids, action_object_content_type=obj_type),
+        return (
+            self.get_queryset()
+            .alias(
+                char_target_object_id=Cast("target_object_id", output_field=models.CharField()),
+                char_action_object_object_id=Cast("action_object_object_id", output_field=models.CharField()),
+            )
+            .filter(
+                Q(id__in=top_x_per_case.values("id")),
+                Q(char_target_object_id__in=case_ids, target_content_type=obj_type)
+                | Q(char_action_object_object_id__in=case_ids, action_object_content_type=obj_type),
+            )
         )

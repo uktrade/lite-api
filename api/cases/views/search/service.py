@@ -3,8 +3,12 @@ from typing import List, Dict
 
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
+from django.db import models
 from django.db.models import Count, F, Value
-from django.db.models.functions import Concat
+from django.db.models.functions import (
+    Cast,
+    Concat,
+)
 from django.utils import timezone
 from api.audit_trail.service import serialize_case_activity
 from api.staticdata.countries.serializers import CountrySerializer
@@ -149,13 +153,16 @@ def populate_is_recently_updated(cases: List[Dict]):
     """
     now = timezone.now()
     recent_audits = (
-        Audit.objects.filter(
-            target_content_type=ContentType.objects.get_for_model(Case),
-            target_object_id__in=[
+        Audit.objects.alias(
+            char_target_object_id=Cast("target_object_id", output_field=models.CharField()),
+        )
+        .filter(
+            char_target_object_id__in=[
                 case["id"]
                 for case in cases
                 if working_days_in_range(case["submitted_at"], now) > settings.RECENTLY_UPDATED_WORKING_DAYS
             ],
+            target_content_type=ContentType.objects.get_for_model(Case),
             actor_content_type=ContentType.objects.get_for_model(GovUser),
             created_at__gt=now - timedelta(days=number_of_days_since(now, settings.RECENTLY_UPDATED_WORKING_DAYS)),
         )
