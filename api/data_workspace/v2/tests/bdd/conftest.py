@@ -393,6 +393,9 @@ def issue_licence(api_client, lu_case_officer, gov_headers, siel_template):
             good_on_app.save()
             data[f"quantity-{good_on_app.id}"] = str(good_on_app.quantity)
             data[f"value-{good_on_app.id}"] = str(good_on_app.value)
+            # create final advice for controlled goods; skip NLR goods
+            if good_on_app.is_good_controlled == False:
+                continue
             FinalAdviceFactory(user=lu_case_officer, case=application, good=good_on_app.good)
 
         issue_date = datetime.datetime.now()
