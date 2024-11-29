@@ -142,6 +142,11 @@ class ApplicationSerializer(serializers.ModelSerializer):
         return None
 
 
+class UnitSerializer(serializers.Serializer):
+    code = serializers.CharField()
+    description = serializers.CharField()
+
+
 class FootnoteSerializer(serializers.Serializer):
     footnote = serializers.CharField()
     team_name = serializers.CharField(source="team__name")

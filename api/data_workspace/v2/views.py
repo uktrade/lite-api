@@ -36,6 +36,7 @@ from api.data_workspace.v2.serializers import (
     GoodDescriptionSerializer,
     GoodSerializer,
     LicenceDecisionSerializer,
+    UnitSerializer,
     GoodOnLicenceSerializer,
 )
 from api.licences.enums import LicenceStatus
@@ -44,6 +45,7 @@ from api.staticdata.control_list_entries.models import ControlListEntry
 from api.staticdata.countries.models import Country
 from api.staticdata.report_summaries.models import ReportSummary
 from api.staticdata.statuses.enums import CaseStatusEnum
+from api.staticdata.units.enums import Units
 
 
 class DisableableLimitOffsetPagination(LimitOffsetPagination):
@@ -158,6 +160,14 @@ class ApplicationViewSet(BaseViewSet):
 
     class DataWorkspace:
         table_name = "applications"
+
+
+class UnitViewSet(BaseViewSet):
+    serializer_class = UnitSerializer
+    queryset = [{"code": code, "description": description} for code, description in Units.choices]
+
+    class DataWorkspace:
+        table_name = "units"
 
 
 class FootnoteViewSet(BaseViewSet):
