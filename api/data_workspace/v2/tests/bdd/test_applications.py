@@ -4,8 +4,6 @@ import pytz
 
 from freezegun import freeze_time
 
-from moto import mock_aws
-
 from pytest_bdd import (
     given,
     parsers,
@@ -13,7 +11,6 @@ from pytest_bdd import (
     when,
 )
 
-from django.conf import settings
 from django.urls import reverse
 
 from api.applications.enums import ApplicationExportType
@@ -28,7 +25,6 @@ from api.cases.enums import (
     AdviceType,
 )
 from api.cases.tests.factories import FinalAdviceFactory
-from api.documents.libraries.s3_operations import init_s3_client
 from api.flags.enums import SystemFlags
 from api.licences.enums import LicenceStatus
 from api.parties.tests.factories import (
@@ -41,18 +37,6 @@ from api.staticdata.statuses.enums import CaseStatusEnum
 scenarios("./scenarios/applications.feature")
 
 
-@pytest.fixture()
-def parse_attributes(parse_table):
-    def _parse_attributes(attributes):
-        kwargs = {}
-        table_data = parse_table(attributes)
-        for key, value in table_data[1:]:
-            kwargs[key] = value
-        return kwargs
-
-    return _parse_attributes
-
-
 def run_processing_time_task(start, up_to):
     processing_time_task_run_date_time = start.replace(hour=22, minute=30)
     up_to = pytz.utc.localize(datetime.datetime.fromisoformat(up_to))
@@ -60,19 +44,6 @@ def run_processing_time_task(start, up_to):
         with freeze_time(processing_time_task_run_date_time):
             update_cases_sla()
         processing_time_task_run_date_time = processing_time_task_run_date_time + datetime.timedelta(days=1)
-
-
-@pytest.fixture(autouse=True)
-def mock_s3():
-    with mock_aws():
-        s3 = init_s3_client()
-        s3.create_bucket(
-            Bucket=settings.AWS_STORAGE_BUCKET_NAME,
-            CreateBucketConfiguration={
-                "LocationConstraint": settings.AWS_REGION,
-            },
-        )
-        yield
 
 
 @pytest.fixture
@@ -101,51 +72,6 @@ def submit_application(api_client, exporter_headers, mocker):
         return draft_application
 
     return _submit_application
-
-
-@pytest.fixture()
-def issue_licence(api_client, lu_case_officer, gov_headers, siel_template):
-    def _issue_licence(application):
-        data = {"action": AdviceType.APPROVE, "duration": 24}
-        for good_on_app in application.goods.all():
-            good_on_app.quantity = 100
-            good_on_app.value = 10000
-            good_on_app.save()
-            data[f"quantity-{good_on_app.id}"] = str(good_on_app.quantity)
-            data[f"value-{good_on_app.id}"] = str(good_on_app.value)
-            FinalAdviceFactory(user=lu_case_officer, case=application, good=good_on_app.good)
-
-        issue_date = datetime.datetime.now()
-        data.update({"year": issue_date.year, "month": issue_date.month, "day": issue_date.day})
-
-        application.flags.remove(SystemFlags.ENFORCEMENT_CHECK_REQUIRED)
-
-        url = reverse("applications:finalise", kwargs={"pk": application.pk})
-        response = api_client.put(url, data=data, **gov_headers)
-        assert response.status_code == 200, response.content
-        response = response.json()
-
-        data = {
-            "template": str(siel_template.id),
-            "text": "",
-            "visible_to_exporter": False,
-            "advice_type": AdviceType.APPROVE,
-        }
-        url = reverse(
-            "cases:generated_documents:generated_documents",
-            kwargs={"pk": str(application.pk)},
-        )
-        response = api_client.post(url, data=data, **gov_headers)
-        assert response.status_code == 201, response.content
-
-        url = reverse(
-            "cases:finalise",
-            kwargs={"pk": str(application.pk)},
-        )
-        response = api_client.put(url, data={}, **gov_headers)
-        assert response.status_code == 201
-
-    return _issue_licence
 
 
 @pytest.fixture()
@@ -193,25 +119,6 @@ def exporter_change_status(api_client, exporter_headers):
 def given_draft_standard_application(organisation):
     application = DraftStandardApplicationFactory(
         organisation=organisation,
-    )
-
-    PartyDocumentFactory(
-        party=application.end_user.party,
-        s3_key="party-document",
-        safe=True,
-    )
-
-    return application
-
-
-@given(
-    parsers.parse("a draft standard application with attributes:{attributes}"),
-    target_fixture="draft_standard_application",
-)
-def given_a_draft_standard_application_with_attributes(organisation, parse_attributes, attributes):
-    application = DraftStandardApplicationFactory(
-        organisation=organisation,
-        **parse_attributes(attributes),
     )
 
     PartyDocumentFactory(

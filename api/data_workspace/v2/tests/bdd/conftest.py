@@ -25,6 +25,10 @@ from api.applications.tests.factories import (
     PartyOnApplicationFactory,
     StandardApplicationFactory,
 )
+from api.cases.enums import (
+    AdviceType,
+)
+from api.cases.tests.factories import FinalAdviceFactory
 from api.cases.enums import CaseTypeEnum
 from api.cases.models import CaseType
 from api.core.constants import (
@@ -33,11 +37,16 @@ from api.core.constants import (
     Roles,
 )
 from api.goods.tests.factories import GoodFactory
+from api.flags.enums import SystemFlags
 from api.documents.libraries.s3_operations import init_s3_client
 from api.letter_templates.models import LetterTemplate
 from api.parties.tests.factories import PartyDocumentFactory
 from api.organisations.tests.factories import OrganisationFactory
 from api.staticdata.letter_layouts.models import LetterLayout
+from api.staticdata.report_summaries.models import (
+    ReportSummaryPrefix,
+    ReportSummarySubject,
+)
 from api.staticdata.statuses.enums import CaseStatusEnum
 from api.staticdata.statuses.models import CaseStatus
 from api.staticdata.units.enums import Units
@@ -131,6 +140,18 @@ def gov_user_permissions():
 
 
 @pytest.fixture()
+def ogd_advisor(gov_user, gov_user_permissions):
+    gov_user.role = RoleFactory(name="OGD Advisor", type=UserType.INTERNAL)
+    gov_user.role.permissions.set(
+        [
+            GovPermissions.MAINTAIN_FOOTNOTES.name,
+        ]
+    )
+    gov_user.save()
+    return gov_user
+
+
+@pytest.fixture()
 def lu_case_officer(gov_user, gov_user_permissions):
     gov_user.role = RoleFactory(name="Case officer", type=UserType.INTERNAL)
     gov_user.role.permissions.set(
@@ -159,6 +180,11 @@ def lu_senior_manager(lu_user, gov_user_permissions):
 @pytest.fixture()
 def gov_headers(gov_user):
     return {"HTTP_GOV_USER_TOKEN": user_to_token(gov_user.baseuser_ptr)}
+
+
+@pytest.fixture()
+def ogd_advisor_headers(ogd_advisor):
+    return {"HTTP_GOV_USER_TOKEN": user_to_token(ogd_advisor.baseuser_ptr)}
 
 
 @pytest.fixture()
@@ -363,6 +389,9 @@ def check_rows(client, parse_table, unpage_data, table_name, rows):
     for row in parsed_rows[1:]:
         expected_data.append({key: value for key, value in zip(keys, row)})
     expected_data = cast_to_types(expected_data, table_metadata["fields"])
+
+    actual_data = sorted(actual_data, key=lambda d, key=keys[0]: d[key])
+    expected_data = sorted(expected_data, key=lambda d, key=keys[0]: d[key])
     assert actual_data == expected_data
 
 
@@ -371,3 +400,145 @@ def given_endpoint_exists(client, table_name):
     metadata_url = reverse("data_workspace:v2:table-metadata")
     response = client.get(metadata_url)
     assert table_name in [t["table_name"] for t in response.json()["tables"]]
+
+
+@given(parsers.parse("the application has the following goods:{goods}"))
+def given_the_application_has_the_following_goods(parse_table, draft_standard_application, goods):
+    draft_standard_application.goods.all().delete()
+    good_attributes = parse_table(goods)[1:]
+    for id, name in good_attributes:
+        GoodOnApplicationFactory(
+            application=draft_standard_application,
+            id=id,
+            good__name=name,
+        )
+
+
+@when(parsers.parse("the goods are assessed by TAU as:{assessments}"))
+def when_the_goods_are_assessed_by_tau(
+    parse_table,
+    submitted_standard_application,
+    assessments,
+    api_client,
+    lu_case_officer,
+    gov_headers,
+):
+    assessments = parse_table(assessments)[1:]
+    url = reverse("assessments:make_assessments", kwargs={"case_pk": submitted_standard_application.pk})
+
+    assessment_payload = []
+    for good_on_application_id, control_list_entry, report_summary_prefix, report_summary_subject in assessments:
+        data = {
+            "id": good_on_application_id,
+            "comment": "Some comment",
+        }
+
+        if control_list_entry == "NLR":
+            data.update(
+                {
+                    "control_list_entries": [],
+                    "is_good_controlled": False,
+                }
+            )
+        else:
+            if report_summary_prefix:
+                prefix = ReportSummaryPrefix.objects.get(name=report_summary_prefix)
+            else:
+                prefix = None
+            subject = ReportSummarySubject.objects.get(name=report_summary_subject)
+            data.update(
+                {
+                    "control_list_entries": [control_list_entry],
+                    "report_summary_prefix": prefix.pk if prefix else None,
+                    "report_summary_subject": subject.pk,
+                    "is_good_controlled": True,
+                    "regime_entries": [],
+                }
+            )
+        assessment_payload.append(data)
+
+    response = api_client.put(
+        url,
+        assessment_payload,
+        **gov_headers,
+    )
+    assert response.status_code == 200, response.content
+
+
+@pytest.fixture()
+def parse_attributes(parse_table):
+    def _parse_attributes(attributes):
+        kwargs = {}
+        table_data = parse_table(attributes)
+        for key, value in table_data[1:]:
+            kwargs[key] = value
+        return kwargs
+
+    return _parse_attributes
+
+
+@given(
+    parsers.parse("a draft standard application with attributes:{attributes}"),
+    target_fixture="draft_standard_application",
+)
+def given_a_draft_standard_application_with_attributes(organisation, parse_attributes, attributes):
+    application = DraftStandardApplicationFactory(
+        organisation=organisation,
+        **parse_attributes(attributes),
+    )
+
+    PartyDocumentFactory(
+        party=application.end_user.party,
+        s3_key="party-document",
+        safe=True,
+    )
+
+    return application
+
+
+@pytest.fixture()
+def issue_licence(api_client, lu_case_officer, gov_headers, siel_template):
+    def _issue_licence(application):
+        data = {"action": AdviceType.APPROVE, "duration": 24}
+        for good_on_app in application.goods.all():
+            good_on_app.quantity = 100
+            good_on_app.value = 10000
+            good_on_app.save()
+            data[f"quantity-{good_on_app.id}"] = str(good_on_app.quantity)
+            data[f"value-{good_on_app.id}"] = str(good_on_app.value)
+            # create final advice for controlled goods; skip NLR goods
+            if good_on_app.is_good_controlled == False:
+                continue
+            FinalAdviceFactory(user=lu_case_officer, case=application, good=good_on_app.good)
+
+        issue_date = datetime.datetime.now()
+        data.update({"year": issue_date.year, "month": issue_date.month, "day": issue_date.day})
+
+        application.flags.remove(SystemFlags.ENFORCEMENT_CHECK_REQUIRED)
+
+        url = reverse("applications:finalise", kwargs={"pk": application.pk})
+        response = api_client.put(url, data=data, **gov_headers)
+        assert response.status_code == 200, response.content
+        response = response.json()
+
+        data = {
+            "template": str(siel_template.id),
+            "text": "",
+            "visible_to_exporter": False,
+            "advice_type": AdviceType.APPROVE,
+        }
+        url = reverse(
+            "cases:generated_documents:generated_documents",
+            kwargs={"pk": str(application.pk)},
+        )
+        response = api_client.post(url, data=data, **gov_headers)
+        assert response.status_code == 201, response.content
+
+        url = reverse(
+            "cases:finalise",
+            kwargs={"pk": str(application.pk)},
+        )
+        response = api_client.put(url, data={}, **gov_headers)
+        assert response.status_code == 201
+
+    return _issue_licence
