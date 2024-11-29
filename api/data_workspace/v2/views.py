@@ -29,6 +29,7 @@ from api.core.authentication import DataWorkspaceOnlyAuthentication
 from api.core.helpers import str_to_bool
 from api.data_workspace.v2.serializers import (
     ApplicationSerializer,
+    AssessmentSerializer,
     CountrySerializer,
     DestinationSerializer,
     GoodDescriptionSerializer,
@@ -38,6 +39,7 @@ from api.data_workspace.v2.serializers import (
 )
 from api.licences.enums import LicenceStatus
 from api.licences.models import GoodOnLicence
+from api.staticdata.control_list_entries.models import ControlListEntry
 from api.staticdata.countries.models import Country
 from api.staticdata.report_summaries.models import ReportSummary
 from api.staticdata.statuses.enums import CaseStatusEnum
@@ -155,3 +157,19 @@ class ApplicationViewSet(BaseViewSet):
 
     class DataWorkspace:
         table_name = "applications"
+
+
+class AssessmentViewSet(BaseViewSet):
+    serializer_class = AssessmentSerializer
+
+    def get_queryset(self):
+        return (
+            ControlListEntry.objects.annotate(
+                good_id=F("goodonapplication__id"),
+            )
+            .exclude(good_id__isnull=True)
+            .order_by("rating")
+        )
+
+    class DataWorkspace:
+        table_name = "goods_ratings"
