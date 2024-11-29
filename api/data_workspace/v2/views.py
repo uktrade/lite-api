@@ -2,7 +2,6 @@ import itertools
 
 from rest_framework import viewsets
 from rest_framework.pagination import LimitOffsetPagination
-from rest_framework.response import Response
 from rest_framework.settings import api_settings
 
 from rest_framework_csv.renderers import PaginatedCSVRenderer
@@ -17,7 +16,6 @@ from django.db.models.aggregates import (
     Min,
 )
 from django.db.models.lookups import GreaterThan
-from django.http import Http404
 
 from api.applications.models import (
     GoodOnApplication,
