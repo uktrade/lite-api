@@ -142,6 +142,13 @@ class ApplicationSerializer(serializers.ModelSerializer):
         return None
 
 
+class FootnoteSerializer(serializers.Serializer):
+    footnote = serializers.CharField()
+    team_name = serializers.CharField(source="team__name")
+    application_id = serializers.CharField(source="case__pk")
+    type = serializers.CharField()
+
+
 class AssessmentSerializer(serializers.ModelSerializer):
     good_id = serializers.UUIDField()
 
