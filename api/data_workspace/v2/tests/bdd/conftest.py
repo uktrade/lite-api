@@ -25,6 +25,10 @@ from api.applications.tests.factories import (
     PartyOnApplicationFactory,
     StandardApplicationFactory,
 )
+from api.cases.enums import (
+    AdviceType,
+)
+from api.cases.tests.factories import FinalAdviceFactory
 from api.cases.enums import CaseTypeEnum
 from api.cases.models import CaseType
 from api.core.constants import (
@@ -33,6 +37,7 @@ from api.core.constants import (
     Roles,
 )
 from api.goods.tests.factories import GoodFactory
+from api.flags.enums import SystemFlags
 from api.documents.libraries.s3_operations import init_s3_client
 from api.letter_templates.models import LetterTemplate
 from api.parties.tests.factories import PartyDocumentFactory
@@ -364,3 +369,63 @@ def check_rows(client, parse_table, unpage_data, table_name, rows):
         expected_data.append({key: value for key, value in zip(keys, row)})
     expected_data = cast_to_types(expected_data, table_metadata["fields"])
     assert actual_data == expected_data
+
+
+@pytest.fixture()
+def parse_attributes(parse_table):
+    def _parse_attributes(attributes):
+        kwargs = {}
+        table_data = parse_table(attributes)
+        for key, value in table_data[1:]:
+            kwargs[key] = value
+        return kwargs
+
+    return _parse_attributes
+
+
+@pytest.fixture()
+def issue_licence(api_client, lu_case_officer, gov_headers, siel_template):
+    def _issue_licence(application):
+        data = {"action": AdviceType.APPROVE, "duration": 24}
+        for good_on_app in application.goods.all():
+            good_on_app.quantity = 100
+            good_on_app.value = 10000
+            good_on_app.save()
+            data[f"quantity-{good_on_app.id}"] = str(good_on_app.quantity)
+            data[f"value-{good_on_app.id}"] = str(good_on_app.value)
+            # create final advice for controlled goods; skip NLR goods
+            if good_on_app.is_good_controlled == False:
+                continue
+            FinalAdviceFactory(user=lu_case_officer, case=application, good=good_on_app.good)
+
+        issue_date = datetime.datetime.now()
+        data.update({"year": issue_date.year, "month": issue_date.month, "day": issue_date.day})
+
+        application.flags.remove(SystemFlags.ENFORCEMENT_CHECK_REQUIRED)
+
+        url = reverse("applications:finalise", kwargs={"pk": application.pk})
+        response = api_client.put(url, data=data, **gov_headers)
+        assert response.status_code == 200, response.content
+        response = response.json()
+
+        data = {
+            "template": str(siel_template.id),
+            "text": "",
+            "visible_to_exporter": False,
+            "advice_type": AdviceType.APPROVE,
+        }
+        url = reverse(
+            "cases:generated_documents:generated_documents",
+            kwargs={"pk": str(application.pk)},
+        )
+        response = api_client.post(url, data=data, **gov_headers)
+        assert response.status_code == 201, response.content
+
+        url = reverse(
+            "cases:finalise",
+            kwargs={"pk": str(application.pk)},
+        )
+        response = api_client.put(url, data={}, **gov_headers)
+        assert response.status_code == 201
+
+    return _issue_licence

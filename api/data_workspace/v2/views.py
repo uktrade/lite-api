@@ -34,7 +34,10 @@ from api.data_workspace.v2.serializers import (
     GoodDescriptionSerializer,
     GoodSerializer,
     LicenceDecisionSerializer,
+    GoodOnLicenceSerializer,
 )
+from api.licences.enums import LicenceStatus
+from api.licences.models import GoodOnLicence
 from api.staticdata.countries.models import Country
 from api.staticdata.report_summaries.models import ReportSummary
 from api.staticdata.statuses.enums import CaseStatusEnum
@@ -115,6 +118,17 @@ def get_closed_statuses():
     return list(
         itertools.chain.from_iterable((status, status_map[status]) for status in CaseStatusEnum.closed_statuses())
     )
+
+
+class GoodOnLicenceViewSet(BaseViewSet):
+    serializer_class = GoodOnLicenceSerializer
+    queryset = GoodOnLicence.objects.exclude(
+        licence__case__status__status=CaseStatusEnum.DRAFT,
+        licence__status=LicenceStatus.DRAFT,
+    )
+
+    class DataWorkspace:
+        table_name = "goods_on_licences"
 
 
 class ApplicationViewSet(BaseViewSet):
