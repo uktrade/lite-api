@@ -7,7 +7,10 @@ from api.applications.tests.factories import (
     PartyOnApplicationFactory,
     DraftStandardApplicationFactory,
 )
-from api.cases.enums import AdviceType
+from api.cases.enums import (
+    AdviceLevel,
+    AdviceType,
+)
 from api.cases.tests.factories import FinalAdviceFactory
 from api.goods.tests.factories import GoodFactory
 from api.licences.enums import LicenceStatus
@@ -75,7 +78,12 @@ def standard_case_with_final_advice(lu_case_officer):
 
 @pytest.fixture()
 def standard_case_with_refused_advice(lu_case_officer, standard_case_with_final_advice):
-    standard_case_with_final_advice.advice.update(type=AdviceType.REFUSE)
+    final_advice = standard_case_with_final_advice.advice.filter(level=AdviceLevel.FINAL)
+    for advice in final_advice:
+        advice.type = AdviceType.REFUSE
+        advice.text = "refusing licence"
+        advice.denial_reasons.set(["1a", "1b", "1c"])
+        advice.save()
     return standard_case_with_final_advice
 
 

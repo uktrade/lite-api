@@ -187,7 +187,7 @@ def case_officer_refuses_licence(client, gov_headers, case_with_refused_advice):
         kwargs={"pk": str(case_with_refused_advice.pk)},
     )
     response = client.put(url, {}, content_type="application/json", **gov_headers)
-    assert response.status_code == 201
+    assert response.status_code == 201, response.content
 
     case_with_refused_advice.refresh_from_db()
     assert case_with_refused_advice.status == CaseStatus.objects.get(status=CaseStatusEnum.FINALISED)
@@ -297,10 +297,12 @@ def case_ready_to_be_finalised_after_refusing_licence(client, lu_case_officer_he
     case_with_final_advice = issued_licence.case
     assert case_with_final_advice.status == CaseStatus.objects.get(status=CaseStatusEnum.FINALISED)
 
-    case_with_final_advice.advice.filter(level=AdviceLevel.FINAL).update(
-        type=AdviceType.REFUSE,
-        text="refusing licence",
-    )
+    final_advice = case_with_final_advice.advice.filter(level=AdviceLevel.FINAL)
+    for advice in final_advice:
+        advice.type = AdviceType.REFUSE
+        advice.text = "refusing licence"
+        advice.denial_reasons.set(["1a", "1b", "1c"])
+        advice.save()
 
     case_with_final_advice = case_reopen_prepare_to_finalise(client, lu_case_officer_headers, case_with_final_advice)
 
