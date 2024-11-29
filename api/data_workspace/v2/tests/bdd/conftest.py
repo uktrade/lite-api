@@ -2,7 +2,9 @@ import datetime
 import json
 import pytest
 import pytz
+import uuid
 
+from dateutil.parser import parse
 from freezegun import freeze_time
 from moto import mock_aws
 
@@ -215,13 +217,13 @@ def api_client():
 
 
 @pytest.fixture()
-def unpage_data(client):
+def unpage_data(api_client):
     def _unpage_data(url):
         unpaged_results = []
         while True:
-            response = client.get(url)
+            response = api_client.get(url)
             assert response.status_code == status.HTTP_200_OK
-            unpaged_results += response.data["results"]
+            unpaged_results += response.json()["results"]
             if not response.data["next"]:
                 break
             url = response.data["next"]
@@ -350,13 +352,17 @@ def cast_to_types(data, fields_metadata):
     for row in data:
         cast_row = row.copy()
         for key, value in cast_row.items():
+            if not value:
+                continue
             field_metadata = fields_metadata[key]
             if value == "NULL":
                 cast_row[key] = None
             elif field_metadata["type"] == "Integer":
                 cast_row[key] = int(value)
             elif field_metadata["type"] == "DateTime":
-                cast_row[key] = pytz.utc.localize(datetime.datetime.fromisoformat(value))
+                cast_row[key] = pytz.utc.localize(parse(value, ignoretz=True))
+            elif field_metadata["type"] == "UUID":
+                cast_row[key] = uuid.UUID(value)
         cast_data.append(cast_row)
 
     return cast_data
@@ -375,6 +381,7 @@ def check_rows(client, parse_table, unpage_data, table_name, rows):
         pytest.fail(f"No table called {table_name} found")
 
     actual_data = unpage_data(table_metadata["endpoint"])
+    actual_data = cast_to_types(actual_data, table_metadata["fields"])
     parsed_rows = parse_table(rows)
     keys = parsed_rows[0]
     expected_data = []
