@@ -9,15 +9,21 @@ Scenario: Cancelled licence
     Given a standard licence is cancelled
     Then the `licence_decisions` table is empty
 
-# [ISSUED]
+
+@issued_licence
 Scenario: Issued licence decision is created when licence is issued
-    Given a case is ready to be finalised
-    When the licence for the case is approved
-    And case officer generates licence documents
-    And case officer issues licence for this case
-    Then a licence decision with an issued decision is created
-    When I fetch all licence decisions
-    Then I see issued licence is included in the extract
+    Given a draft standard application with attributes:
+        | name | value                                |
+        | id   | 03fb08eb-1564-4b68-9336-3ca8906543f9 |
+    When the application is submitted at 2024-10-01T11:20:15
+    And the application is issued at 2024-11-22T13:35:15 with attributes:
+        | name                | value                                |
+        | id                  | 1b2f95c3-9cd2-4dee-b134-a79786f78c06 |
+        | licence_decision_id | ebd27511-7be3-4e5c-9ce9-872ad22811a1 |
+    Then the `licence_decisions` table has the following rows:
+        | id                                   | application_id                       | decision     | decision_made_at      | licence_id                            |
+        | ebd27511-7be3-4e5c-9ce9-872ad22811a1 | 03fb08eb-1564-4b68-9336-3ca8906543f9 | issued       | 2024-11-22T13:35:15   | 1b2f95c3-9cd2-4dee-b134-a79786f78c06  |
+
 
 # [REFUSED]
 Scenario: Refused licence decision is created when licence is refused

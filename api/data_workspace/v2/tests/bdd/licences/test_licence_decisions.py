@@ -1,11 +1,14 @@
 import pytest
 
+from freezegun import freeze_time
+
 from django.urls import reverse
 from django.utils import timezone
 from pytest_bdd import (
     given,
     then,
     when,
+    parsers,
     scenarios,
 )
 from unittest import mock
@@ -18,6 +21,7 @@ from api.licences.models import Licence
 from api.staticdata.statuses.enums import CaseStatusEnum
 from api.staticdata.statuses.models import CaseStatus
 
+from api.data_workspace.v2.tests.bdd.test_applications import run_processing_time_task
 
 scenarios("../scenarios/licence_decisions.feature")
 
@@ -313,3 +317,26 @@ def licence_decision_issued_on_appeal_created(issued_licence):
 
     assert all_licence_decisions.first().decision == LicenceDecisionType.REFUSED
     assert all(item.decision == LicenceDecisionType.ISSUED_ON_APPEAL for item in all_licence_decisions[1:])
+
+
+@when(
+    parsers.parse("the application is issued at {timestamp} with attributes:{attributes}"),
+    target_fixture="issued_application",
+)
+def when_the_application_is_issued_at(
+    issue_licence,
+    submitted_standard_application,
+    parse_attributes,
+    timestamp,
+    attributes,
+):
+    run_processing_time_task(submitted_standard_application.submitted_at, timestamp)
+
+    with freeze_time(timestamp):
+        data = parse_attributes(attributes)
+        issue_licence(submitted_standard_application, data)
+
+    submitted_standard_application.refresh_from_db()
+    issued_application = submitted_standard_application
+
+    return issued_application

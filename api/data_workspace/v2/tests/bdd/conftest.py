@@ -3,6 +3,7 @@ import json
 import pytest
 import pytz
 
+from freezegun import freeze_time
 from moto import mock_aws
 
 from rest_framework import status
@@ -25,12 +26,9 @@ from api.applications.tests.factories import (
     PartyOnApplicationFactory,
     StandardApplicationFactory,
 )
-from api.cases.enums import (
-    AdviceType,
-)
 from api.cases.tests.factories import FinalAdviceFactory
-from api.cases.enums import CaseTypeEnum
-from api.cases.models import CaseType
+from api.cases.enums import AdviceType, CaseTypeEnum, LicenceDecisionType
+from api.cases.models import CaseType, LicenceDecision
 from api.core.constants import (
     ExporterPermissions,
     GovPermissions,
@@ -40,6 +38,9 @@ from api.goods.tests.factories import GoodFactory
 from api.flags.enums import SystemFlags
 from api.documents.libraries.s3_operations import init_s3_client
 from api.letter_templates.models import LetterTemplate
+from api.licences.enums import LicenceStatus
+from api.licences.models import Licence
+from api.licences.tests.factories import GoodOnLicenceFactory, StandardLicenceFactory
 from api.parties.tests.factories import PartyDocumentFactory
 from api.organisations.tests.factories import OrganisationFactory
 from api.staticdata.letter_layouts.models import LetterLayout
@@ -231,6 +232,18 @@ def unpage_data(client):
 
 
 @pytest.fixture()
+def parse_attributes(parse_table):
+    def _parse_attributes(attributes):
+        kwargs = {}
+        table_data = parse_table(attributes)
+        for key, value in table_data[1:]:
+            kwargs[key] = value
+        return kwargs
+
+    return _parse_attributes
+
+
+@pytest.fixture()
 def standard_application():
     application = StandardApplicationFactory(
         status=CaseStatus.objects.get(status=CaseStatusEnum.UNDER_FINAL_REVIEW),
@@ -371,21 +384,37 @@ def check_rows(client, parse_table, unpage_data, table_name, rows):
     assert actual_data == expected_data
 
 
-@pytest.fixture()
-def parse_attributes(parse_table):
-    def _parse_attributes(attributes):
-        kwargs = {}
-        table_data = parse_table(attributes)
-        for key, value in table_data[1:]:
-            kwargs[key] = value
-        return kwargs
+@when(
+    parsers.parse("the application is submitted at {submission_time}"),
+    target_fixture="submitted_standard_application",
+)
+def when_the_application_is_submitted_at(submit_application, draft_standard_application, submission_time):
+    with freeze_time(submission_time):
+        return submit_application(draft_standard_application)
 
-    return _parse_attributes
+
+@given(
+    parsers.parse("a draft standard application with attributes:{attributes}"),
+    target_fixture="draft_standard_application",
+)
+def given_a_draft_standard_application_with_attributes(organisation, parse_attributes, attributes):
+    application = DraftStandardApplicationFactory(
+        organisation=organisation,
+        **parse_attributes(attributes),
+    )
+
+    PartyDocumentFactory(
+        party=application.end_user.party,
+        s3_key="party-document",
+        safe=True,
+    )
+
+    return application
 
 
 @pytest.fixture()
 def issue_licence(api_client, lu_case_officer, gov_headers, siel_template):
-    def _issue_licence(application):
+    def _issue_licence(application, licence_data=None):
         data = {"action": AdviceType.APPROVE, "duration": 24}
         for good_on_app in application.goods.all():
             good_on_app.quantity = 100
@@ -408,6 +437,19 @@ def issue_licence(api_client, lu_case_officer, gov_headers, siel_template):
         assert response.status_code == 200, response.content
         response = response.json()
 
+        if licence_data:
+            draft_licence = Licence.objects.get(case=application, status=LicenceStatus.DRAFT)
+            draft_licence.delete()
+
+            draft_licence = StandardLicenceFactory(id=licence_data["id"], case=application)
+            for good_on_application in application.goods.all():
+                GoodOnLicenceFactory(
+                    licence=draft_licence,
+                    good=good_on_application,
+                    quantity=good_on_application.quantity,
+                    value=good_on_application.value,
+                )
+
         data = {
             "template": str(siel_template.id),
             "text": "",
@@ -427,5 +469,15 @@ def issue_licence(api_client, lu_case_officer, gov_headers, siel_template):
         )
         response = api_client.put(url, data={}, **gov_headers)
         assert response.status_code == 201
+
+        if licence_data:
+            ld_obj = application.licence_decisions.filter(decision=LicenceDecisionType.ISSUED).last()
+            LicenceDecision.objects.create(
+                id=licence_data["licence_decision_id"],
+                case_id=ld_obj.case_id,
+                decision=ld_obj.decision,
+                licence_id=ld_obj.licence_id,
+            )
+            ld_obj.delete()
 
     return _issue_licence

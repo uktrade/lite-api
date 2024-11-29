@@ -131,25 +131,6 @@ def given_draft_standard_application(organisation):
 
 
 @given(
-    parsers.parse("a draft standard application with attributes:{attributes}"),
-    target_fixture="draft_standard_application",
-)
-def given_a_draft_standard_application_with_attributes(organisation, parse_attributes, attributes):
-    application = DraftStandardApplicationFactory(
-        organisation=organisation,
-        **parse_attributes(attributes),
-    )
-
-    PartyDocumentFactory(
-        party=application.end_user.party,
-        s3_key="party-document",
-        safe=True,
-    )
-
-    return application
-
-
-@given(
     parsers.parse("a draft temporary standard application with attributes:{attributes}"),
     target_fixture="draft_standard_application",
 )
@@ -202,15 +183,6 @@ def given_a_good_is_onward_incorporated(draft_standard_application):
 )
 def when_the_application_is_submitted(submit_application, draft_standard_application):
     return submit_application(draft_standard_application)
-
-
-@when(
-    parsers.parse("the application is submitted at {submission_time}"),
-    target_fixture="submitted_standard_application",
-)
-def when_the_application_is_submitted_at(submit_application, draft_standard_application, submission_time):
-    with freeze_time(submission_time):
-        return submit_application(draft_standard_application)
 
 
 @when(parsers.parse("the application is issued at {timestamp}"), target_fixture="issued_application")
