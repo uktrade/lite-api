@@ -491,7 +491,10 @@ if IS_ENV_DBT_PLATFORM:
     LITE_API_ENABLE_ES = env.bool("LITE_API_ENABLE_ES", False)
     if LITE_API_ENABLE_ES:
         ELASTICSEARCH_DSL = {
-            "default": {"hosts": env.str("OPENSEARCH_ENDPOINT")},
+            "default": {
+                "hosts": env.str("OPENSEARCH_ENDPOINT"),
+                "timeout": 30,
+            },
         }
 
         ENABLE_SPIRE_SEARCH = env.bool("ENABLE_SPIRE_SEARCH", False)
