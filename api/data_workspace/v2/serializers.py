@@ -168,7 +168,7 @@ class AssessmentSerializer(serializers.ModelSerializer):
 
 class LicenceRefusalCriteriaSerializer(serializers.ModelSerializer):
     criteria = serializers.CharField(source="display_value")
-    licence_decision_id = serializers.UUIDField(source="licence_decisions_id")
+    licence_decision_id = serializers.UUIDField(source="licence_decision_id")
 
     class Meta:
         model = DenialReason

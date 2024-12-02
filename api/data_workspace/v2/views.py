@@ -204,7 +204,7 @@ class AssessmentViewSet(BaseViewSet):
 class LicenceRefusalCriteriaViewSet(BaseViewSet):
     serializer_class = LicenceRefusalCriteriaSerializer
     queryset = DenialReason.objects.exclude(licencedecision__denial_reasons__isnull=True).annotate(
-        licence_decisions_id=F("licencedecision__id")
+        licence_decision_id=F("licencedecision__id")
     )
 
     class DataWorkspace:
