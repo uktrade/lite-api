@@ -1,17 +1,15 @@
 import datetime
+
 import pytest
 import pytz
-
+from django.urls import reverse
 from freezegun import freeze_time
-
 from pytest_bdd import (
     given,
     parsers,
     scenarios,
     when,
 )
-
-from django.urls import reverse
 
 from api.applications.enums import ApplicationExportType
 from api.applications.tests.factories import (
@@ -32,7 +30,6 @@ from api.parties.tests.factories import (
     UltimateEndUserFactory,
 )
 from api.staticdata.statuses.enums import CaseStatusEnum
-
 
 scenarios("./scenarios/applications.feature")
 

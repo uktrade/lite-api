@@ -1,11 +1,5 @@
 import itertools
 
-from rest_framework import viewsets
-from rest_framework.pagination import LimitOffsetPagination
-from rest_framework.settings import api_settings
-
-from rest_framework_csv.renderers import PaginatedCSVRenderer
-
 from django.db.models import (
     F,
     Prefetch,
@@ -16,6 +10,10 @@ from django.db.models.aggregates import (
     Min,
 )
 from django.db.models.lookups import GreaterThan
+from rest_framework import viewsets
+from rest_framework.pagination import LimitOffsetPagination
+from rest_framework.settings import api_settings
+from rest_framework_csv.renderers import PaginatedCSVRenderer
 
 from api.applications.models import (
     GoodOnApplication,
@@ -24,7 +22,10 @@ from api.applications.models import (
 )
 from api.audit_trail.enums import AuditType
 from api.audit_trail.models import Audit
-from api.cases.models import Advice, LicenceDecision
+from api.cases.models import (
+    Advice,
+    LicenceDecision,
+)
 from api.core.authentication import DataWorkspaceOnlyAuthentication
 from api.core.helpers import str_to_bool
 from api.data_workspace.v2.serializers import (
@@ -34,10 +35,10 @@ from api.data_workspace.v2.serializers import (
     DestinationSerializer,
     FootnoteSerializer,
     GoodDescriptionSerializer,
+    GoodOnLicenceSerializer,
     GoodSerializer,
     LicenceDecisionSerializer,
     UnitSerializer,
-    GoodOnLicenceSerializer,
 )
 from api.licences.enums import LicenceStatus
 from api.licences.models import GoodOnLicence

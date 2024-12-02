@@ -1,7 +1,11 @@
 import pytest
-from pytest_bdd import given, scenarios, then, when
-
 from django.urls import reverse
+from pytest_bdd import (
+    given,
+    scenarios,
+    then,
+    when,
+)
 
 from api.applications.models import PartyOnApplication
 from api.licences.enums import LicenceStatus

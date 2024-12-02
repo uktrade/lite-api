@@ -1,23 +1,26 @@
-import pytest
+from unittest import mock
 
+import pytest
 from django.urls import reverse
 from django.utils import timezone
 from pytest_bdd import (
     given,
+    scenarios,
     then,
     when,
-    scenarios,
 )
-from unittest import mock
 
 from api.applications.models import StandardApplication
-from api.cases.enums import AdviceLevel, AdviceType, LicenceDecisionType
+from api.cases.enums import (
+    AdviceLevel,
+    AdviceType,
+    LicenceDecisionType,
+)
 from api.cases.models import LicenceDecision
 from api.licences.enums import LicenceStatus
 from api.licences.models import Licence
 from api.staticdata.statuses.enums import CaseStatusEnum
 from api.staticdata.statuses.models import CaseStatus
-
 
 scenarios("./scenarios/licence_decisions.feature")
 
