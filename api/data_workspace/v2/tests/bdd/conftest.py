@@ -7,7 +7,6 @@ import uuid
 from dateutil.parser import parse
 from freezegun import freeze_time
 from moto import mock_aws
-from unittest.mock import patch
 
 from rest_framework import status
 from rest_framework.test import APIClient
@@ -670,12 +669,14 @@ def when_the_application_is_issued_at(
     issue_licence,
     submitted_standard_application,
     timestamp,
+    mocker,
 ):
     run_processing_time_task(submitted_standard_application.submitted_at, timestamp)
 
-    with freeze_time(timestamp), patch.object(Licence, "save", mock_licence_save), patch.object(
-        LicenceDecision, "save", mock_licence_decision_save
-    ):
+    mocker.patch.object(Licence, "save", mock_licence_save)
+    mocker.patch.object(LicenceDecision, "save", mock_licence_decision_save)
+
+    with freeze_time(timestamp):
         issue_licence(submitted_standard_application)
 
     submitted_standard_application.refresh_from_db()
@@ -689,10 +690,13 @@ def when_the_application_is_refused_at(
     submitted_standard_application,
     refuse_licence,
     timestamp,
+    mocker,
 ):
     run_processing_time_task(submitted_standard_application.submitted_at, timestamp)
 
-    with freeze_time(timestamp), patch.object(LicenceDecision, "save", mock_licence_decision_refuse):
+    mocker.patch.object(LicenceDecision, "save", mock_licence_decision_refuse)
+
+    with freeze_time(timestamp):
         refuse_licence(submitted_standard_application)
 
     submitted_standard_application.refresh_from_db()
@@ -706,10 +710,13 @@ def when_the_issued_application_is_revoked(
     lu_sr_manager_headers,
     issued_application,
     timestamp,
+    mocker,
 ):
     run_processing_time_task(issued_application.submitted_at, timestamp)
 
-    with freeze_time(timestamp), patch.object(LicenceDecision, "save", mock_licence_decision_revoke):
+    mocker.patch.object(LicenceDecision, "save", mock_licence_decision_revoke)
+
+    with freeze_time(timestamp):
         issued_licence = issued_application.licences.get()
         url = reverse("licences:licence_details", kwargs={"pk": str(issued_licence.pk)})
         response = api_client.patch(
@@ -775,12 +782,14 @@ def when_the_application_is_issued_on_appeal_at(
     timestamp,
     caseworker_change_status,
     issue_licence,
+    mocker,
 ):
     run_processing_time_task(appealed_application.appeal.created_at, timestamp)
 
-    with freeze_time(timestamp), patch.object(Licence, "save", mock_licence_save_on_appeal), patch.object(
-        LicenceDecision, "save", mock_licence_decision_appeal
-    ):
+    mocker.patch.object(Licence, "save", mock_licence_save_on_appeal)
+    mocker.patch.object(LicenceDecision, "save", mock_licence_decision_appeal)
+
+    with freeze_time(timestamp):
         appealed_application.advice.filter(level=AdviceLevel.FINAL).update(
             type=AdviceType.APPROVE,
             text="issued on appeal",
@@ -802,12 +811,14 @@ def when_the_application_is_issued_again_at(
     timestamp,
     caseworker_change_status,
     issue_licence,
+    mocker,
 ):
     run_processing_time_task(issued_application.appeal.created_at, timestamp)
 
-    with freeze_time(timestamp), patch.object(Licence, "save", mock_licence_save_reissue), patch.object(
-        LicenceDecision, "save", mock_licence_decision_reissue
-    ):
+    mocker.patch.object(Licence, "save", mock_licence_save_reissue)
+    mocker.patch.object(LicenceDecision, "save", mock_licence_decision_reissue)
+
+    with freeze_time(timestamp):
         issued_application.advice.filter(level=AdviceLevel.FINAL).update(
             type=AdviceType.APPROVE,
             text="reissuing the licence",
