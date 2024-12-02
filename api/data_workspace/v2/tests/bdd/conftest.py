@@ -502,52 +502,6 @@ def run_processing_time_task(start, up_to):
         processing_time_task_run_date_time = processing_time_task_run_date_time + datetime.timedelta(days=1)
 
 
-def mock_licence_save(self, *args, send_status_change_to_hmrc=False, **kwargs):
-    self.id = "1b2f95c3-9cd2-4dee-b134-a79786f78c06"
-    self.end_date = datetime.datetime.now().date()
-    super(Licence, self).save(*args, **kwargs)
-
-
-def mock_licence_save_on_appeal(self, *args, send_status_change_to_hmrc=False, **kwargs):
-    self.id = "4106ced1-b2b9-41e8-ad42-47c36b07b345"
-    self.end_date = datetime.datetime.now().date()
-    super(Licence, self).save(*args, **kwargs)
-
-
-def mock_licence_save_reissue(self, *args, send_status_change_to_hmrc=False, **kwargs):
-    if self.status == LicenceStatus.CANCELLED:
-        return
-
-    self.id = "27b79b32-1ce8-45a3-b7eb-18947bed2fcb"
-    self.end_date = datetime.datetime.now().date()
-    super(Licence, self).save(*args, **kwargs)
-
-
-def mock_licence_decision_save(self, *args, **kwargs):
-    self.id = "ebd27511-7be3-4e5c-9ce9-872ad22811a1"
-    super(LicenceDecision, self).save(*args, **kwargs)
-
-
-def mock_licence_decision_refuse(self, *args, **kwargs):
-    self.id = "4ea4261f-03f2-4baf-8784-5ec4b352d358"
-    super(LicenceDecision, self).save(*args, **kwargs)
-
-
-def mock_licence_decision_revoke(self, *args, **kwargs):
-    self.id = "65ad0aa8-64ad-4805-92f1-86a4874e9fe6"
-    super(LicenceDecision, self).save(*args, **kwargs)
-
-
-def mock_licence_decision_appeal(self, *args, **kwargs):
-    self.id = "f0bc0c1e-c9c5-4a90-b4c8-81a7f3cbe1e7"
-    super(LicenceDecision, self).save(*args, **kwargs)
-
-
-def mock_licence_decision_reissue(self, *args, **kwargs):
-    self.id = "5c821bf0-a60a-43ec-b4a0-2280f40f9995"
-    super(LicenceDecision, self).save(*args, **kwargs)
-
-
 @given(
     parsers.parse("a draft standard application with attributes:{attributes}"),
     target_fixture="draft_standard_application",
@@ -673,7 +627,17 @@ def when_the_application_is_issued_at(
 ):
     run_processing_time_task(submitted_standard_application.submitted_at, timestamp)
 
+    def mock_licence_save(self, *args, send_status_change_to_hmrc=False, **kwargs):
+        self.id = "1b2f95c3-9cd2-4dee-b134-a79786f78c06"
+        self.end_date = datetime.datetime.now().date()
+        super(Licence, self).save(*args, **kwargs)
+
     mocker.patch.object(Licence, "save", mock_licence_save)
+
+    def mock_licence_decision_save(self, *args, **kwargs):
+        self.id = "ebd27511-7be3-4e5c-9ce9-872ad22811a1"
+        super(LicenceDecision, self).save(*args, **kwargs)
+
     mocker.patch.object(LicenceDecision, "save", mock_licence_decision_save)
 
     with freeze_time(timestamp):
@@ -694,6 +658,10 @@ def when_the_application_is_refused_at(
 ):
     run_processing_time_task(submitted_standard_application.submitted_at, timestamp)
 
+    def mock_licence_decision_refuse(self, *args, **kwargs):
+        self.id = "4ea4261f-03f2-4baf-8784-5ec4b352d358"
+        super(LicenceDecision, self).save(*args, **kwargs)
+
     mocker.patch.object(LicenceDecision, "save", mock_licence_decision_refuse)
 
     with freeze_time(timestamp):
@@ -713,6 +681,10 @@ def when_the_issued_application_is_revoked(
     mocker,
 ):
     run_processing_time_task(issued_application.submitted_at, timestamp)
+
+    def mock_licence_decision_revoke(self, *args, **kwargs):
+        self.id = "65ad0aa8-64ad-4805-92f1-86a4874e9fe6"
+        super(LicenceDecision, self).save(*args, **kwargs)
 
     mocker.patch.object(LicenceDecision, "save", mock_licence_decision_revoke)
 
@@ -786,7 +758,17 @@ def when_the_application_is_issued_on_appeal_at(
 ):
     run_processing_time_task(appealed_application.appeal.created_at, timestamp)
 
+    def mock_licence_save_on_appeal(self, *args, send_status_change_to_hmrc=False, **kwargs):
+        self.id = "4106ced1-b2b9-41e8-ad42-47c36b07b345"
+        self.end_date = datetime.datetime.now().date()
+        super(Licence, self).save(*args, **kwargs)
+
     mocker.patch.object(Licence, "save", mock_licence_save_on_appeal)
+
+    def mock_licence_decision_appeal(self, *args, **kwargs):
+        self.id = "f0bc0c1e-c9c5-4a90-b4c8-81a7f3cbe1e7"
+        super(LicenceDecision, self).save(*args, **kwargs)
+
     mocker.patch.object(LicenceDecision, "save", mock_licence_decision_appeal)
 
     with freeze_time(timestamp):
@@ -815,7 +797,19 @@ def when_the_application_is_issued_again_at(
 ):
     run_processing_time_task(issued_application.appeal.created_at, timestamp)
 
+    def mock_licence_save_reissue(self, *args, send_status_change_to_hmrc=False, **kwargs):
+        if self.status == LicenceStatus.CANCELLED:
+            return
+        self.id = "27b79b32-1ce8-45a3-b7eb-18947bed2fcb"
+        self.end_date = datetime.datetime.now().date()
+        super(Licence, self).save(*args, **kwargs)
+
     mocker.patch.object(Licence, "save", mock_licence_save_reissue)
+
+    def mock_licence_decision_reissue(self, *args, **kwargs):
+        self.id = "5c821bf0-a60a-43ec-b4a0-2280f40f9995"
+        super(LicenceDecision, self).save(*args, **kwargs)
+
     mocker.patch.object(LicenceDecision, "save", mock_licence_decision_reissue)
 
     with freeze_time(timestamp):
