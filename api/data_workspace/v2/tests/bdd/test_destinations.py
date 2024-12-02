@@ -8,7 +8,7 @@ from api.licences.enums import LicenceStatus
 from api.parties.enums import PartyType
 from api.staticdata.statuses.enums import CaseStatusEnum
 
-scenarios("../scenarios/destinations.feature")
+scenarios("./scenarios/destinations.feature")
 
 
 @pytest.fixture()

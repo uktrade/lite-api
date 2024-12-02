@@ -19,7 +19,7 @@ from api.staticdata.statuses.enums import CaseStatusEnum
 from api.staticdata.statuses.models import CaseStatus
 
 
-scenarios("../scenarios/licence_decisions.feature")
+scenarios("./scenarios/licence_decisions.feature")
 
 
 @pytest.fixture()
