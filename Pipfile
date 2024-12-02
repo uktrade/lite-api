@@ -15,13 +15,14 @@ requests-mock = "~=1.8"
 freezegun = "~=1.0.0"
 pytest = "*"
 pytest-django = "*"
-pytest-bdd = "*"
+pytest-bdd = "~=7.3.0"
 ipdb = "*"
 watchdog = {extras = ["watchmedo"], version = "*"}
 diff-pdf-visually = "~=1.7.0"
 pytest-circleci-parallelized = "~=0.1.0"
 moto = {extras = ["s3"], version = "==5.0.3"}
 drf-spectacular = "*"
+pytest-mock = "~=3.14.0"
 
 [packages]
 factory-boy = "~=2.12.0"

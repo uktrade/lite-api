@@ -14,12 +14,13 @@ INSTALLED_APPS += [
     "api.support.tests.apps.SupportTestsConfig",
 ]
 
-
 DB_ANONYMISER_AWS_ACCESS_KEY_ID = "fakekey"
 DB_ANONYMISER_AWS_SECRET_ACCESS_KEY = "fakesecret"
 DB_ANONYMISER_AWS_REGION = "eu-west-2"
 DB_ANONYMISER_AWS_STORAGE_BUCKET_NAME = "anonymiser-bucket"
 DB_ANONYMISER_AWS_ENDPOINT_URL = None
+
+ENABLE_DJANGO_SILK = False
 
 try:
     INSTALLED_APPS.remove("silk")

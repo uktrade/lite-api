@@ -1,5 +1,6 @@
 import datetime
 import typing
+import uuid
 
 from rest_framework import serializers
 from rest_framework.response import Response
@@ -73,6 +74,11 @@ def get_fields(view):
             if field.allow_null:
                 field_metadata["nullable"] = True
 
+        elif isinstance(field, serializers.DateTimeField):
+            field_metadata["type"] = "DateTime"
+            if field.allow_null:
+                field_metadata["nullable"] = True
+
         elif isinstance(field, serializers.CharField):
             field_metadata["type"] = "String"
             if field.allow_null:
@@ -80,7 +86,12 @@ def get_fields(view):
 
         elif isinstance(field, serializers.SerializerMethodField):
             method = getattr(field.parent, field.method_name)
-            return_type = method.__annotations__["return"]
+            try:
+                return_type = method.__annotations__["return"]
+            except KeyError:  # pragma: no cover
+                raise NotImplementedError(
+                    f"Add a return annotation to the `{field.method_name}` method"
+                )  # pragma: no cover
 
             if is_optional(return_type):
                 field_metadata["nullable"] = True
@@ -90,10 +101,32 @@ def get_fields(view):
                 field_metadata["type"] = "String"
             elif return_type is datetime.datetime:
                 field_metadata["type"] = "DateTime"
+            elif return_type is uuid.UUID:
+                field_metadata["type"] = "UUID"
             else:  # pragma: no cover
                 raise NotImplementedError(
                     f"Return type of {return_type} for {serializer.__class__.__name__}.{field.method_name} not handled"
                 )
+        elif isinstance(field, serializers.ChoiceField):
+            field_metadata["type"] = "String"
+            if field.allow_null:
+                field_metadata["nullable"] = True
+
+        elif isinstance(field, serializers.FloatField):
+            field_metadata["type"] = "Float"
+            if field.allow_null:
+                field_metadata["nullable"] = True
+
+        elif isinstance(field, serializers.DecimalField):
+            field_metadata["type"] = "Float"
+            field_metadata["asdecimal"] = True
+            if field.allow_null:
+                field_metadata["nullable"] = True
+
+        elif isinstance(field, serializers.IntegerField):
+            field_metadata["type"] = "Integer"
+            if field.allow_null:
+                field_metadata["nullable"] = True
 
         else:  # pragma: no cover
             raise NotImplementedError(f"Annotation not found for {field}")

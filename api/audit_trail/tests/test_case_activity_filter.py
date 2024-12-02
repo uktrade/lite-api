@@ -4,13 +4,11 @@ from django.contrib.contenttypes.models import ContentType
 from django.utils import timezone
 
 from api.audit_trail.enums import AuditType
-from api.audit_trail.models import Audit
 from api.audit_trail.tests.factories import AuditFactory
 from api.cases.models import Case
 from api.teams.tests.factories import TeamFactory
 from test_helpers.clients import DataTestClient
 from api.users.enums import UserType
-from api.users.models import GovUser
 from api.users.tests.factories import GovUserFactory, ExporterUserFactory
 from api.audit_trail.service import filter_object_activity
 
@@ -31,7 +29,7 @@ class CasesAuditTrailSearchTestCase(DataTestClient):
             object_id=self.case.id, object_content_type=self.content_type, user_id=self.gov_user.pk
         )
         self.assertEqual(res.count(), 1)
-        self.assertEqual(res.first().actor_object_id, str(self.gov_user.pk))
+        self.assertEqual(res.first().actor, self.gov_user)
 
     def test_filter_by_exporter_user(self):
         AuditFactory(actor=self.exporter_user, target=self.case.get_case())
@@ -40,7 +38,7 @@ class CasesAuditTrailSearchTestCase(DataTestClient):
             object_id=self.case.id, object_content_type=self.content_type, user_id=self.exporter_user.pk
         )
         self.assertEqual(res.count(), 1)
-        self.assertEqual(res.first().actor_object_id, str(self.exporter_user.pk))
+        self.assertEqual(res.first().actor, self.exporter_user)
 
     def test_filter_by_team(self):
         AuditFactory(actor=self.gov_user, target=self.case.get_case())
@@ -48,7 +46,7 @@ class CasesAuditTrailSearchTestCase(DataTestClient):
         res = filter_object_activity(object_id=self.case.id, object_content_type=self.content_type, team=self.team)
 
         self.assertEqual(res.count(), 1)
-        self.assertEqual(res.first().actor_object_id, str(self.gov_user.pk))
+        self.assertEqual(res.first().actor, self.gov_user)
 
         # Create new gov user on another team and test again
         fake_team = TeamFactory()
@@ -61,7 +59,7 @@ class CasesAuditTrailSearchTestCase(DataTestClient):
         res = filter_object_activity(object_id=self.case.id, object_content_type=self.content_type, team=self.team)
 
         self.assertEqual(res.count(), 1)
-        self.assertEqual(res.first().actor_object_id, str(self.gov_user.pk))
+        self.assertEqual(res.first().actor, self.gov_user)
 
     def test_filter_by_audit_type(self):
         audit_type = AuditType.CREATED
@@ -74,7 +72,7 @@ class CasesAuditTrailSearchTestCase(DataTestClient):
         )
 
         self.assertEqual(res.count(), 1)
-        self.assertEqual(res.first().actor_object_id, str(self.exporter_user.pk))
+        self.assertEqual(res.first().actor, self.exporter_user)
         self.assertEqual(res.first().verb, audit_type)
 
     def test_filter_by_user_type(self):
@@ -87,14 +85,14 @@ class CasesAuditTrailSearchTestCase(DataTestClient):
         )
 
         self.assertEqual(res.count(), 1)
-        self.assertEqual(res.first().actor_object_id, str(self.gov_user.pk))
+        self.assertEqual(res.first().actor, self.gov_user)
 
         # check exporter filter
         res = filter_object_activity(
             object_id=self.case.id, object_content_type=self.content_type, user_type=UserType.EXPORTER
         )
         self.assertEqual(res.count(), 2)
-        self.assertEqual(res.first().actor_object_id, str(self.exporter_user.pk))
+        self.assertEqual(res.first().actor, self.exporter_user)
 
     def test_filter_by_dates(self):
         start_date = timezone.now()
