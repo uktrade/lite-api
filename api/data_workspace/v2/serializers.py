@@ -12,6 +12,7 @@ from api.applications.models import (
 from api.cases.enums import LicenceDecisionType
 from api.cases.models import LicenceDecision
 from api.licences.models import GoodOnLicence
+from api.staticdata.control_list_entries.models import ControlListEntry
 from api.staticdata.countries.models import Country
 from api.staticdata.report_summaries.models import ReportSummary
 
@@ -139,3 +140,26 @@ class ApplicationSerializer(serializers.ModelSerializer):
             return application.baseapplication_ptr.case_ptr.closed_status_updates[0].created_at
 
         return None
+
+
+class UnitSerializer(serializers.Serializer):
+    code = serializers.CharField()
+    description = serializers.CharField()
+
+
+class FootnoteSerializer(serializers.Serializer):
+    footnote = serializers.CharField()
+    team_name = serializers.CharField(source="team__name")
+    application_id = serializers.CharField(source="case__pk")
+    type = serializers.CharField()
+
+
+class AssessmentSerializer(serializers.ModelSerializer):
+    good_id = serializers.UUIDField()
+
+    class Meta:
+        model = ControlListEntry
+        fields = (
+            "good_id",
+            "rating",
+        )

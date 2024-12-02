@@ -28,7 +28,6 @@ from api.data_workspace.v2.tests.bdd.conftest import run_processing_time_task
 scenarios("./scenarios/applications.feature")
 
 
-
 @pytest.fixture
 def submit_application(api_client, exporter_headers, mocker):
     def _submit_application(draft_application):
@@ -55,8 +54,6 @@ def submit_application(api_client, exporter_headers, mocker):
         return draft_application
 
     return _submit_application
-
-
 
 
 @pytest.fixture()

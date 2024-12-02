@@ -46,6 +46,10 @@ from api.licences.models import Licence
 from api.parties.tests.factories import PartyDocumentFactory
 from api.organisations.tests.factories import OrganisationFactory
 from api.staticdata.letter_layouts.models import LetterLayout
+from api.staticdata.report_summaries.models import (
+    ReportSummaryPrefix,
+    ReportSummarySubject,
+)
 from api.staticdata.statuses.enums import CaseStatusEnum
 from api.staticdata.statuses.models import CaseStatus
 from api.staticdata.units.enums import Units
@@ -140,6 +144,18 @@ def gov_user_permissions():
 
 
 @pytest.fixture()
+def ogd_advisor(gov_user, gov_user_permissions):
+    gov_user.role = RoleFactory(name="OGD Advisor", type=UserType.INTERNAL)
+    gov_user.role.permissions.set(
+        [
+            GovPermissions.MAINTAIN_FOOTNOTES.name,
+        ]
+    )
+    gov_user.save()
+    return gov_user
+
+
+@pytest.fixture()
 def lu_case_officer(gov_user, gov_user_permissions):
     gov_user.role = RoleFactory(name="Case officer", type=UserType.INTERNAL)
     gov_user.role.permissions.set(
@@ -168,6 +184,11 @@ def lu_senior_manager(lu_user, gov_user_permissions):
 @pytest.fixture()
 def gov_headers(gov_user):
     return {"HTTP_GOV_USER_TOKEN": user_to_token(gov_user.baseuser_ptr)}
+
+
+@pytest.fixture()
+def ogd_advisor_headers(ogd_advisor):
+    return {"HTTP_GOV_USER_TOKEN": user_to_token(ogd_advisor.baseuser_ptr)}
 
 
 @pytest.fixture()
@@ -403,23 +424,74 @@ def when_the_application_is_submitted_at(submit_application, draft_standard_appl
         return submit_application(draft_standard_application)
 
 
-@given(
-    parsers.parse("a draft standard application with attributes:{attributes}"),
-    target_fixture="draft_standard_application",
-)
-def given_a_draft_standard_application_with_attributes(organisation, parse_attributes, attributes):
-    application = DraftStandardApplicationFactory(
-        organisation=organisation,
-        **parse_attributes(attributes),
-    )
+@given(parsers.parse("LITE exports `{table_name}` data to DW"))
+def given_endpoint_exists(client, table_name):
+    metadata_url = reverse("data_workspace:v2:table-metadata")
+    response = client.get(metadata_url)
+    assert table_name in [t["table_name"] for t in response.json()["tables"]]
 
-    PartyDocumentFactory(
-        party=application.end_user.party,
-        s3_key="party-document",
-        safe=True,
-    )
 
-    return application
+@given(parsers.parse("the application has the following goods:{goods}"))
+def given_the_application_has_the_following_goods(parse_table, draft_standard_application, goods):
+    draft_standard_application.goods.all().delete()
+    good_attributes = parse_table(goods)[1:]
+    for id, name in good_attributes:
+        GoodOnApplicationFactory(
+            application=draft_standard_application,
+            id=id,
+            good__name=name,
+        )
+
+
+@when(parsers.parse("the goods are assessed by TAU as:{assessments}"))
+def when_the_goods_are_assessed_by_tau(
+    parse_table,
+    submitted_standard_application,
+    assessments,
+    api_client,
+    lu_case_officer,
+    gov_headers,
+):
+    assessments = parse_table(assessments)[1:]
+    url = reverse("assessments:make_assessments", kwargs={"case_pk": submitted_standard_application.pk})
+
+    assessment_payload = []
+    for good_on_application_id, control_list_entry, report_summary_prefix, report_summary_subject in assessments:
+        data = {
+            "id": good_on_application_id,
+            "comment": "Some comment",
+        }
+
+        if control_list_entry == "NLR":
+            data.update(
+                {
+                    "control_list_entries": [],
+                    "is_good_controlled": False,
+                }
+            )
+        else:
+            if report_summary_prefix:
+                prefix = ReportSummaryPrefix.objects.get(name=report_summary_prefix)
+            else:
+                prefix = None
+            subject = ReportSummarySubject.objects.get(name=report_summary_subject)
+            data.update(
+                {
+                    "control_list_entries": [control_list_entry],
+                    "report_summary_prefix": prefix.pk if prefix else None,
+                    "report_summary_subject": subject.pk,
+                    "is_good_controlled": True,
+                    "regime_entries": [],
+                }
+            )
+        assessment_payload.append(data)
+
+    response = api_client.put(
+        url,
+        assessment_payload,
+        **gov_headers,
+    )
+    assert response.status_code == 200, response.content
 
 
 def run_processing_time_task(start, up_to):
@@ -475,6 +547,25 @@ def mock_licence_decision_appeal(self, *args, **kwargs):
 def mock_licence_decision_reissue(self, *args, **kwargs):
     self.id = "5c821bf0-a60a-43ec-b4a0-2280f40f9995"
     super(LicenceDecision, self).save(*args, **kwargs)
+
+
+@given(
+    parsers.parse("a draft standard application with attributes:{attributes}"),
+    target_fixture="draft_standard_application",
+)
+def given_a_draft_standard_application_with_attributes(organisation, parse_attributes, attributes):
+    application = DraftStandardApplicationFactory(
+        organisation=organisation,
+        **parse_attributes(attributes),
+    )
+
+    PartyDocumentFactory(
+        party=application.end_user.party,
+        s3_key="party-document",
+        safe=True,
+    )
+
+    return application
 
 
 @pytest.fixture()
