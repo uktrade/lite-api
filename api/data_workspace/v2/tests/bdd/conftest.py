@@ -1,64 +1,43 @@
 import datetime
 import json
+
 import pytest
 import pytz
-
+from django.conf import settings
+from django.urls import reverse
 from moto import mock_aws
-
+from pytest_bdd import given, parsers, then, when
 from rest_framework import status
 from rest_framework.test import APIClient
 
-from pytest_bdd import (
-    given,
-    parsers,
-    then,
-    when,
-)
-
-from django.conf import settings
-from django.urls import reverse
-
 from api.applications.enums import ApplicationExportType
+from api.applications.models import PartyOnApplication
 from api.applications.tests.factories import (
     DraftStandardApplicationFactory,
     GoodOnApplicationFactory,
     PartyOnApplicationFactory,
     StandardApplicationFactory,
 )
-from api.cases.enums import (
-    AdviceType,
-)
-from api.cases.tests.factories import FinalAdviceFactory
-from api.cases.enums import CaseTypeEnum
+from api.cases.enums import AdviceLevel, AdviceType, CaseTypeEnum
 from api.cases.models import CaseType
-from api.core.constants import (
-    ExporterPermissions,
-    GovPermissions,
-    Roles,
-)
-from api.goods.tests.factories import GoodFactory
-from api.flags.enums import SystemFlags
+from api.cases.tests.factories import FinalAdviceFactory
+from api.core.constants import ExporterPermissions, GovPermissions, Roles
 from api.documents.libraries.s3_operations import init_s3_client
+from api.flags.enums import SystemFlags
+from api.goods.tests.factories import GoodFactory
 from api.letter_templates.models import LetterTemplate
-from api.parties.tests.factories import PartyDocumentFactory
+from api.licences.enums import LicenceStatus
+from api.licences.tests.factories import GoodOnLicenceFactory, StandardLicenceFactory
 from api.organisations.tests.factories import OrganisationFactory
+from api.parties.tests.factories import PartyDocumentFactory
 from api.staticdata.letter_layouts.models import LetterLayout
-from api.staticdata.report_summaries.models import (
-    ReportSummaryPrefix,
-    ReportSummarySubject,
-)
+from api.staticdata.report_summaries.models import ReportSummaryPrefix, ReportSummarySubject
 from api.staticdata.statuses.enums import CaseStatusEnum
 from api.staticdata.statuses.models import CaseStatus
 from api.staticdata.units.enums import Units
+from api.users.enums import SystemUser, UserType
 from api.users.libraries.user_to_token import user_to_token
-from api.users.enums import (
-    SystemUser,
-    UserType,
-)
-from api.users.models import (
-    BaseUser,
-    Permission,
-)
+from api.users.models import BaseUser, Permission
 from api.users.tests.factories import (
     BaseUserFactory,
     ExporterUserFactory,
@@ -66,6 +45,83 @@ from api.users.tests.factories import (
     RoleFactory,
     UserOrganisationRelationshipFactory,
 )
+
+
+@pytest.fixture()
+def standard_draft_licence():
+    application = StandardApplicationFactory(
+        status=CaseStatus.objects.get(status=CaseStatusEnum.FINALISED),
+    )
+    good = GoodFactory(organisation=application.organisation)
+    good_on_application = GoodOnApplicationFactory(
+        application=application, good=good, quantity=100.0, value=1500, unit=Units.NAR
+    )
+    licence = StandardLicenceFactory(case=application, status=LicenceStatus.DRAFT)
+    GoodOnLicenceFactory(
+        good=good_on_application,
+        quantity=good_on_application.quantity,
+        usage=0.0,
+        value=good_on_application.value,
+        licence=licence,
+    )
+    return licence
+
+
+@pytest.fixture()
+def standard_licence():
+    application = StandardApplicationFactory(
+        status=CaseStatus.objects.get(status=CaseStatusEnum.FINALISED),
+    )
+    party_on_application = PartyOnApplicationFactory(application=application)
+    good = GoodFactory(organisation=application.organisation)
+    good_on_application = GoodOnApplicationFactory(
+        application=application, good=good, quantity=100.0, value=1500, unit=Units.NAR
+    )
+    licence = StandardLicenceFactory(case=application, status=LicenceStatus.DRAFT)
+    GoodOnLicenceFactory(
+        good=good_on_application,
+        quantity=good_on_application.quantity,
+        usage=0.0,
+        value=good_on_application.value,
+        licence=licence,
+    )
+    licence.status = LicenceStatus.ISSUED
+    licence.save()
+    return licence
+
+
+@pytest.fixture()
+def standard_case_with_final_advice(lu_case_officer):
+    case = StandardApplicationFactory(
+        status=CaseStatus.objects.get(status=CaseStatusEnum.UNDER_FINAL_REVIEW),
+    )
+    good = GoodFactory(organisation=case.organisation)
+    good_on_application = GoodOnApplicationFactory(
+        application=case, good=good, quantity=100.0, value=1500, unit=Units.NAR
+    )
+    FinalAdviceFactory(user=lu_case_officer, case=case, good=good_on_application.good)
+    return case
+
+
+@pytest.fixture()
+def standard_case_with_refused_advice(lu_case_officer, standard_case_with_final_advice):
+    final_advice = standard_case_with_final_advice.advice.filter(level=AdviceLevel.FINAL)
+    for advice in final_advice:
+        advice.type = AdviceType.REFUSE
+        advice.text = "refusing licence"
+        advice.denial_reasons.set(["1a", "1b", "1c"])
+        advice.save()
+    return standard_case_with_final_advice
+
+
+@pytest.fixture()
+def licence_with_deleted_party(standard_licence):
+    licence = standard_licence
+    application = licence.case.baseapplication
+    old_party_on_application = PartyOnApplication.objects.get(application=application)
+    new_party_on_application = PartyOnApplicationFactory(application=application)
+    old_party_on_application.delete()
+    return licence
 
 
 def load_json(filename):
