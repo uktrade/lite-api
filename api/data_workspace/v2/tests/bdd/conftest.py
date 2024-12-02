@@ -402,6 +402,24 @@ def given_endpoint_exists(client, table_name):
     assert table_name in [t["table_name"] for t in response.json()["tables"]]
 
 
+@then(parsers.parse("the `{table_name}` table has the expected data defined in `{file_name}`"))
+def expected_data_in_json(client, parse_table, unpage_data, table_name, file_name):
+    expected_data = load_json("api/data_workspace/v2/tests/bdd/initial_data/" + file_name)
+
+    metadata_url = reverse("data_workspace:v2:table-metadata")
+    response = client.get(metadata_url)
+    tables_metadata = response.json()["tables"]
+    for m in tables_metadata:
+        if m["table_name"] == table_name:
+            table_metadata = m
+            break
+    else:
+        pytest.fail(f"No table called {table_name} found")
+    actual_data = unpage_data(table_metadata["endpoint"])
+
+    assert actual_data == expected_data
+
+
 @given(parsers.parse("the application has the following goods:{goods}"))
 def given_the_application_has_the_following_goods(parse_table, draft_standard_application, goods):
     draft_standard_application.goods.all().delete()
