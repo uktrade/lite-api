@@ -395,7 +395,7 @@ def check_rows(client, parse_table, unpage_data, table_name, rows):
     assert actual_data == expected_data
 
 
-@given(parsers.parse("LITE exports `{table_name}` data to DW"))
+@given(parsers.parse("LITE exports `{table_name}` data to Data Workspace"))
 def given_endpoint_exists(client, table_name):
     metadata_url = reverse("data_workspace:v2:table-metadata")
     response = client.get(metadata_url)
