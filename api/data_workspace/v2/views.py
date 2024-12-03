@@ -39,12 +39,14 @@ from api.data_workspace.v2.serializers import (
     GoodSerializer,
     LicenceDecisionSerializer,
     UnitSerializer,
+    LicenceRefusalCriteriaSerializer,
 )
 from api.licences.enums import LicenceStatus
 from api.licences.models import GoodOnLicence
 from api.staticdata.control_list_entries.models import ControlListEntry
 from api.staticdata.countries.models import Country
 from api.staticdata.report_summaries.models import ReportSummary
+from api.staticdata.denial_reasons.models import DenialReason
 from api.staticdata.statuses.enums import CaseStatusEnum
 from api.staticdata.units.enums import Units
 
@@ -198,3 +200,13 @@ class AssessmentViewSet(BaseViewSet):
 
     class DataWorkspace:
         table_name = "goods_ratings"
+
+
+class LicenceRefusalCriteriaViewSet(BaseViewSet):
+    serializer_class = LicenceRefusalCriteriaSerializer
+    queryset = DenialReason.objects.exclude(licencedecision__denial_reasons__isnull=True).annotate(
+        licence_decision_id=F("licencedecision__id")
+    )
+
+    class DataWorkspace:
+        table_name = "licence_refusal_criteria"

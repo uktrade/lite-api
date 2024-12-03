@@ -623,3 +623,61 @@ def issue_licence(api_client, lu_case_officer, gov_headers, siel_template):
         assert response.status_code == 201
 
     return _issue_licence
+
+
+@pytest.fixture()
+def refuse_application(
+    api_client,
+    lu_case_officer,
+    siel_refusal_template,
+    gov_headers,
+):
+    def _refuse_application(application, denial_reasons=None):
+        if not denial_reasons:
+            denial_reasons = ["1a", "1b", "1c"]
+
+        data = {"action": AdviceType.REFUSE}
+        for good_on_app in application.goods.all():
+            good_on_app.quantity = 100
+            good_on_app.value = 10000
+            good_on_app.save()
+            data[f"quantity-{good_on_app.id}"] = str(good_on_app.quantity)
+            data[f"value-{good_on_app.id}"] = str(good_on_app.value)
+            FinalAdviceFactory(
+                user=lu_case_officer,
+                case=application,
+                good=good_on_app.good,
+                type=AdviceType.REFUSE,
+                denial_reasons=denial_reasons,
+            )
+
+        application.flags.remove(SystemFlags.ENFORCEMENT_CHECK_REQUIRED)
+
+        url = reverse("applications:finalise", kwargs={"pk": application.pk})
+        response = api_client.put(url, data=data, **gov_headers)
+        assert response.status_code == 200, response.content
+        response = response.json()
+
+        data = {
+            "template": str(siel_refusal_template.id),
+            "text": "",
+            "visible_to_exporter": False,
+            "advice_type": AdviceType.REFUSE,
+        }
+        url = reverse(
+            "cases:generated_documents:generated_documents",
+            kwargs={"pk": str(application.pk)},
+        )
+        response = api_client.post(url, data=data, **gov_headers)
+        assert response.status_code == 201, response.content
+
+        url = reverse(
+            "cases:finalise",
+            kwargs={"pk": str(application.pk)},
+        )
+        response = api_client.put(url, data={}, **gov_headers)
+        assert response.status_code == 201, response.content
+
+        application.refresh_from_db()
+
+    return _refuse_application
