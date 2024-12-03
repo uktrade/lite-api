@@ -2,7 +2,7 @@
 Feature: units Table
 
 Scenario: Units endpoint
-    Given LITE exports `units` data to DW
+    Given LITE exports `units` data to Data Workspace
     Then the `units` table has the following rows:
         | code | description      |
         | NAR  | Items            |
