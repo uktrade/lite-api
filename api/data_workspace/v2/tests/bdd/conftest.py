@@ -28,22 +28,22 @@ from api.applications.tests.factories import (
     PartyOnApplicationFactory,
     StandardApplicationFactory,
 )
-from api.cases.tests.factories import FinalAdviceFactory
 from api.cases.enums import AdviceLevel, AdviceType, CaseTypeEnum
 from api.cases.models import CaseType, LicenceDecision
+from api.cases.tests.factories import FinalAdviceFactory
 from api.core.constants import (
     ExporterPermissions,
     GovPermissions,
     Roles,
 )
-from api.goods.tests.factories import GoodFactory
-from api.flags.enums import SystemFlags
 from api.documents.libraries.s3_operations import init_s3_client
+from api.flags.enums import SystemFlags
+from api.goods.tests.factories import GoodFactory
 from api.letter_templates.models import LetterTemplate
 from api.licences.enums import LicenceStatus
 from api.licences.models import Licence
-from api.parties.tests.factories import PartyDocumentFactory
 from api.organisations.tests.factories import OrganisationFactory
+from api.parties.tests.factories import PartyDocumentFactory
 from api.staticdata.letter_layouts.models import LetterLayout
 from api.staticdata.report_summaries.models import (
     ReportSummaryPrefix,
@@ -570,10 +570,19 @@ def issue_licence(api_client, lu_case_officer, gov_headers, siel_template):
 
 
 @pytest.fixture()
-def refuse_licence(api_client, lu_case_officer, gov_headers, siel_refusal_template):
-    def _refuse_licence(application):
+def refuse_application(
+    api_client,
+    lu_case_officer,
+    siel_refusal_template,
+    gov_headers,
+):
+    def _refuse_application(application, denial_reasons=None):
+        if not denial_reasons:
+            denial_reasons = ["1a", "1b", "1c"]
+
         # delete previous final advice if any before we change decision
         application.advice.filter(level=AdviceLevel.FINAL).delete()
+
         data = {"action": AdviceType.REFUSE}
         for good_on_app in application.goods.all():
             good_on_app.quantity = 100
@@ -586,6 +595,7 @@ def refuse_licence(api_client, lu_case_officer, gov_headers, siel_refusal_templa
                 case=application,
                 good=good_on_app.good,
                 type=AdviceType.REFUSE,
+                denial_reasons=denial_reasons,
             )
 
         application.flags.remove(SystemFlags.ENFORCEMENT_CHECK_REQUIRED)
@@ -615,7 +625,9 @@ def refuse_licence(api_client, lu_case_officer, gov_headers, siel_refusal_templa
         response = api_client.put(url, data={}, **gov_headers)
         assert response.status_code == 201, response.content
 
-    return _refuse_licence
+        application.refresh_from_db()
+
+    return _refuse_application
 
 
 @when(parsers.parse("the application is issued at {timestamp}"), target_fixture="issued_application")

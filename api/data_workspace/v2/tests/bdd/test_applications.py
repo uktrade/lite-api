@@ -76,21 +76,6 @@ def exporter_change_status(api_client, exporter_headers):
     return _exporter_change_status
 
 
-@given("a draft standard application", target_fixture="draft_standard_application")
-def given_draft_standard_application(organisation):
-    application = DraftStandardApplicationFactory(
-        organisation=organisation,
-    )
-
-    PartyDocumentFactory(
-        party=application.end_user.party,
-        s3_key="party-document",
-        safe=True,
-    )
-
-    return application
-
-
 @given(
     parsers.parse("a draft temporary standard application with attributes:{attributes}"),
     target_fixture="draft_standard_application",
@@ -139,11 +124,12 @@ def given_a_good_is_onward_incorporated(draft_standard_application):
 
 
 @when(
-    "the application is submitted",
+    parsers.parse("the application is submitted at {submission_time}"),
     target_fixture="submitted_standard_application",
 )
-def when_the_application_is_submitted(submit_application, draft_standard_application):
-    return submit_application(draft_standard_application)
+def when_the_application_is_submitted_at(submit_application, draft_standard_application, submission_time):
+    with freeze_time(submission_time):
+        return submit_application(draft_standard_application)
 
 
 @when(parsers.parse("the application is withdrawn at {timestamp}"))
