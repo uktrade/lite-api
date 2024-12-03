@@ -5,7 +5,6 @@ import pytz
 import uuid
 
 from dateutil.parser import parse
-from freezegun import freeze_time
 from moto import mock_aws
 
 from rest_framework import status
@@ -368,6 +367,8 @@ def cast_to_types(data, fields_metadata):
                 cast_row[key] = None
             elif field_metadata["type"] == "Integer":
                 cast_row[key] = int(value)
+            elif field_metadata["type"] == "Float":
+                cast_row[key] = float(value)
             elif field_metadata["type"] == "DateTime":
                 cast_row[key] = pytz.utc.localize(parse(value, ignoretz=True))
             elif field_metadata["type"] == "UUID":

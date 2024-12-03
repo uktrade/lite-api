@@ -223,11 +223,22 @@ class DraftStandardApplicationFactory(StandardApplicationFactory):
 
     @classmethod
     def _create(cls, model_class, *args, **kwargs):
+        id_attributes = {}
+        if id := kwargs.pop("good_on_application_id", None):
+            id_attributes = {"id": id}
+
         obj = model_class(*args, **kwargs)
         obj.status = get_case_status_by_status(CaseStatusEnum.DRAFT)
         obj.save()
 
-        GoodOnApplicationFactory(application=obj, good=GoodFactory(organisation=obj.organisation))
+        GoodOnApplicationFactory(
+            **id_attributes,
+            application=obj,
+            good=GoodFactory(organisation=obj.organisation),
+            quantity=100.00,
+            value=1500.00,
+            unit=Units.NAR,
+        )
 
         PartyOnApplicationFactory(application=obj, party=EndUserFactory(organisation=obj.organisation))
 
