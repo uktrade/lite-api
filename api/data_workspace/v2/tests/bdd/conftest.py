@@ -664,7 +664,7 @@ def when_the_application_is_issued_at(
 @when(parsers.parse("the application is refused at {timestamp}"), target_fixture="refused_application")
 def when_the_application_is_refused_at(
     submitted_standard_application,
-    refuse_licence,
+    refuse_application,
     timestamp,
     mocker,
 ):
@@ -677,7 +677,7 @@ def when_the_application_is_refused_at(
     mocker.patch.object(LicenceDecision, "save", mock_licence_decision_refuse)
 
     with freeze_time(timestamp):
-        refuse_licence(submitted_standard_application)
+        refuse_application(submitted_standard_application)
 
     submitted_standard_application.refresh_from_db()
     refused_application = submitted_standard_application
