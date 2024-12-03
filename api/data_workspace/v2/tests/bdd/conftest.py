@@ -5,6 +5,7 @@ import pytz
 import uuid
 
 from dateutil.parser import parse
+from freezegun import freeze_time
 from moto import mock_aws
 
 from rest_framework import status
@@ -33,6 +34,7 @@ from api.cases.enums import (
 )
 from api.cases.models import CaseType
 from api.cases.tests.factories import FinalAdviceFactory
+from api.cases.celery_tasks import update_cases_sla
 from api.core.constants import (
     ExporterPermissions,
     GovPermissions,
@@ -272,6 +274,15 @@ def draft_application():
     return draft_application
 
 
+def run_processing_time_task(start, up_to):
+    processing_time_task_run_date_time = start.replace(hour=22, minute=30)
+    up_to = pytz.utc.localize(datetime.datetime.fromisoformat(up_to))
+    while processing_time_task_run_date_time <= up_to:
+        with freeze_time(processing_time_task_run_date_time):
+            update_cases_sla()
+        processing_time_task_run_date_time = processing_time_task_run_date_time + datetime.timedelta(days=1)
+
+
 @pytest.fixture
 def submit_application(api_client, exporter_headers, mocker):
     def _submit_application(draft_application):
@@ -321,6 +332,23 @@ def given_draft_standard_application(organisation):
 )
 def when_the_application_is_submitted(submit_application, draft_standard_application):
     return submit_application(draft_standard_application)
+
+
+@when(parsers.parse("the application is issued at {timestamp}"), target_fixture="issued_application")
+def when_the_application_is_issued_at(
+    issue_licence,
+    submitted_standard_application,
+    timestamp,
+):
+    run_processing_time_task(submitted_standard_application.submitted_at, timestamp)
+
+    with freeze_time(timestamp):
+        issue_licence(submitted_standard_application)
+
+    submitted_standard_application.refresh_from_db()
+    issued_application = submitted_standard_application
+
+    return issued_application
 
 
 @then(parsers.parse("the `{table_name}` table is empty"))

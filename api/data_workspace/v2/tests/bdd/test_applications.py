@@ -19,7 +19,6 @@ from api.applications.tests.factories import (
     GoodOnApplicationFactory,
     PartyOnApplicationFactory,
 )
-from api.cases.celery_tasks import update_cases_sla
 from api.cases.enums import (
     AdviceLevel,
     AdviceType,
@@ -30,18 +29,9 @@ from api.parties.tests.factories import (
     UltimateEndUserFactory,
 )
 from api.staticdata.statuses.enums import CaseStatusEnum
-
+from api.data_workspace.v2.tests.bdd.conftest import run_processing_time_task
 
 scenarios("./scenarios/applications.feature")
-
-
-def run_processing_time_task(start, up_to):
-    processing_time_task_run_date_time = start.replace(hour=22, minute=30)
-    up_to = pytz.utc.localize(datetime.datetime.fromisoformat(up_to))
-    while processing_time_task_run_date_time <= up_to:
-        with freeze_time(processing_time_task_run_date_time):
-            update_cases_sla()
-        processing_time_task_run_date_time = processing_time_task_run_date_time + datetime.timedelta(days=1)
 
 
 @pytest.fixture
@@ -167,23 +157,6 @@ def given_a_good_is_onward_incorporated(draft_standard_application):
 def when_the_application_is_submitted_at(submit_application, draft_standard_application, submission_time):
     with freeze_time(submission_time):
         return submit_application(draft_standard_application)
-
-
-@when(parsers.parse("the application is issued at {timestamp}"), target_fixture="issued_application")
-def when_the_application_is_issued_at(
-    issue_licence,
-    submitted_standard_application,
-    timestamp,
-):
-    run_processing_time_task(submitted_standard_application.submitted_at, timestamp)
-
-    with freeze_time(timestamp):
-        issue_licence(submitted_standard_application)
-
-    submitted_standard_application.refresh_from_db()
-    issued_application = submitted_standard_application
-
-    return issued_application
 
 
 @when(parsers.parse("the application is refused at {timestamp}"), target_fixture="refused_application")
