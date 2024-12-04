@@ -54,6 +54,18 @@ class ReportSummaryPrefixesWithNoFilterReturnsEverythingTests(DataTestClient):
                     "launching/handling/control/support equipment for",
                     "oil and gas industry equipment/materials",
                     "software enabling equipment to function as",
+                    "software for equipment for the development of",
+                    "software for equipment for the production of",
+                    "software for equipment for the use of",
+                    "software for technology for equipment for the development of",
+                    "software for technology for equipment for the production of",
+                    "software for technology for equipment for the use of",
+                    "technology for equipment for the development of",
+                    "technology for equipment for the production of",
+                    "technology for equipment for the use of",
+                    "technology for software for equipment for the development of",
+                    "technology for software for equipment for the production of",
+                    "technology for software for equipment for the use of",
                     "test equipment for",
                     "training equipment for",
                 ],
@@ -69,13 +81,13 @@ class ReportSummaryPrefixesWithNoFilterReturnsEverythingTests(DataTestClient):
     )
     def test_get_report_summary_prefixes_with_name_filter(self, name, filter, expected_results):
         url = prefixes_url(filter)
+
         response = self.client.get(url, **self.gov_headers)
 
         self.assertEqual(response.status_code, 200)
 
         prefixes = [prefix["name"] for prefix in response.json()["report_summary_prefixes"]]
         self.assertEqual(len(prefixes), len(expected_results))
-
         self.assertEqual(prefixes, expected_results)
 
 
