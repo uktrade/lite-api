@@ -17,17 +17,13 @@ from api.applications.tests.factories import (
     GoodOnApplicationFactory,
     PartyOnApplicationFactory,
 )
-from api.cases.enums import (
-    AdviceLevel,
-    AdviceType,
-)
-from api.licences.enums import LicenceStatus
 from api.parties.tests.factories import (
     PartyDocumentFactory,
     UltimateEndUserFactory,
 )
 from api.staticdata.statuses.enums import CaseStatusEnum
 from api.data_workspace.v2.tests.bdd.conftest import run_processing_time_task
+
 
 scenarios("./scenarios/applications.feature")
 
@@ -58,27 +54,6 @@ def submit_application(api_client, exporter_headers, mocker):
         return draft_application
 
     return _submit_application
-
-
-@pytest.fixture()
-def caseworker_change_status(api_client, lu_case_officer, lu_case_officer_headers):
-    def _caseworker_change_status(application, status):
-        url = reverse(
-            "caseworker_applications:change_status",
-            kwargs={
-                "pk": str(application.pk),
-            },
-        )
-        response = api_client.post(
-            url,
-            data={"status": status},
-            **lu_case_officer_headers,
-        )
-        assert response.status_code == 200, response.content
-        application.refresh_from_db()
-        assert application.status.status == status
-
-    return _caseworker_change_status
 
 
 @pytest.fixture()
@@ -155,91 +130,6 @@ def given_a_good_is_onward_incorporated(draft_standard_application):
 def when_the_application_is_submitted_at(submit_application, draft_standard_application, submission_time):
     with freeze_time(submission_time):
         return submit_application(draft_standard_application)
-
-
-@when(parsers.parse("the application is refused at {timestamp}"), target_fixture="refused_application")
-def when_the_application_is_refused_at(
-    submitted_standard_application,
-    refuse_application,
-    timestamp,
-):
-    run_processing_time_task(submitted_standard_application.submitted_at, timestamp)
-
-    with freeze_time(timestamp):
-        refuse_application(submitted_standard_application)
-
-    submitted_standard_application.refresh_from_db()
-    refused_application = submitted_standard_application
-
-    return refused_application
-
-
-@when(parsers.parse("the application is appealed at {timestamp}"), target_fixture="appealed_application")
-def when_the_application_is_appealed_at(
-    refused_application,
-    api_client,
-    exporter_headers,
-    timestamp,
-):
-    with freeze_time(timestamp):
-        response = api_client.post(
-            reverse(
-                "applications:appeals",
-                kwargs={
-                    "pk": refused_application.pk,
-                },
-            ),
-            data={
-                "grounds_for_appeal": "This is appealing",
-            },
-            **exporter_headers,
-        )
-        assert response.status_code == 201, response.content
-
-    refused_application.refresh_from_db()
-    appealed_application = refused_application
-
-    return appealed_application
-
-
-@when(parsers.parse("the refused application is issued on appeal at {timestamp}"))
-def when_the_application_is_issued_on_appeal_at(
-    appealed_application,
-    timestamp,
-    caseworker_change_status,
-    issue_licence,
-):
-    run_processing_time_task(appealed_application.appeal.created_at, timestamp)
-
-    with freeze_time(timestamp):
-        appealed_application.advice.filter(level=AdviceLevel.FINAL).update(
-            type=AdviceType.APPROVE,
-            text="issued on appeal",
-        )
-
-        caseworker_change_status(appealed_application, CaseStatusEnum.REOPENED_FOR_CHANGES)
-        caseworker_change_status(appealed_application, CaseStatusEnum.UNDER_FINAL_REVIEW)
-        issue_licence(appealed_application)
-
-
-@when(parsers.parse("the issued application is revoked at {timestamp}"))
-def when_the_issued_application_is_revoked(
-    api_client,
-    lu_sr_manager_headers,
-    issued_application,
-    timestamp,
-):
-    run_processing_time_task(issued_application.submitted_at, timestamp)
-
-    with freeze_time(timestamp):
-        issued_licence = issued_application.licences.get()
-        url = reverse("licences:licence_details", kwargs={"pk": str(issued_licence.pk)})
-        response = api_client.patch(
-            url,
-            data={"status": LicenceStatus.REVOKED},
-            **lu_sr_manager_headers,
-        )
-        assert response.status_code == 200, response.status_code
 
 
 @when(parsers.parse("the application is withdrawn at {timestamp}"))
