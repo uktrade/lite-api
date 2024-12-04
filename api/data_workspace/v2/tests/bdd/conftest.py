@@ -22,6 +22,7 @@ from django.conf import settings
 from django.urls import reverse
 
 from api.applications.enums import ApplicationExportType
+from api.applications.models import StandardApplication
 from api.applications.tests.factories import (
     DraftStandardApplicationFactory,
     GoodOnApplicationFactory,
@@ -45,7 +46,8 @@ from api.flags.enums import SystemFlags
 from api.goods.tests.factories import GoodFactory
 from api.letter_templates.models import LetterTemplate
 from api.organisations.tests.factories import OrganisationFactory
-from api.parties.tests.factories import PartyDocumentFactory
+from api.parties.tests.factories import ConsigneeFactory, EndUserFactory, PartyDocumentFactory, ThirdPartyFactory
+from api.staticdata.countries.models import Country
 from api.staticdata.letter_layouts.models import LetterLayout
 from api.staticdata.report_summaries.models import (
     ReportSummaryPrefix,
@@ -53,6 +55,7 @@ from api.staticdata.report_summaries.models import (
 )
 from api.staticdata.statuses.enums import CaseStatusEnum
 from api.staticdata.statuses.models import CaseStatus
+from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
 from api.staticdata.units.enums import Units
 from api.users.libraries.user_to_token import user_to_token
 from api.users.enums import (
@@ -70,6 +73,53 @@ from api.users.tests.factories import (
     RoleFactory,
     UserOrganisationRelationshipFactory,
 )
+
+
+class DraftStandardApplicationFactoryDW(DraftStandardApplicationFactory):
+
+    @classmethod
+    def _create(cls, model_class, *args, **kwargs):
+        id_attributes = {}
+        if id := kwargs.pop("good_on_application_id", None):
+            id_attributes = {"id": id}
+
+        consignee_country = kwargs.pop("consignee_country", None)
+        end_user_country = kwargs.pop("end_user_country", None)
+
+        obj = model_class(*args, **kwargs)
+        obj.status = get_case_status_by_status(CaseStatusEnum.DRAFT)
+        obj.save()
+
+        GoodOnApplicationFactory(
+            **id_attributes,
+            application=obj,
+            good=GoodFactory(organisation=obj.organisation),
+            quantity=100.00,
+            value=1500.00,
+            unit=Units.NAR,
+        )
+        consignee = ConsigneeFactory(organisation=obj.organisation)
+        if consignee_country:
+            consignee.country = Country.objects.get(id=consignee_country)
+            consignee.save()
+
+        end_user = EndUserFactory(organisation=obj.organisation)
+        if end_user_country:
+            end_user.country = Country.objects.get(id=end_user_country)
+            end_user.save()
+
+        PartyOnApplicationFactory(application=obj, party=end_user)
+
+        if kwargs["goods_recipients"] in [
+            StandardApplication.VIA_CONSIGNEE,
+            StandardApplication.VIA_CONSIGNEE_AND_THIRD_PARTIES,
+        ]:
+            PartyOnApplicationFactory(application=obj, party=consignee)
+
+        if kwargs["goods_recipients"] == StandardApplication.VIA_CONSIGNEE_AND_THIRD_PARTIES:
+            PartyOnApplicationFactory(application=obj, party=ThirdPartyFactory(organisation=obj.organisation))
+
+        return obj
 
 
 def load_json(filename):
@@ -442,12 +492,18 @@ def given_endpoint_exists(client, table_name):
 @given(parsers.parse("the application has the following goods:{goods}"))
 def given_the_application_has_the_following_goods(parse_table, draft_standard_application, goods):
     draft_standard_application.goods.all().delete()
-    good_attributes = parse_table(goods)[1:]
-    for id, name in good_attributes:
+
+    good_attributes = parse_table(goods)
+    keys = good_attributes[0]
+    for row in good_attributes[1:]:
+        data = dict(zip(keys, row))
         GoodOnApplicationFactory(
             application=draft_standard_application,
-            id=id,
-            good__name=name,
+            id=data["id"],
+            good__name=data["name"],
+            quantity=float(data.get("quantity", "10.0")),
+            unit=data.get("unit", "NAR"),
+            value=float(data.get("value", "100.0")),
         )
 
 
@@ -519,7 +575,7 @@ def parse_attributes(parse_table):
     target_fixture="draft_standard_application",
 )
 def given_a_draft_standard_application_with_attributes(organisation, parse_attributes, attributes):
-    application = DraftStandardApplicationFactory(
+    application = DraftStandardApplicationFactoryDW(
         organisation=organisation,
         **parse_attributes(attributes),
     )

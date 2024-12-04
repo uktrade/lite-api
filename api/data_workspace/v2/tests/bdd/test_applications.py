@@ -1,6 +1,4 @@
-import datetime
 import pytest
-import pytz
 
 from freezegun import freeze_time
 
