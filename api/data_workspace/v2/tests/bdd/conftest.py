@@ -31,6 +31,7 @@ from api.applications.tests.factories import (
 from api.cases.enums import AdviceLevel, AdviceType, CaseTypeEnum
 from api.cases.models import CaseType, LicenceDecision
 from api.cases.tests.factories import FinalAdviceFactory
+from api.cases.celery_tasks import update_cases_sla
 from api.core.constants import (
     ExporterPermissions,
     GovPermissions,
@@ -43,7 +44,9 @@ from api.letter_templates.models import LetterTemplate
 from api.licences.enums import LicenceStatus
 from api.licences.models import Licence
 from api.organisations.tests.factories import OrganisationFactory
+from api.parties.enums import PartyType
 from api.parties.tests.factories import PartyDocumentFactory
+from api.staticdata.countries.models import Country
 from api.staticdata.letter_layouts.models import LetterLayout
 from api.staticdata.report_summaries.models import (
     ReportSummaryPrefix,
@@ -68,7 +71,6 @@ from api.users.tests.factories import (
     RoleFactory,
     UserOrganisationRelationshipFactory,
 )
-from api.cases.celery_tasks import update_cases_sla
 
 
 def load_json(filename):
@@ -285,6 +287,15 @@ def draft_application():
     return draft_application
 
 
+def run_processing_time_task(start, up_to):
+    processing_time_task_run_date_time = start.replace(hour=22, minute=30)
+    up_to = pytz.utc.localize(datetime.datetime.fromisoformat(up_to))
+    while processing_time_task_run_date_time <= up_to:
+        with freeze_time(processing_time_task_run_date_time):
+            update_cases_sla()
+        processing_time_task_run_date_time = processing_time_task_run_date_time + datetime.timedelta(days=1)
+
+
 @pytest.fixture
 def submit_application(api_client, exporter_headers, mocker):
     def _submit_application(draft_application):
@@ -326,6 +337,20 @@ def given_draft_standard_application(organisation):
     )
 
     return application
+
+
+@given(parsers.parse("a consignee added to the application in `{country}`"))
+def add_consignee_to_application(draft_standard_application, country):
+    consignee = draft_standard_application.parties.get(party__type=PartyType.CONSIGNEE)
+    consignee.party.country = Country.objects.get(name=country)
+    consignee.party.save()
+
+
+@given(parsers.parse("an end-user added to the application of `{country}`"))
+def add_end_user_to_application(draft_standard_application, country):
+    end_user = draft_standard_application.parties.get(party__type=PartyType.END_USER)
+    end_user.party.country = Country.objects.get(name=country)
+    end_user.party.save()
 
 
 @when(
@@ -380,6 +405,8 @@ def cast_to_types(data, fields_metadata):
                 cast_row[key] = None
             elif field_metadata["type"] == "Integer":
                 cast_row[key] = int(value)
+            elif field_metadata["type"] == "Float":
+                cast_row[key] = float(value)
             elif field_metadata["type"] == "DateTime":
                 cast_row[key] = pytz.utc.localize(parse(value, ignoretz=True))
             elif field_metadata["type"] == "UUID":
@@ -433,12 +460,18 @@ def given_endpoint_exists(client, table_name):
 @given(parsers.parse("the application has the following goods:{goods}"))
 def given_the_application_has_the_following_goods(parse_table, draft_standard_application, goods):
     draft_standard_application.goods.all().delete()
-    good_attributes = parse_table(goods)[1:]
-    for id, name in good_attributes:
+
+    good_attributes = parse_table(goods)
+    keys = good_attributes[0]
+    for row in good_attributes[1:]:
+        data = dict(zip(keys, row))
         GoodOnApplicationFactory(
             application=draft_standard_application,
-            id=id,
-            good__name=name,
+            id=data["id"],
+            good__name=data["name"],
+            quantity=float(data.get("quantity", "10.0")),
+            unit=data.get("unit", "NAR"),
+            value=float(data.get("value", "100.0")),
         )
 
 
@@ -491,15 +524,6 @@ def when_the_goods_are_assessed_by_tau(
         **gov_headers,
     )
     assert response.status_code == 200, response.content
-
-
-def run_processing_time_task(start, up_to):
-    processing_time_task_run_date_time = start.replace(hour=22, minute=30)
-    up_to = pytz.utc.localize(datetime.datetime.fromisoformat(up_to))
-    while processing_time_task_run_date_time <= up_to:
-        with freeze_time(processing_time_task_run_date_time):
-            update_cases_sla()
-        processing_time_task_run_date_time = processing_time_task_run_date_time + datetime.timedelta(days=1)
 
 
 @given(
