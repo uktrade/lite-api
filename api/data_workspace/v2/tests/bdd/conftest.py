@@ -22,7 +22,6 @@ from django.conf import settings
 from django.urls import reverse
 
 from api.applications.enums import ApplicationExportType
-from api.applications.models import StandardApplication
 from api.applications.tests.factories import (
     DraftStandardApplicationFactory,
     GoodOnApplicationFactory,
@@ -45,7 +44,8 @@ from api.letter_templates.models import LetterTemplate
 from api.licences.enums import LicenceStatus
 from api.licences.models import Licence
 from api.organisations.tests.factories import OrganisationFactory
-from api.parties.tests.factories import ConsigneeFactory, EndUserFactory, PartyDocumentFactory, ThirdPartyFactory
+from api.parties.enums import PartyType
+from api.parties.tests.factories import PartyDocumentFactory
 from api.staticdata.countries.models import Country
 from api.staticdata.letter_layouts.models import LetterLayout
 from api.staticdata.report_summaries.models import (
@@ -54,7 +54,6 @@ from api.staticdata.report_summaries.models import (
 )
 from api.staticdata.statuses.enums import CaseStatusEnum
 from api.staticdata.statuses.models import CaseStatus
-from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
 from api.staticdata.units.enums import Units
 from api.users.libraries.user_to_token import user_to_token
 from api.users.enums import (
@@ -72,53 +71,6 @@ from api.users.tests.factories import (
     RoleFactory,
     UserOrganisationRelationshipFactory,
 )
-
-
-class DraftStandardApplicationFactoryDW(DraftStandardApplicationFactory):
-
-    @classmethod
-    def _create(cls, model_class, *args, **kwargs):
-        id_attributes = {}
-        if id := kwargs.pop("good_on_application_id", None):
-            id_attributes = {"id": id}
-
-        consignee_country = kwargs.pop("consignee_country", None)
-        end_user_country = kwargs.pop("end_user_country", None)
-
-        obj = model_class(*args, **kwargs)
-        obj.status = get_case_status_by_status(CaseStatusEnum.DRAFT)
-        obj.save()
-
-        GoodOnApplicationFactory(
-            **id_attributes,
-            application=obj,
-            good=GoodFactory(organisation=obj.organisation),
-            quantity=100.00,
-            value=1500.00,
-            unit=Units.NAR,
-        )
-        consignee = ConsigneeFactory(organisation=obj.organisation)
-        if consignee_country:
-            consignee.country = Country.objects.get(id=consignee_country)
-            consignee.save()
-
-        end_user = EndUserFactory(organisation=obj.organisation)
-        if end_user_country:
-            end_user.country = Country.objects.get(id=end_user_country)
-            end_user.save()
-
-        PartyOnApplicationFactory(application=obj, party=end_user)
-
-        if kwargs["goods_recipients"] in [
-            StandardApplication.VIA_CONSIGNEE,
-            StandardApplication.VIA_CONSIGNEE_AND_THIRD_PARTIES,
-        ]:
-            PartyOnApplicationFactory(application=obj, party=consignee)
-
-        if kwargs["goods_recipients"] == StandardApplication.VIA_CONSIGNEE_AND_THIRD_PARTIES:
-            PartyOnApplicationFactory(application=obj, party=ThirdPartyFactory(organisation=obj.organisation))
-
-        return obj
 
 
 def load_json(filename):
@@ -387,6 +339,20 @@ def given_draft_standard_application(organisation):
     return application
 
 
+@given(parsers.parse("a consignee added to the application in `{country}`"))
+def add_consignee_to_application(draft_standard_application, country):
+    consignee = draft_standard_application.parties.get(party__type=PartyType.CONSIGNEE)
+    consignee.party.country = Country.objects.get(name=country)
+    consignee.party.save()
+
+
+@given(parsers.parse("an end-user added to the application of `{country}`"))
+def add_end_user_to_application(draft_standard_application, country):
+    end_user = draft_standard_application.parties.get(party__type=PartyType.END_USER)
+    end_user.party.country = Country.objects.get(name=country)
+    end_user.party.save()
+
+
 @when(
     "the application is submitted",
     target_fixture="submitted_standard_application",
@@ -565,7 +531,7 @@ def when_the_goods_are_assessed_by_tau(
     target_fixture="draft_standard_application",
 )
 def given_a_draft_standard_application_with_attributes(organisation, parse_attributes, attributes):
-    application = DraftStandardApplicationFactoryDW(
+    application = DraftStandardApplicationFactory(
         organisation=organisation,
         **parse_attributes(attributes),
     )
