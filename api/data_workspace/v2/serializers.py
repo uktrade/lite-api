@@ -11,7 +11,10 @@ from api.applications.models import (
 )
 from api.cases.enums import LicenceDecisionType
 from api.cases.models import LicenceDecision
+from api.licences.models import GoodOnLicence
+from api.staticdata.control_list_entries.models import ControlListEntry
 from api.staticdata.countries.models import Country
+from api.staticdata.denial_reasons.models import DenialReason
 from api.staticdata.report_summaries.models import ReportSummary
 
 
@@ -96,6 +99,15 @@ class GoodDescriptionSerializer(serializers.ModelSerializer):
         )
 
 
+class GoodOnLicenceSerializer(serializers.ModelSerializer):
+    good_id = serializers.UUIDField()
+    licence_id = serializers.UUIDField()
+
+    class Meta:
+        model = GoodOnLicence
+        fields = ("good_id", "licence_id")
+
+
 class ApplicationSerializer(serializers.ModelSerializer):
     licence_type = serializers.CharField(source="case_type.reference")
     status = serializers.CharField(source="status.status")
@@ -129,3 +141,35 @@ class ApplicationSerializer(serializers.ModelSerializer):
             return application.baseapplication_ptr.case_ptr.closed_status_updates[0].created_at
 
         return None
+
+
+class UnitSerializer(serializers.Serializer):
+    code = serializers.CharField()
+    description = serializers.CharField()
+
+
+class FootnoteSerializer(serializers.Serializer):
+    footnote = serializers.CharField()
+    team_name = serializers.CharField(source="team__name")
+    application_id = serializers.CharField(source="case__pk")
+    type = serializers.CharField()
+
+
+class AssessmentSerializer(serializers.ModelSerializer):
+    good_id = serializers.UUIDField()
+
+    class Meta:
+        model = ControlListEntry
+        fields = (
+            "good_id",
+            "rating",
+        )
+
+
+class LicenceRefusalCriteriaSerializer(serializers.ModelSerializer):
+    criteria = serializers.CharField(source="display_value")
+    licence_decision_id = serializers.UUIDField()
+
+    class Meta:
+        model = DenialReason
+        fields = ("criteria", "licence_decision_id")

@@ -6,8 +6,12 @@ from parameterized import parameterized
 from api.audit_trail.enums import AuditType
 from api.audit_trail.models import Audit
 from api.audit_trail import service as audit_trail_service
-from api.cases.enums import AdviceType, CaseTypeEnum, LicenceDecisionType
-from api.cases.models import LicenceDecision
+from api.cases.enums import (
+    AdviceLevel,
+    AdviceType,
+    CaseTypeEnum,
+    LicenceDecisionType,
+)
 from api.cases.tests.factories import FinalAdviceFactory
 from api.cases.libraries.get_case import get_case
 from api.cases.generated_documents.models import GeneratedCaseDocument
@@ -65,8 +69,19 @@ class RefuseAdviceTests(DataTestClient):
                 payload__decision=AdviceType.REFUSE,
             ).exists()
         )
-        self.assertTrue(
-            LicenceDecision.objects.filter(case=self.application, decision=LicenceDecisionType.REFUSED).exists()
+
+        licence_decision = case.licence_decisions.get(decision=LicenceDecisionType.REFUSED)
+
+        advice = case.advice.get(
+            level=AdviceLevel.FINAL,
+            type=AdviceType.REFUSE,
+        )
+
+        self.assertTrue(licence_decision.denial_reasons.exists())
+
+        self.assertQuerySetEqual(
+            licence_decision.denial_reasons.all(),
+            advice.denial_reasons.all(),
         )
 
     @mock.patch("api.cases.notify.notify_exporter_licence_refused")
