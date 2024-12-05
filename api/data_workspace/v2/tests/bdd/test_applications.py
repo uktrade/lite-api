@@ -1,7 +1,6 @@
 import pytest
-
+from django.urls import reverse
 from freezegun import freeze_time
-
 from pytest_bdd import (
     given,
     parsers,
@@ -9,21 +8,18 @@ from pytest_bdd import (
     when,
 )
 
-from django.urls import reverse
-
 from api.applications.enums import ApplicationExportType
 from api.applications.tests.factories import (
     DraftStandardApplicationFactory,
     GoodOnApplicationFactory,
     PartyOnApplicationFactory,
 )
+from api.data_workspace.v2.tests.bdd.conftest import run_processing_time_task
 from api.parties.tests.factories import (
     PartyDocumentFactory,
     UltimateEndUserFactory,
 )
 from api.staticdata.statuses.enums import CaseStatusEnum
-from api.data_workspace.v2.tests.bdd.conftest import run_processing_time_task
-
 
 scenarios("./scenarios/applications.feature")
 

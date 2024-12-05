@@ -1,8 +1,11 @@
 from datetime import datetime
-from pytest_bdd import scenarios, when
 
+from pytest_bdd import (
+    scenarios,
+    when,
+)
 
-scenarios("../scenarios/destinations.feature")
+scenarios("./scenarios/destinations.feature")
 
 
 @when("the parties are deleted")

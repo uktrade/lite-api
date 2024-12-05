@@ -2,10 +2,10 @@ from pytest_bdd import (
     given,
     scenarios,
 )
+
 from api.licences.enums import LicenceStatus
 
-
-scenarios("../scenarios/licence_decisions.feature")
+scenarios("./scenarios/licence_decisions.feature")
 
 
 @given("a standard draft licence is created", target_fixture="draft_licence")
