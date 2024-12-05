@@ -1,6 +1,11 @@
 import pytest
 from django.urls import reverse
-from pytest_bdd import given, scenarios, then, when
+from pytest_bdd import (
+    given,
+    scenarios,
+    then,
+    when,
+)
 
 from api.staticdata.countries.models import Country
 

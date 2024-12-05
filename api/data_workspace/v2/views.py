@@ -38,15 +38,15 @@ from api.data_workspace.v2.serializers import (
     GoodOnLicenceSerializer,
     GoodSerializer,
     LicenceDecisionSerializer,
-    UnitSerializer,
     LicenceRefusalCriteriaSerializer,
+    UnitSerializer,
 )
 from api.licences.enums import LicenceStatus
 from api.licences.models import GoodOnLicence
 from api.staticdata.control_list_entries.models import ControlListEntry
 from api.staticdata.countries.models import Country
-from api.staticdata.report_summaries.models import ReportSummary
 from api.staticdata.denial_reasons.models import DenialReason
+from api.staticdata.report_summaries.models import ReportSummary
 from api.staticdata.statuses.enums import CaseStatusEnum
 from api.staticdata.units.enums import Units
 

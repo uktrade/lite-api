@@ -9,7 +9,12 @@ from django.conf import settings
 from django.urls import reverse
 from freezegun import freeze_time
 from moto import mock_aws
-from pytest_bdd import given, parsers, then, when
+from pytest_bdd import (
+    given,
+    parsers,
+    then,
+    when,
+)
 from rest_framework import status
 from rest_framework.test import APIClient
 
@@ -22,29 +27,52 @@ from api.applications.tests.factories import (
     StandardApplicationFactory,
 )
 from api.cases.celery_tasks import update_cases_sla
-from api.cases.enums import AdviceLevel, AdviceType, CaseTypeEnum
-from api.cases.models import CaseType, LicenceDecision
+from api.cases.enums import (
+    AdviceLevel,
+    AdviceType,
+    CaseTypeEnum,
+)
+from api.cases.models import (
+    CaseType,
+    LicenceDecision,
+)
 from api.cases.tests.factories import FinalAdviceFactory
-from api.core.constants import ExporterPermissions, GovPermissions, Roles
+from api.core.constants import (
+    ExporterPermissions,
+    GovPermissions,
+    Roles,
+)
 from api.documents.libraries.s3_operations import init_s3_client
 from api.flags.enums import SystemFlags
 from api.goods.tests.factories import GoodFactory
 from api.letter_templates.models import LetterTemplate
 from api.licences.enums import LicenceStatus
 from api.licences.models import Licence
-from api.licences.tests.factories import GoodOnLicenceFactory, StandardLicenceFactory
+from api.licences.tests.factories import (
+    GoodOnLicenceFactory,
+    StandardLicenceFactory,
+)
 from api.organisations.tests.factories import OrganisationFactory
 from api.parties.enums import PartyType
 from api.parties.tests.factories import PartyDocumentFactory
 from api.staticdata.countries.models import Country
 from api.staticdata.letter_layouts.models import LetterLayout
-from api.staticdata.report_summaries.models import ReportSummaryPrefix, ReportSummarySubject
+from api.staticdata.report_summaries.models import (
+    ReportSummaryPrefix,
+    ReportSummarySubject,
+)
 from api.staticdata.statuses.enums import CaseStatusEnum
 from api.staticdata.statuses.models import CaseStatus
 from api.staticdata.units.enums import Units
-from api.users.enums import SystemUser, UserType
+from api.users.enums import (
+    SystemUser,
+    UserType,
+)
 from api.users.libraries.user_to_token import user_to_token
-from api.users.models import BaseUser, Permission
+from api.users.models import (
+    BaseUser,
+    Permission,
+)
 from api.users.tests.factories import (
     BaseUserFactory,
     ExporterUserFactory,

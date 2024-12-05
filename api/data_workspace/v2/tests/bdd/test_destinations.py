@@ -1,6 +1,9 @@
 from datetime import datetime
 
-from pytest_bdd import scenarios, when
+from pytest_bdd import (
+    scenarios,
+    when,
+)
 
 scenarios("./scenarios/destinations.feature")
 

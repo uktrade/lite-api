@@ -1,4 +1,7 @@
-from pytest_bdd import given, scenarios
+from pytest_bdd import (
+    given,
+    scenarios,
+)
 
 from api.licences.enums import LicenceStatus
 
