@@ -1,11 +1,6 @@
 import pytest
 from django.urls import reverse
-from pytest_bdd import (
-    given,
-    scenarios,
-    then,
-    when,
-)
+from pytest_bdd import given, scenarios, then, when
 
 from api.applications.models import GoodOnApplication
 from api.staticdata.statuses.enums import CaseStatusEnum

@@ -1,10 +1,6 @@
 import pytest
 from django.urls import reverse
-from pytest_bdd import (
-    parsers,
-    scenarios,
-    when,
-)
+from pytest_bdd import parsers, scenarios, when
 
 from api.staticdata.statuses.enums import CaseStatusEnum
 from api.teams.models import Team

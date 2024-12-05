@@ -1,11 +1,6 @@
 import uuid
 
-from pytest_bdd import (
-    parsers,
-    scenarios,
-    when,
-)
-
+from pytest_bdd import parsers, scenarios, when
 
 scenarios("./scenarios/licence_refusal_criteria.feature")
 
