@@ -22,4 +22,6 @@ path = django_db_anonymiser
 url = $git_clone_base_url/django-db-anonymiser.git
 EOF
 
+sed -i 's/\[packages\]/[packages]\nendesive = "~=1.5.9"/' Pipfile
+
 git submodule update --init --recursive
