@@ -4,3 +4,4 @@ builder:
   version: 0.3.339
 packs:
   - acodeninja/install
+  - acodeninja/psql
