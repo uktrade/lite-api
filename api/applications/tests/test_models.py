@@ -33,7 +33,7 @@ from api.applications.tests.factories import (
     GoodOnApplicationFactory,
     PartyOnApplicationFactory,
 )
-from api.users.models import GovUser, ExporterUser
+from api.users.models import BaseUser, GovUser, ExporterUser
 from api.goods.tests.factories import FirearmFactory
 from api.organisations.tests.factories import OrganisationFactory
 from api.staticdata.control_list_entries.models import ControlListEntry
@@ -43,7 +43,6 @@ from api.staticdata.statuses.enums import (
     CaseStatusEnum,
 )
 from api.users.enums import SystemUser
-from api.users.models import BaseUser, ExporterUser
 from api.users.tests.factories import BaseUserFactory
 
 

@@ -120,7 +120,7 @@ def siel_goods_validator(application):
 
     # If safe field value is None, then the document hasn't been virus scanned yet
     if not all(item is not None for item in document_statuses):
-        return "We're still processing a good document. Please submit again"
+        return "We are still processing a good document. Try submitting again in a few minutes."
 
     # If safe is False, the file contains a virus
     if not all(document_statuses):
