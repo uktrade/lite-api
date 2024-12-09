@@ -1,6 +1,5 @@
 from rest_framework import serializers
 from rest_framework.relations import PrimaryKeyRelatedField
-
 from api.core.helpers import str_to_bool
 from api.core.serializers import KeyValueChoiceField, ControlListEntryField, GoodControlReviewSerializer
 from api.documents.libraries.process_document import process_document

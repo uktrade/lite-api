@@ -12,20 +12,6 @@ class EmailData:
 
 
 @dataclass(frozen=True)
-class EcjuCreatedEmailData(EmailData):
-    case_reference: str
-    application_reference: str
-    link: str
-
-
-@dataclass(frozen=True)
-class ApplicationStatusEmailData(EmailData):
-    case_reference: str
-    application_reference: str
-    link: str
-
-
-@dataclass(frozen=True)
 class ExporterRegistration(EmailData):
     organisation_name: str
 
@@ -54,7 +40,12 @@ class ExporterLicenceRefused(EmailData):
 class ExporterLicenceRevoked(EmailData):
     user_first_name: str
     application_reference: str
-    exporter_frontend_url: str
+
+
+@dataclass(frozen=True)
+class ExporterLicenceSuspended(EmailData):
+    user_first_name: str
+    licence_reference: str
 
 
 @dataclass(frozen=True)
@@ -116,7 +107,6 @@ class ExporterInformLetter(EmailData):
 class ExporterAppealAcknowledgement(EmailData):
     user_first_name: str
     application_reference: str
-    exporter_frontend_url: str
 
 
 @dataclass(frozen=True)

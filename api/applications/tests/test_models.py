@@ -1,13 +1,21 @@
+import concurrent.futures
+import pytest
+
 from django.forms import model_to_dict
+from django.test import TransactionTestCase
 from django.utils import timezone
+
+from parameterized import parameterized
 
 from test_helpers.clients import DataTestClient
 
 from api.appeals.tests.factories import AppealFactory
+from api.applications.exceptions import AmendmentError
 from api.audit_trail.models import Audit
 from api.cases.models import CaseType, Queue
 from api.flags.models import Flag
 from api.applications.models import (
+    ApplicationDocument,
     GoodOnApplication,
     GoodOnApplicationDocument,
     GoodOnApplicationInternalDocument,
@@ -31,7 +39,12 @@ from api.organisations.tests.factories import OrganisationFactory
 from api.staticdata.control_list_entries.models import ControlListEntry
 from api.staticdata.report_summaries.models import ReportSummary, ReportSummaryPrefix, ReportSummarySubject
 from api.staticdata.statuses.models import CaseStatus, CaseSubStatus
+from api.staticdata.statuses.enums import (
+    CaseStatusEnum,
+)
+from api.users.enums import SystemUser
 from api.users.models import ExporterUser
+from api.users.tests.factories import BaseUserFactory
 
 
 class TestBaseApplication(DataTestClient):
@@ -77,9 +90,10 @@ class TestBaseApplication(DataTestClient):
 
 class TestStandardApplication(DataTestClient):
 
-    def test_create_amendment(self):
+    @parameterized.expand(CaseStatusEnum.can_invoke_major_edit_statuses())
+    def test_create_amendment(self, major_editable_status):
         original_application = StandardApplicationFactory(
-            status=CaseStatus.objects.get(status="ogd_advice"),
+            status=CaseStatus.objects.get(status=major_editable_status),
         )
         original_application.queues.add(Queue.objects.first())
         original_application.save()
@@ -92,7 +106,7 @@ class TestStandardApplication(DataTestClient):
         assert amendment_application.status.status == "draft"
         assert amendment_application.amendment_of == original_application.case_ptr
         original_application.refresh_from_db()
-        assert original_application.status.status == "superseded_by_amendment"
+        assert original_application.status.status == CaseStatusEnum.SUPERSEDED_BY_EXPORTER_EDIT
         assert original_application.queues.all().count() == 0
         audit_entries = Audit.objects.all()
         supersede_audit_entry = audit_entries[1]
@@ -106,8 +120,22 @@ class TestStandardApplication(DataTestClient):
         assert amendment_audit_entry.verb == "exporter_created_amendment"
         assert amendment_audit_entry.actor == exporter_user
         status_change_audit_entry = audit_entries[0]
-        assert status_change_audit_entry.payload == {"status": {"new": "Superseded by amendment", "old": "ogd_advice"}}
+        assert status_change_audit_entry.payload == {
+            "status": {"new": "superseded_by_exporter_edit", "old": major_editable_status}
+        }
         assert status_change_audit_entry.verb == "updated_status"
+
+    @parameterized.expand(CaseStatusEnum.can_not_invoke_major_edit_statuses())
+    def test_create_amendment_failure(self, non_major_editable_status):
+        original_application = StandardApplicationFactory(
+            status=CaseStatus.objects.get(status=non_major_editable_status),
+        )
+        original_application.queues.add(Queue.objects.first())
+        original_application.save()
+
+        exporter_user = ExporterUser.objects.first()
+        with self.assertRaises(AmendmentError):
+            amendment_application = original_application.create_amendment(exporter_user)
 
     def test_clone(self):
         original_application = StandardApplicationFactory(
@@ -149,6 +177,7 @@ class TestStandardApplication(DataTestClient):
             proposed_return_date=timezone.now(),
             reference_number_on_information_form="some ref",
             security_approvals=["some approvals"],
+            subject_to_itar_controls=False,
             sla_days=10,
             sla_remaining_days=20,
             sla_updated_at=timezone.now(),
@@ -170,6 +199,12 @@ class TestStandardApplication(DataTestClient):
         original_site_on_application = SiteOnApplicationFactory(application=original_application)
         original_good_on_application = GoodOnApplicationFactory(application=original_application)
         original_party_on_application = PartyOnApplicationFactory(application=original_application)
+        original_application_safe_document = ApplicationDocumentFactory(
+            application=original_application, s3_key="some safe key", safe=True
+        )
+        original_application_unsafe_document = ApplicationDocumentFactory(
+            application=original_application, s3_key="some unsafe key", safe=False
+        )
         cloned_application = original_application.clone()
 
         assert cloned_application.id != original_application.id
@@ -217,6 +252,7 @@ class TestStandardApplication(DataTestClient):
             "queues": [],
             "reference_number_on_information_form": "some ref",
             "security_approvals": ["some approvals"],
+            "subject_to_itar_controls": False,
             "sla_days": 0,
             "sla_remaining_days": None,
             "sla_updated_at": None,
@@ -240,6 +276,9 @@ class TestStandardApplication(DataTestClient):
         assert SiteOnApplication.objects.filter(application=cloned_application).count() == 1
         assert GoodOnApplication.objects.filter(application=cloned_application).count() == 1
         assert PartyOnApplication.objects.filter(application=cloned_application).count() == 1
+        assert list(
+            ApplicationDocument.objects.filter(application=cloned_application).values_list("s3_key", flat=True)
+        ) == ["some safe key"]
 
 
 class TestApplicationDocument(DataTestClient):
@@ -351,16 +390,34 @@ class TestGoodOnApplication(DataTestClient):
         original_good_on_application_internal_document = GoodOnApplicationInternalDocumentFactory(
             document_title="some title",
             name="some name",
-            s3_key="doc.xlsx",
+            s3_key="safe.xlsx",
             safe=True,
+            size=100,
+            good_on_application=original_good_on_application,
+        )
+        original_good_on_application_internal_document_unsafe = GoodOnApplicationInternalDocumentFactory(
+            document_title="some title",
+            name="some name",
+            s3_key="unsafe.xlsx",
+            safe=False,
             size=100,
             good_on_application=original_good_on_application,
         )
         original_good_on_application_document = GoodOnApplicationDocumentFactory(
             document_type="some type",
             name="some name",
-            s3_key="doc.xlsx",
+            s3_key="safe.xlsx",
             safe=True,
+            size=100,
+            good_on_application=original_good_on_application,
+            good=original_good_on_application.good,
+            application=original_good_on_application.application,
+        )
+        original_good_on_application_document_unsafe = GoodOnApplicationDocumentFactory(
+            document_type="some type",
+            name="some name",
+            s3_key="unsafe.xlsx",
+            safe=False,
             size=100,
             good_on_application=original_good_on_application,
             good=original_good_on_application.good,
@@ -409,11 +466,16 @@ class TestGoodOnApplication(DataTestClient):
         cloned by default or not and adjust GoodOnApplication.clone_* attributes accordingly.
         """
         # Defer checking of related models' clone() methods to specific unit tests
-        assert (
-            GoodOnApplicationInternalDocument.objects.filter(good_on_application=cloned_good_on_application).count()
-            == 1
-        )
-        assert GoodOnApplicationDocument.objects.filter(good_on_application=cloned_good_on_application).count() == 1
+        assert list(
+            GoodOnApplicationInternalDocument.objects.filter(
+                good_on_application=cloned_good_on_application
+            ).values_list("s3_key", flat=True)
+        ) == ["safe.xlsx"]
+        assert list(
+            GoodOnApplicationDocument.objects.filter(good_on_application=cloned_good_on_application).values_list(
+                "s3_key", flat=True
+            )
+        ) == ["safe.xlsx"]
 
 
 class TestGoodOnApplicationDocument(DataTestClient):
@@ -498,6 +560,32 @@ class TestPartyOnApplication(DataTestClient):
         cloned_party_on_application = original_party_on_application.clone(application=new_application)
         assert cloned_party_on_application.id != original_party_on_application.id
         assert cloned_party_on_application.application_id == new_application.id
+        assert cloned_party_on_application.party_id != original_party_on_application.party_id
+        assert model_to_dict(cloned_party_on_application) == {
+            "id": cloned_party_on_application.id,
+            "application": new_application.id,
+            "deleted_at": original_party_on_application.deleted_at,
+            "flags": [],
+            "party": cloned_party_on_application.party_id,
+        }, """
+        The attributes on the cloned record were not as expected. If this is the result
+        of a schema migration, think carefully about whether the new fields should be
+        cloned by default or not and adjust PartyOnApplication.clone_*
+        attributes accordingly.
+        """
+
+    def test_clone_with_party_override(self):
+        original_party_on_application = PartyOnApplicationFactory(
+            deleted_at=timezone.now(),
+        )
+        original_party_on_application.flags.add(Flag.objects.first())
+        original_party_on_application.save()
+        new_application = StandardApplicationFactory()
+        cloned_party_on_application = original_party_on_application.clone(
+            application=new_application, party=original_party_on_application.party
+        )
+        assert cloned_party_on_application.id != original_party_on_application.id
+        assert cloned_party_on_application.application_id == new_application.id
         assert model_to_dict(cloned_party_on_application) == {
             "id": cloned_party_on_application.id,
             "application": new_application.id,
@@ -510,3 +598,34 @@ class TestPartyOnApplication(DataTestClient):
         cloned by default or not and adjust PartyOnApplication.clone_*
         attributes accordingly.
         """
+
+
+@pytest.mark.requires_transactions
+class TestStandardApplicationRaceConditions(TransactionTestCase):
+    def test_create_amendment_race_condition_success(self):
+        BaseUserFactory(id=SystemUser.id)
+
+        original_application = StandardApplicationFactory()
+
+        original_application = StandardApplication.objects.get(pk=original_application.pk)
+        same_application = StandardApplication.objects.get(pk=original_application.pk)
+
+        exporter_user = ExporterUser.objects.first()
+
+        def _create_amendment(application):
+            return application.create_amendment(exporter_user)
+
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            future_1 = executor.submit(_create_amendment, original_application)
+            future_2 = executor.submit(_create_amendment, same_application)
+
+            amendment_1 = future_1.result()
+            amendment_2 = future_2.result()
+
+        self.assertEqual(
+            StandardApplication.objects.count(),
+            2,
+        )
+        self.assertEqual(amendment_1, amendment_2)
+        self.assertEqual(amendment_1.amendment_of.get_case(), original_application.get_case())
+        self.assertEqual(amendment_2.amendment_of.get_case(), original_application.get_case())

@@ -12,6 +12,7 @@ from gov_notify.payloads import (
     ExporterLicenceRevoked,
     ExporterInformLetter,
     ExporterAppealAcknowledgement,
+    ExporterLicenceSuspended,
 )
 from gov_notify.service import send_email
 
@@ -77,7 +78,26 @@ def notify_exporter_licence_revoked(licence):
         {
             "user_first_name": exporter.first_name,
             "application_reference": case.reference_code,
-            "exporter_frontend_url": get_exporter_frontend_url("/"),
+        },
+    )
+
+
+def _notify_exporter_licence_suspended(email, data):
+    payload = ExporterLicenceSuspended(**data)
+    send_email(
+        email,
+        TemplateType.EXPORTER_LICENCE_SUSPENDED,
+        payload,
+    )
+
+
+def notify_exporter_licence_suspended(licence):
+    exporter = licence.case.submitted_by
+    _notify_exporter_licence_suspended(
+        exporter.email,
+        {
+            "user_first_name": exporter.first_name,
+            "licence_reference": licence.reference_code,
         },
     )
 
@@ -167,6 +187,5 @@ def notify_exporter_appeal_acknowledgement(case):
     payload = ExporterAppealAcknowledgement(
         user_first_name=exporter.first_name,
         application_reference=case.reference_code,
-        exporter_frontend_url=get_exporter_frontend_url("/"),
     )
     send_email(exporter.email, TemplateType.EXPORTER_APPEAL_ACKNOWLEDGEMENT, payload)

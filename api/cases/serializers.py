@@ -1,4 +1,3 @@
-from django.contrib.contenttypes.models import ContentType
 from rest_framework import serializers
 
 from api.applications.libraries.get_applications import get_application
@@ -6,7 +5,6 @@ from api.applications.models import BaseApplication, StandardApplication
 from api.applications.serializers.advice import AdviceViewSerializer, CountersignDecisionAdviceViewSerializer
 from api.staticdata.statuses.serializers import CaseSubStatusSerializer
 
-from api.audit_trail.models import Audit
 from api.cases.enums import (
     CaseTypeTypeEnum,
     AdviceType,
@@ -49,7 +47,7 @@ from api.staticdata.countries.models import Country
 from api.staticdata.statuses.enums import CaseStatusEnum
 from api.teams.serializers import TeamSerializer
 from api.users.enums import UserStatuses
-from api.users.models import BaseUser, GovUser, GovNotification, ExporterUser
+from api.users.models import BaseUser, GovUser, ExporterUser
 from api.users.serializers import (
     BaseUserViewSerializer,
     GovUserViewSerializer,
@@ -268,7 +266,6 @@ class CaseDetailSerializer(serializers.ModelSerializer):
     all_flags = serializers.SerializerMethodField()
     case_officer = GovUserSimpleSerializer(read_only=True)
     copy_of = serializers.SerializerMethodField()
-    audit_notification = serializers.SerializerMethodField()
     sla_days = serializers.IntegerField()
     sla_remaining_days = serializers.IntegerField()
     advice = AdviceViewSerializer(many=True)
@@ -295,7 +292,6 @@ class CaseDetailSerializer(serializers.ModelSerializer):
             "countersign_advice",
             "all_flags",
             "case_officer",
-            "audit_notification",
             "reference_code",
             "copy_of",
             "sla_days",
@@ -379,13 +375,6 @@ class CaseDetailSerializer(serializers.ModelSerializer):
         Gets distinct flags for a case and returns in sorted order by team.
         """
         return get_ordered_flags(instance, self.team, distinct=True)
-
-    def get_audit_notification(self, instance):
-        content_type = ContentType.objects.get_for_model(Audit)
-        queryset = GovNotification.objects.filter(user_id=self.user.pk, content_type=content_type, case=instance)
-
-        if queryset.exists():
-            return {"audit_id": queryset.first().object_id}
 
     def get_copy_of(self, instance):
         if instance.copy_of and instance.copy_of.status.status != CaseStatusEnum.DRAFT:

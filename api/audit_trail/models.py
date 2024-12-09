@@ -1,6 +1,6 @@
 import uuid
 
-from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
+from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.utils import timesince
@@ -9,7 +9,6 @@ from django.utils.translation import gettext_lazy as _
 from api.audit_trail.managers import AuditManager
 from api.audit_trail.enums import AuditType
 from api.common.models import TimestampableModel
-from api.users.models import GovNotification
 
 
 class Audit(TimestampableModel):
@@ -29,7 +28,7 @@ class Audit(TimestampableModel):
     actor_content_type = models.ForeignKey(
         ContentType, related_name="actor", on_delete=models.SET_NULL, db_index=True, null=True
     )
-    actor_object_id = models.CharField(max_length=255, db_index=True)
+    actor_object_id = models.UUIDField(db_index=True)
     actor = GenericForeignKey("actor_content_type", "actor_object_id")
 
     verb = models.CharField(choices=[(tag, tag.value) for tag in AuditType], max_length=255, db_index=True)
@@ -38,20 +37,18 @@ class Audit(TimestampableModel):
     target_content_type = models.ForeignKey(
         ContentType, blank=True, null=True, related_name="target", on_delete=models.SET_NULL, db_index=True
     )
-    target_object_id = models.CharField(max_length=255, blank=True, null=True, db_index=True)
+    target_object_id = models.UUIDField(blank=True, null=True, db_index=True)
     target = GenericForeignKey("target_content_type", "target_object_id")
 
     action_object_content_type = models.ForeignKey(
         ContentType, blank=True, null=True, related_name="action_object", on_delete=models.SET_NULL, db_index=True
     )
-    action_object_object_id = models.CharField(max_length=255, blank=True, null=True, db_index=True)
+    action_object_object_id = models.UUIDField(blank=True, null=True, db_index=True)
     action_object = GenericForeignKey("action_object_content_type", "action_object_object_id")
 
     payload = models.JSONField(default=dict)
 
     objects = AuditManager()
-
-    notifications = GenericRelation(GovNotification, related_query_name="audit")
 
     class Meta:
         ordering = ("-created_at",)

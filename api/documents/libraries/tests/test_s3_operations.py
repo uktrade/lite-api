@@ -1,7 +1,9 @@
 import logging
 
-from contextlib import contextmanager
-from unittest.mock import Mock, patch
+from unittest.mock import (
+    Mock,
+    patch,
+)
 
 from moto import mock_aws
 
@@ -10,9 +12,10 @@ from botocore.exceptions import (
     ReadTimeoutError,
 )
 
-from django.conf import settings
 from django.http import FileResponse
 from django.test import override_settings, SimpleTestCase
+
+from test_helpers.s3 import S3TesterHelper
 
 from ..s3_operations import (
     delete_file,
@@ -84,6 +87,31 @@ class S3OperationsTests(SimpleTestCase):
             endpoint_url="AWS_ENDPOINT_URL",
         )
 
+    @patch("api.documents.libraries.s3_operations.is_copilot")
+    @patch("api.documents.libraries.s3_operations._client")
+    def test_get_client_with_is_copilot(self, mock_client, mock_is_copilot, mock_Config, mock_boto3):
+        mock_is_copilot.return_value = True
+        mock_client = Mock()
+        mock_boto3.client.return_value = mock_client
+
+        returned_client = init_s3_client()
+        self.assertEqual(returned_client, mock_client)
+
+        mock_Config.assert_called_with(
+            connect_timeout=22,
+            read_timeout=44,
+        )
+        config = mock_Config(
+            connection_timeout=22,
+            read_timeout=44,
+        )
+        mock_boto3.client.assert_called_with(
+            "s3",
+            region_name="AWS_REGION",
+            config=config,
+            endpoint_url="AWS_ENDPOINT_URL",
+        )
+
 
 @override_settings(
     AWS_STORAGE_BUCKET_NAME="test-bucket",
@@ -134,33 +162,19 @@ class S3OperationsGetObjectTests(SimpleTestCase):
         )
 
 
-@contextmanager
-def _create_bucket(s3):
-    s3.create_bucket(
-        Bucket=settings.AWS_STORAGE_BUCKET_NAME,
-        CreateBucketConfiguration={
-            "LocationConstraint": settings.AWS_REGION,
-        },
-    )
-    yield
-
-
 @mock_aws
 class S3OperationsDeleteFileTests(SimpleTestCase):
+    def setUp(self, *args, **kwargs):
+        super().setUp(*args, **kwargs)
+
+        self.s3_test_helper = S3TesterHelper()
+
     def test_delete_file(self):
-        s3 = init_s3_client()
-        with _create_bucket(s3):
-            s3.put_object(
-                Bucket=settings.AWS_STORAGE_BUCKET_NAME,
-                Key="s3-key",
-                Body=b"test",
-            )
+        self.s3_test_helper.add_test_file("s3-key", b"test")
 
-            delete_file("document-id", "s3-key")
+        delete_file("document-id", "s3-key")
 
-            objs = s3.list_objects(Bucket=settings.AWS_STORAGE_BUCKET_NAME)
-            keys = [o["Key"] for o in objs.get("Contents", [])]
-            self.assertNotIn("s3-key", keys)
+        self.s3_test_helper.assert_file_not_in_s3("s3-key")
 
     @patch("api.documents.libraries.s3_operations._client")
     def test_delete_file_read_timeout_error(self, mock_client):
@@ -197,35 +211,34 @@ class S3OperationsDeleteFileTests(SimpleTestCase):
 
 @mock_aws
 class S3OperationsUploadBytesFileTests(SimpleTestCase):
-    def test_upload_bytes_file(self):
-        s3 = init_s3_client()
-        with _create_bucket(s3):
-            upload_bytes_file(b"test", "s3-key")
+    def setUp(self, *args, **kwargs):
+        super().setUp(*args, **kwargs)
 
-            obj = s3.get_object(
-                Bucket=settings.AWS_STORAGE_BUCKET_NAME,
-                Key="s3-key",
-            )
-            self.assertEqual(obj["Body"].read(), b"test")
+        self.s3_test_helper = S3TesterHelper()
+
+    def test_upload_bytes_file(self):
+        upload_bytes_file(b"test", "s3-key")
+
+        self.s3_test_helper.assert_file_in_s3("s3-key")
+        self.s3_test_helper.assert_file_body("s3-key", b"test")
 
 
 @mock_aws
 class S3OperationsDocumentDownloadStreamTests(SimpleTestCase):
+    def setUp(self, *args, **kwargs):
+        super().setUp(*args, **kwargs)
+
+        self.s3_test_helper = S3TesterHelper()
+
     def test_document_download_stream(self):
-        s3 = init_s3_client()
-        with _create_bucket(s3):
-            s3.put_object(
-                Bucket=settings.AWS_STORAGE_BUCKET_NAME,
-                Key="s3-key",
-                Body=b"test",
-            )
+        self.s3_test_helper.add_test_file("s3-key", b"test")
 
-            mock_document = Mock()
-            mock_document.id = "document-id"
-            mock_document.s3_key = "s3-key"
-            mock_document.name = "test.doc"
+        mock_document = Mock()
+        mock_document.id = "document-id"
+        mock_document.s3_key = "s3-key"
+        mock_document.name = "test.doc"
 
-            response = document_download_stream(mock_document)
+        response = document_download_stream(mock_document)
 
         self.assertIsInstance(response, FileResponse)
         self.assertEqual(response.status_code, 200)

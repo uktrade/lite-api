@@ -1,4 +1,5 @@
 import os, io
+import re
 
 from datetime import datetime
 from unittest import mock
@@ -14,19 +15,43 @@ from PyPDF2 import PdfFileReader
 from api.audit_trail.serializers import AuditSerializer
 
 from api.audit_trail.models import Audit
+from api.applications.tests.factories import GoodOnApplicationFactory, StandardApplicationFactory
 from api.cases.enums import CaseTypeEnum, AdviceType
 from api.cases.generated_documents.helpers import html_to_pdf
+from api.cases.tests.factories import FinalAdviceFactory
 from api.letter_templates.helpers import generate_preview, DocumentPreviewError
 from api.cases.generated_documents.models import GeneratedCaseDocument
+from api.goods.tests.factories import GoodFactory
 from api.cases.generated_documents.signing import sign_pdf
 from api.licences.enums import LicenceStatus
-from api.licences.tests.factories import StandardLicenceFactory
+from api.licences.tests.factories import GoodOnLicenceFactory, StandardLicenceFactory
 from api.staticdata.decisions.models import Decision
 from api.staticdata.statuses.enums import CaseStatusEnum
 from api.staticdata.statuses.models import CaseStatus
+from api.staticdata.regimes.models import RegimeEntry
+from api.staticdata.report_summaries.models import ReportSummarySubject, ReportSummaryPrefix
 from lite_content.lite_api import strings
 from test_helpers.clients import DataTestClient
 from api.users.models import ExporterNotification
+
+
+def get_tag(html, tag, id):
+    lines = []
+    all_lines = html.split("\n")
+    for index, line in enumerate(all_lines):
+        match = re.search(f'<{tag} id="{id}"', line)
+        if match:
+            # element spans multiple lines
+            if f"</{tag}>" not in line:
+                index = index + 1
+                while f"</{tag}>" not in all_lines[index]:
+                    lines.append(all_lines[index])
+                    index = index + 1
+            else:
+                lines.append(line)
+            break
+
+    return lines
 
 
 class GenerateDocumentTests(DataTestClient):
@@ -451,6 +476,99 @@ class GenerateDocumentTests(DataTestClient):
             response = self.client.post(self.url, **self.gov_headers, data=self.data)
             self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
             self.assertEqual(e.exception, "Failed to get preview")
+
+    def test_licence_document_shows_correct_cles(self):
+        """
+        Test to ensure licence document shows CLEs for the products assessed as part of this application.
+        This is usually the case but can be different if the underlying Good is re-used in multiple applications.
+
+        In this test we create two applications that reuse the same underlying Good but in each application
+        this is assessed with different set of CLEs. Because of the way we record CLEs on the Good model
+        it will retain previous assessments as well (unlike GoodOnApplication which contains assessments
+        for that application).
+
+        Test generates licence document and ensures it contains CLEs assessed for this application.
+        """
+        application1 = StandardApplicationFactory(organisation=self.organisation)
+        good1 = GoodFactory(organisation=self.organisation)
+        good_on_application1 = GoodOnApplicationFactory(good=good1, application=application1, quantity=10, value=500)
+        regime_entry = RegimeEntry.objects.first()
+        report_summary_prefix = ReportSummaryPrefix.objects.first()
+        report_summary_subject = ReportSummarySubject.objects.first()
+        data = [
+            {
+                "id": good_on_application1.id,
+                "control_list_entries": ["ML3a", "ML15d", "ML9a"],
+                "regime_entries": [regime_entry.id],
+                "report_summary_prefix": report_summary_prefix.id,
+                "report_summary_subject": report_summary_subject.id,
+                "is_good_controlled": True,
+                "comment": "some comment",
+                "report_summary": "some string we expect to be overwritten",
+                "is_ncsc_military_information_security": True,
+            }
+        ]
+        assessment_url = reverse("assessments:make_assessments", kwargs={"case_pk": application1.id})
+        response = self.client.put(assessment_url, data, **self.gov_headers)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        good_on_application1.refresh_from_db()
+
+        all_cles = [cle.rating for cle in good_on_application1.control_list_entries.all()]
+        assert sorted(all_cles) == sorted(["ML3a", "ML9a", "ML15d"])
+
+        FinalAdviceFactory(user=self.gov_user, case=application1, good=good1, type=AdviceType.APPROVE)
+
+        licence = StandardLicenceFactory(case=application1, status=LicenceStatus.DRAFT)
+        GoodOnLicenceFactory(
+            good=good_on_application1,
+            quantity=good_on_application1.quantity,
+            value=good_on_application1.value,
+            licence=licence,
+        )
+
+        # Create another application and reuse the same good
+        application2 = StandardApplicationFactory(organisation=self.organisation)
+        good_on_application2 = GoodOnApplicationFactory(good=good1, application=application2, quantity=20, value=1000)
+
+        data[0]["id"] = good_on_application2.id
+        data[0]["control_list_entries"] = ["ML5d", "ML2a", "ML18a"]
+        assessment_url = reverse("assessments:make_assessments", kwargs={"case_pk": application2.id})
+        response = self.client.put(assessment_url, data, **self.gov_headers)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        good_on_application2.refresh_from_db()
+
+        all_cles = [cle.rating for cle in good_on_application2.control_list_entries.all()]
+        assert sorted(all_cles) == sorted(["ML5d", "ML2a", "ML18a"])
+
+        # As this is reused this will have CLEs from both assessments
+        good1.refresh_from_db()
+        all_cles = [cle.rating for cle in good1.control_list_entries.all()]
+        assert sorted(all_cles) == sorted(["ML3a", "ML9a", "ML15d", "ML5d", "ML2a", "ML18a"])
+
+        # Generate licence document (only preview is enough for this test)
+        url = (
+            reverse("cases:generated_documents:preview", kwargs={"pk": str(application1.id)})
+            + "?template="
+            + str(self.letter_template.id)
+        )
+        response = self.client.get(url, **self.gov_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        preview = response.json()["preview"]
+
+        cle_lines = get_tag(preview, "td", "row-1-control-list-entries")
+        actual_cles = "".join(item.strip() for item in cle_lines)
+
+        all_cles = [cle.rating for cle in good_on_application1.control_list_entries.all()]
+        assert sorted(all_cles) == sorted(actual_cles.split(","))
+
+        value_element = get_tag(preview, "td", "row-1-value")
+        value_element = "".join(value_element)
+        self.assertIn(f"£{str(good_on_application1.value)}", value_element)
+
+        quantity_element = get_tag(preview, "td", "row-1-quantity")
+        quantity_element = "".join(quantity_element)
+        self.assertIn(f"{good_on_application1.quantity} Items", quantity_element)
 
 
 class GetGeneratedDocumentsTests(DataTestClient):

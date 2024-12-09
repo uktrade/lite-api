@@ -10,7 +10,6 @@ from api.queues.constants import (
     MY_TEAMS_QUEUES_CASES_ID,
     MY_ASSIGNED_CASES_QUEUE_ID,
     MY_ASSIGNED_AS_CASE_OFFICER_CASES_QUEUE_ID,
-    UPDATED_CASES_QUEUE_ID,
     SYSTEM_QUEUES,
 )
 from api.queues.models import Queue
@@ -85,7 +84,6 @@ def _get_system_queues_case_count(user) -> Dict:
         MY_TEAMS_QUEUES_CASES_ID: case_qs.in_team(team_id=user.team.id).count(),
         MY_ASSIGNED_CASES_QUEUE_ID: case_qs.assigned_to_user(user=user).not_terminal().count(),
         MY_ASSIGNED_AS_CASE_OFFICER_CASES_QUEUE_ID: case_qs.assigned_as_case_officer(user=user).not_terminal().count(),
-        UPDATED_CASES_QUEUE_ID: case_qs.is_updated(user=user).count(),
     }
 
     return cases_count

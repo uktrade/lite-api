@@ -1,6 +1,5 @@
 from django.utils.deconstruct import deconstructible
 from rest_framework.exceptions import ValidationError
-
 from api.staticdata.control_list_entries.models import ControlListEntry
 
 

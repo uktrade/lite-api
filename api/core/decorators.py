@@ -1,6 +1,7 @@
 from typing import Callable, Type, Union, List
 
 from functools import wraps
+from uuid import UUID
 
 from django.http import JsonResponse, Http404
 from rest_framework import status
@@ -9,6 +10,8 @@ from api.applications.enums import GoodsTypeCategory
 from api.applications.libraries.get_applications import get_application
 from api.applications.models import BaseApplication
 from api.cases.enums import CaseTypeSubTypeEnum
+from api.licences.enums import LicenceStatus
+from api.licences.models import Licence
 from lite_content.lite_api import strings
 from api.organisations.libraries.get_organisation import get_request_user_organisation_id
 from api.parties.enums import PartyType
@@ -108,6 +111,17 @@ def application_is_major_editable(application_status):
     )
 
 
+@application_in_status
+def application_can_invoke_major_edit(application_status):
+    """
+    Checks if application is in a state where a  major edit can be started
+    """
+    return (
+        CaseStatusEnum.can_invoke_major_edit(application_status),
+        strings.Applications.Generic.INVALID_OPERATION_FOR_NON_DRAFT_OR_MAJOR_EDIT_CASE_ERROR,
+    )
+
+
 def authorised_to_view_application(user_type: Union[Type[GovUser], Type[ExporterUser]]) -> Callable:
     """
     Checks if the user is the correct type and if they have access to the application being requested
@@ -193,6 +207,67 @@ def allowed_party_type_for_open_application_goodstype_category() -> Callable:
                         status=status.HTTP_400_BAD_REQUEST,
                     )
 
+            return func(request, *args, **kwargs)
+
+        return inner
+
+    return decorator
+
+
+def authorised_govuser_roles(user_role_ids: List[UUID]) -> Callable:
+    """
+    Checks if the user is the correct type and of correct role
+    """
+
+    def decorator(func):
+        @wraps(func)
+        def inner(request, *args, **kwargs):
+            user = request.request.user
+
+            if hasattr(user, "govuser"):
+                user = user.govuser
+            elif not isinstance(user, GovUser) or not user.type == UserType.INTERNAL:
+                return JsonResponse(
+                    data={"errors": ["You are not authorised to perform this operation."]},
+                    status=status.HTTP_403_FORBIDDEN,
+                )
+
+            if user.role.id not in user_role_ids:
+                return JsonResponse(
+                    data={"errors": ["The user must be in a specific role to perform this action."]},
+                    status=status.HTTP_403_FORBIDDEN,
+                )
+
+            return func(request, *args, **kwargs)
+
+        return inner
+
+    return decorator
+
+
+def licence_is_editable() -> Callable:
+    """
+    Will restrict licence updates to specefic criterion
+    """
+
+    def decorator(func):
+        @wraps(func)
+        def inner(request, *args, **kwargs):
+            licence_id = kwargs.get("pk")
+            licence = Licence.objects.get(id=licence_id)
+            # Check if License Status is Editable
+            if not LicenceStatus.can_edit_status(licence.status):
+                return JsonResponse(
+                    data={"errors": ["The licence status is not editable."]},
+                    status=status.HTTP_403_FORBIDDEN,
+                )
+
+            # Check if Case is in finialised state
+            if licence.case.status.status != CaseStatusEnum.FINALISED:
+                return JsonResponse(
+                    data={"errors": ["To edit a licence the case must be in a finalised state."]},
+                    status=status.HTTP_403_FORBIDDEN,
+                )
             return func(request, *args, **kwargs)
 
         return inner

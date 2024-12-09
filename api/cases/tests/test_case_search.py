@@ -5,8 +5,6 @@ from django import utils as django_utils
 from parameterized import parameterized
 from rest_framework import status
 
-from api.audit_trail.models import Audit
-from api.audit_trail.enums import AuditType
 from api.applications.tests.factories import (
     DenialMatchOnApplicationFactory,
     DenialEntityFactory,
@@ -22,7 +20,6 @@ from api.goods.tests.factories import GoodFactory
 from api.picklists.enums import PicklistType
 from api.cases.tests.factories import FinalAdviceFactory
 from api.queues.constants import (
-    UPDATED_CASES_QUEUE_ID,
     SYSTEM_QUEUES,
     ALL_CASES_QUEUE_ID,
 )
@@ -33,10 +30,8 @@ from api.staticdata.regimes.models import RegimeEntry
 from api.staticdata.report_summaries.tests.factories import ReportSummaryPrefixFactory, ReportSummarySubjectFactory
 from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
 from api.staticdata.statuses.models import CaseSubStatus
-from api.users.tests.factories import GovUserFactory
 from test_helpers.clients import DataTestClient
 from api.users.enums import UserStatuses
-from api.users.libraries.user_to_token import user_to_token
 from api.users.models import GovUser
 from api.cases.tests import factories
 from api.cases.enums import AdviceType
@@ -50,6 +45,8 @@ from api.cases.views.search.service import (
 )
 
 from lite_routing.routing_rules_internal.enums import FlagsEnum
+from api.licences.enums import LicenceStatus
+from api.licences.tests.factories import StandardLicenceFactory
 
 
 class FilterAndSortTests(DataTestClient):
@@ -819,92 +816,6 @@ class FilterAndSortTests(DataTestClient):
         self.assertEqual(len(response_data), 0)
 
 
-class UpdatedCasesQueueTests(DataTestClient):
-    def setUp(self):
-        super().setUp()
-
-        self.case = self.create_standard_application_case(self.organisation).get_case()
-        self.old_status = self.case.status.status
-        self.case.queues.set([self.queue])
-        self.case_assignment = CaseAssignment.objects.create(case=self.case, queue=self.queue, user=self.gov_user)
-        self.case.status = get_case_status_by_status(CaseStatusEnum.APPLICANT_EDITING)
-        self.case.save()
-
-        self.audit = Audit.objects.create(
-            actor=self.exporter_user,
-            verb=AuditType.UPDATED_STATUS,
-            target=self.case,
-            payload={"status": {"new": CaseStatusEnum.APPLICANT_EDITING, "old": self.old_status}},
-        )
-        self.gov_user.send_notification(content_object=self.audit, case=self.case)
-
-        self.url = f'{reverse("cases:search")}?queue_id={UPDATED_CASES_QUEUE_ID}'
-
-    def test_get_cases_on_updated_cases_queue_when_user_is_assigned_to_a_case_returns_expected_cases(self):
-        # Create another case that does not have an update
-        case = self.create_standard_application_case(self.organisation).get_case()
-        case.queues.set([self.queue])
-        case_assignment = CaseAssignment.objects.create(case=case, queue=self.queue, user=self.gov_user)
-        self.gov_user.send_notification(content_object=self.audit, case=case)
-
-        response = self.client.get(self.url, **self.gov_headers)
-
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        response_data = response.json()["results"]["cases"]
-        self.assertEqual(len(response_data), 2)  # Count is 2 as another case is created in setup
-        self.assertEqual(response_data[0]["id"], str(self.case.id))
-
-    def test_get_cases_on_updated_cases_queue_non_team_queue(self):
-        other_team = self.create_team("other_team")
-        self.gov_user.team = other_team
-
-        response = self.client.get(self.url, **self.gov_headers)
-        response_data = response.json()["results"]["cases"]
-
-        self.assertEqual(len(response_data), 1)
-        self.assertEqual(response_data[0]["id"], str(self.case.id))
-
-    def test_get_cases_on_updated_cases_queue_when_user_is_not_assigned_to_a_case_returns_no_cases(self):
-        other_user = GovUserFactory(
-            baseuser_ptr__email="test2@mail.com",
-            baseuser_ptr__first_name="John",
-            baseuser_ptr__last_name="Smith",
-            team=self.team,
-        )
-        gov_headers = {"HTTP_GOV_USER_TOKEN": user_to_token(other_user.baseuser_ptr)}
-
-        response = self.client.get(self.url, **gov_headers)
-
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        response_data = response.json()["results"]["cases"]
-        self.assertEqual(len(response_data), 0)
-
-    def test_get_cases_on_updated_cases_queue_when_user_is_assigned_as_case_officer_returns_expected_cases(self):
-        CaseAssignment.objects.filter(case=self.case, queue=self.queue).delete()
-        self.case.case_officer = self.gov_user
-        self.case.save()
-
-        response = self.client.get(self.url, **self.gov_headers)
-
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        response_data = response.json()["results"]["cases"]
-        self.assertEqual(len(response_data), 1)
-        self.assertEqual(response_data[0]["id"], str(self.case.id))
-
-    def test_get_cases_on_updated_cases_queue_when_user_is_assigned_to_case_and_as_case_officer_returns_expected_cases(
-        self,
-    ):
-        self.case.case_officer = self.gov_user
-        self.case.save()
-
-        response = self.client.get(self.url, **self.gov_headers)
-
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        response_data = response.json()["results"]["cases"]
-        self.assertEqual(len(response_data), 1)
-        self.assertEqual(response_data[0]["id"], str(self.case.id))
-
-
 class CaseOrderingOnQueueTests(DataTestClient):
     def test_all_cases_queue_returns_cases_in_expected_order(self):
         """Test All cases queue returns cases in expected order (newest first)."""
@@ -1227,3 +1138,27 @@ class SearchAPITest(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response_data), 1)
         self.assertEqual(response_data[0]["id"], str(self.case.id))
+
+    @parameterized.expand(
+        [
+            [LicenceStatus.ISSUED, "issued", 1],
+            [LicenceStatus.SUSPENDED, "suspended", 1],
+            [LicenceStatus.REVOKED, "revoked", 1],
+            [LicenceStatus.ISSUED, "statustext", 0],
+        ]
+    )
+    def test_get_cases_filter_by_licence_status(self, licence_status, licence_status_search, expected_case_count):
+        self._create_data()
+        self.application = StandardApplicationFactory()
+        self.case_2 = Case.objects.get(id=self.application.id)
+        self.case_2.submitted_at = django_utils.timezone.now()
+        self.case_2.licences.add(StandardLicenceFactory(case=self.case_2, status=licence_status))
+        self.case_2.save()
+
+        url = f'{reverse("cases:search")}?licence_status={licence_status_search}'
+
+        response = self.client.get(url, **self.gov_headers)
+        response_data = response.json()["results"]["cases"]
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response_data), expected_case_count)

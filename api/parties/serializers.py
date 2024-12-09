@@ -116,8 +116,7 @@ class PartySerializer(serializers.ModelSerializer):
 
         return validated_data
 
-    @staticmethod
-    def validate_website(value):
+    def validate_website(self, value):
         """
         Custom validation for URL that makes use of django URLValidator
         but makes the passing of http:// or https:// optional by prepending

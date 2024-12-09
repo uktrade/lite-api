@@ -36,7 +36,7 @@ class CaseStatusEnum:
     OGD_CONSOLIDATION = "ogd_consolidation"
     FINAL_REVIEW_COUNTERSIGN = "final_review_countersign"
     FINAL_REVIEW_SECOND_COUNTERSIGN = "final_review_second_countersign"
-    SUPERSEDED_BY_AMENDMENT = "superseded_by_amendment"
+    SUPERSEDED_BY_EXPORTER_EDIT = "superseded_by_exporter_edit"
 
     _system_status = [DRAFT]
 
@@ -57,7 +57,54 @@ class CaseStatusEnum:
         REVOKED,
         SURRENDERED,
         WITHDRAWN,
-        SUPERSEDED_BY_AMENDMENT,
+        SUPERSEDED_BY_EXPORTER_EDIT,
+    ]
+
+    _closed_statuses = [
+        CLOSED,
+        DEREGISTERED,
+        FINALISED,
+        REGISTERED,
+        REVOKED,
+        SURRENDERED,
+        WITHDRAWN,
+    ]
+
+    # Cases with these statuses can be operated upon by caseworkers
+    _caseworker_operable_statuses = [
+        APPEAL_FINAL_REVIEW,
+        APPEAL_REVIEW,
+        APPLICANT_EDITING,
+        CHANGE_INTIAL_REVIEW,
+        CHANGE_UNDER_FINAL_REVIEW,
+        CHANGE_UNDER_REVIEW,
+        CLC,
+        OPEN,
+        UNDER_INTERNAL_REVIEW,
+        RETURN_TO_INSPECTOR,
+        AWAITING_EXPORTER_RESPONSE,
+        CLOSED,
+        DEREGISTERED,
+        FINALISED,
+        INITIAL_CHECKS,
+        PV,
+        REGISTERED,
+        REOPENED_FOR_CHANGES,
+        REOPENED_DUE_TO_ORG_CHANGES,
+        RESUBMITTED,
+        REVOKED,
+        OGD_ADVICE,
+        SUBMITTED,
+        SURRENDERED,
+        SUSPENDED,
+        UNDER_APPEAL,
+        UNDER_ECJU_REVIEW,
+        UNDER_FINAL_REVIEW,
+        UNDER_REVIEW,
+        WITHDRAWN,
+        OGD_CONSOLIDATION,
+        FINAL_REVIEW_COUNTERSIGN,
+        FINAL_REVIEW_SECOND_COUNTERSIGN,
     ]
 
     goods_query_statuses = [CLC, PV]
@@ -68,6 +115,11 @@ class CaseStatusEnum:
 
     compliance_visit_statuses = [OPEN, UNDER_INTERNAL_REVIEW, RETURN_TO_INSPECTOR, AWAITING_EXPORTER_RESPONSE, CLOSED]
 
+    non_precedent_statuses = [
+        SUBMITTED,
+        INITIAL_CHECKS,
+    ]
+
     precedent_statuses = [
         UNDER_REVIEW,
         OGD_ADVICE,
@@ -76,6 +128,7 @@ class CaseStatusEnum:
         FINAL_REVIEW_COUNTERSIGN,
         FINAL_REVIEW_SECOND_COUNTERSIGN,
         FINALISED,
+        SUPERSEDED_BY_EXPORTER_EDIT,
     ]
 
     choices = [
@@ -110,7 +163,7 @@ class CaseStatusEnum:
         (WITHDRAWN, "Withdrawn"),
         (OGD_ADVICE, "OGD Advice"),
         (OGD_CONSOLIDATION, "OGD Consolidation"),
-        (SUPERSEDED_BY_AMENDMENT, "Superseded by amendment"),
+        (SUPERSEDED_BY_EXPORTER_EDIT, "Superseded by exporter edit"),
         (FINAL_REVIEW_COUNTERSIGN, "Final review countersign"),
         (FINAL_REVIEW_SECOND_COUNTERSIGN, "Final review second countersign"),
     ]
@@ -149,7 +202,7 @@ class CaseStatusEnum:
         SUSPENDED: 31,
         SURRENDERED: 32,
         DEREGISTERED: 33,
-        SUPERSEDED_BY_AMENDMENT: 34,
+        SUPERSEDED_BY_EXPORTER_EDIT: 34,
     }
 
     @classmethod
@@ -187,12 +240,24 @@ class CaseStatusEnum:
         return status in cls._system_status
 
     @classmethod
+    def is_caseworker_operable(cls, status):
+        return status in cls._caseworker_operable_statuses
+
+    @classmethod
     def read_only_statuses(cls):
         return list(set(cls.all()) - set(cls._writeable_statuses))
 
     @classmethod
     def major_editable_statuses(cls):
         return cls._major_editable_statuses
+
+    @classmethod
+    def caseworker_operable_statuses(cls):
+        return cls._caseworker_operable_statuses
+
+    @classmethod
+    def caseworker_inoperable_statuses(cls):
+        return list(set(CaseStatusEnum.all()) - set(cls._caseworker_operable_statuses))
 
     @classmethod
     def is_major_editable_status(cls, status):
@@ -203,12 +268,20 @@ class CaseStatusEnum:
         return cls._can_invoke_major_edit_statuses
 
     @classmethod
+    def can_not_invoke_major_edit_statuses(cls):
+        return list(set(cls.all()) - set(cls._can_invoke_major_edit_statuses))
+
+    @classmethod
     def can_invoke_major_edit(cls, status):
         return status in cls._can_invoke_major_edit_statuses
 
     @classmethod
     def terminal_statuses(cls):
         return cls._terminal_statuses
+
+    @classmethod
+    def closed_statuses(cls):
+        return cls._closed_statuses
 
     @classmethod
     def as_list(cls):
@@ -259,7 +332,7 @@ class CaseStatusIdEnum:
     OGD_CONSOLIDATION = UUID("00000000-0000-0000-0000-000000000031")
     FINAL_REVIEW_COUNTERSIGN = UUID("00000000-0000-0000-0000-000000000032")
     FINAL_REVIEW_SECOND_COUNTERSIGN = UUID("00000000-0000-0000-0000-000000000033")
-    SUPERSEDED_BY_AMENDMENT = UUID("00000000-0000-0000-0000-000000000034")
+    SUPERSEDED_BY_EXPORTER_EDIT = UUID("00000000-0000-0000-0000-000000000034")
 
 
 class CaseSubStatusIdEnum:

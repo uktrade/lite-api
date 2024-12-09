@@ -1,7 +1,6 @@
 from decimal import Decimal
 import urllib
 
-from django.utils import timezone
 from django.test import override_settings
 from django.conf import settings
 import requests_mock
@@ -13,6 +12,8 @@ from api.licences.enums import LicenceStatus
 from api.licences.service import get_case_licences
 from api.licences.tests.factories import StandardLicenceFactory, GoodOnLicenceFactory
 from test_helpers.clients import DataTestClient
+from api.staticdata.statuses.enums import CaseStatusEnum
+from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
 
 
 class GetCaseLicenceTests(DataTestClient):
@@ -68,3 +69,13 @@ class GetCaseLicenceTests(DataTestClient):
         self.assertEqual(data["goods"][0]["is_good_controlled"], False)
         # ignore order of control list entries
         self.assertEqual(set([x["rating"] for x in data["goods"][0]["control_list_entries"]]), {"ML1a", "ML13d1"})
+
+    def test_get_application_licences_case_status(self):
+        self.licence.case.status = get_case_status_by_status(CaseStatusEnum.FINALISED)
+        self.licence.case.save()
+
+        licences = get_case_licences(self.application)
+        assert len(licences) == 1
+
+        licence = licences[0]
+        assert licence["case_status"] == CaseStatusEnum.FINALISED

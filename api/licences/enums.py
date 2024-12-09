@@ -35,10 +35,19 @@ class LicenceStatus:
     ]
 
     open_statuses = [ISSUED, REINSTATED]
+    _can_edit_status = [ISSUED, REINSTATED, SUSPENDED]
 
     @classmethod
     def to_str(cls, status):
         return next(choice[1] for choice in cls.choices if choice[0] == status)
+
+    @classmethod
+    def can_edit_status(cls, status):
+        return status in cls._can_edit_status
+
+    @classmethod
+    def all(cls):
+        return [getattr(cls, param) for param in dir(cls) if param.isupper()]  # pragma: no cover
 
 
 hmrc_integration_action_to_licence_status = {
@@ -51,6 +60,5 @@ licence_status_to_hmrc_integration_action = {
     LicenceStatus.REINSTATED: HMRCIntegrationActionEnum.UPDATE,
     LicenceStatus.REVOKED: HMRCIntegrationActionEnum.CANCEL,
     LicenceStatus.SURRENDERED: HMRCIntegrationActionEnum.CANCEL,
-    LicenceStatus.SUSPENDED: HMRCIntegrationActionEnum.CANCEL,
     LicenceStatus.CANCELLED: HMRCIntegrationActionEnum.CANCEL,
 }

@@ -28,7 +28,6 @@ def create(
     target: Optional[Case] = None,
     payload=None,
     ignore_case_status: bool = False,
-    send_notification: bool = True,
 ) -> Optional[Audit]:
     if not payload:
         payload = {}
@@ -50,7 +49,6 @@ def create(
         target=target,
         payload=payload,
         ignore_case_status=ignore_case_status,
-        send_notification=send_notification,
     )
 
 

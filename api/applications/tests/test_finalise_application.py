@@ -1,6 +1,7 @@
 import pytest
 
 from datetime import datetime
+from django.db.utils import IntegrityError
 from django.urls import reverse
 from django.utils import timezone
 from parameterized import parameterized
@@ -791,3 +792,17 @@ class FinaliseApplicationWithApprovedGoodsTests(DataTestClient):
             response_data,
             {"errors": {f"quantity-{self.good_on_application.id}": [strings.Licence.INVALID_QUANTITY_ERROR]}},
         )
+
+    def test_goods_unique_on_licence(self):
+
+        licence = StandardLicenceFactory(case=self.standard_application, status=LicenceStatus.DRAFT)
+
+        with pytest.raises(IntegrityError) as e:
+            GoodOnLicence.objects.create(
+                good=self.good_on_application, licence=licence, usage=0.0, quantity=5.0, value=100.00
+            )
+            GoodOnLicence.objects.create(
+                good=self.good_on_application, licence=licence, usage=0.0, quantity=5.0, value=100.00
+            )
+
+        self.assertIn(f"({str(licence.id)}, {str(self.good_on_application.id)}) already exists", e.value.args[0])

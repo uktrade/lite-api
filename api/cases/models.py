@@ -5,7 +5,7 @@ from typing import Optional
 
 from django.conf import settings
 from django.contrib.contenttypes.fields import GenericRelation
-from django.db import models
+from django.db import models, transaction
 from django.db.models import Q
 from django.utils import timezone
 from api.users.enums import UserType
@@ -23,6 +23,7 @@ from api.cases.enums import (
     ECJUQueryType,
     AdviceLevel,
     EnforcementXMLEntityTypes,
+    LicenceDecisionType,
 )
 from api.cases.helpers import working_days_in_range
 from api.cases.libraries.reference_code import generate_reference_code
@@ -34,8 +35,9 @@ from api.goods.enums import PvGrading
 from api.organisations.models import Organisation
 from api.queues.models import Queue
 from api.staticdata.countries.models import Country
+from api.staticdata.decisions.models import Decision
 from api.staticdata.denial_reasons.models import DenialReason
-from api.staticdata.statuses.enums import CaseStatusEnum
+from api.staticdata.statuses.enums import CaseStatusEnum, CaseSubStatusIdEnum
 from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
 from api.staticdata.statuses.models import (
     CaseStatus,
@@ -118,6 +120,12 @@ class Case(TimestampableModel):
     sla_remaining_days = models.SmallIntegerField(null=True)
     sla_updated_at = models.DateTimeField(null=True)
     additional_contacts = models.ManyToManyField("parties.Party", related_name="case")
+    audit_trail = GenericRelation(
+        "audit_trail.Audit",
+        related_query_name="case",
+        content_type_field="target_content_type",
+        object_id_field="target_object_id",
+    )
     # _previous_status is used during post_save signal to check if the status has changed
     _previous_status = None
 
@@ -136,6 +144,15 @@ class Case(TimestampableModel):
         self._reset_sub_status_on_status_change()
 
         super(Case, self).save(*args, **kwargs)
+
+    @classmethod
+    def get_decision_actions(cls):
+        return {
+            AdviceType.APPROVE: cls.approve,
+            AdviceType.REFUSE: cls.refuse,
+            AdviceType.NO_LICENCE_REQUIRED: cls.no_licence_required,
+            AdviceType.INFORM: lambda x: x,
+        }
 
     def _reset_sub_status_on_status_change(self):
         from api.audit_trail import service as audit_trail_service
@@ -194,8 +211,9 @@ class Case(TimestampableModel):
         Sets the status for the case, runs validation on various parameters,
         creates audit entries and also runs flagging and automation rules
         """
+        from api.applications.notify import notify_exporter_case_opened_for_editing
         from api.audit_trail import service as audit_trail_service
-        from api.workflow.flagging_rules_automation import apply_flagging_rules_to_case
+        from api.cases.libraries.finalise import remove_flags_on_finalisation, remove_flags_from_audit_trail
         from api.licences.helpers import update_licence_status
         from lite_routing.routing_rules_internal.routing_engine import run_routing_rules
 
@@ -207,21 +225,26 @@ class Case(TimestampableModel):
         # Update licence status if applicable case status change
         update_licence_status(self, status.status)
 
-        if CaseStatusEnum.is_terminal(old_status) and not CaseStatusEnum.is_terminal(self.status.status):
-            apply_flagging_rules_to_case(self)
-
         audit_trail_service.create(
             actor=user,
             verb=AuditType.UPDATED_STATUS,
-            target=self,
+            target=self.get_case(),
             payload={
-                "status": {"new": CaseStatusEnum.get_text(self.status.status), "old": old_status},
+                "status": {"new": self.status.status, "old": old_status},
                 "additional_text": note,
             },
         )
 
         if old_status != self.status.status:
             run_routing_rules(case=self, keep_status=True)
+
+            if status.status == CaseStatusEnum.APPLICANT_EDITING:
+                notify_exporter_case_opened_for_editing(self)
+
+        # Remove needed flags when case is Withdrawn/Closed
+        if status.status in [CaseStatusEnum.WITHDRAWN, CaseStatusEnum.CLOSED]:
+            remove_flags_on_finalisation(self)
+            remove_flags_from_audit_trail(self)
 
     def parameter_set(self):
         """
@@ -300,6 +323,151 @@ class Case(TimestampableModel):
             target=case,
             payload={"sub_status": self.sub_status.name, "status": CaseStatusEnum.get_text(self.status.status)},
         )
+
+    def approve(self):
+        from api.cases.notify import notify_exporter_licence_issued
+
+        self.set_sub_status(CaseSubStatusIdEnum.FINALISED__APPROVED)
+        notify_exporter_licence_issued(self)
+
+    def refuse(self):
+        from api.cases.notify import notify_exporter_licence_refused
+
+        self.set_sub_status(CaseSubStatusIdEnum.FINALISED__REFUSED)
+        notify_exporter_licence_refused(self)
+
+    def no_licence_required(self):
+        from api.cases.notify import notify_exporter_no_licence_required
+
+        notify_exporter_no_licence_required(self)
+
+    @transaction.atomic
+    def finalise(self, user, decisions, note):
+        from api.audit_trail import service as audit_trail_service
+        from api.cases.libraries.finalise import remove_flags_on_finalisation, remove_flags_from_audit_trail
+        from api.licences.models import Licence
+
+        try:
+            licence = Licence.objects.get_draft_licence(self)
+        except Licence.DoesNotExist:
+            # This is not an error as there won't be a licence for refusal cases
+            licence = None
+
+        if AdviceType.APPROVE in decisions and licence:
+            licence.decisions.set([Decision.objects.get(name=decision) for decision in decisions])
+
+            logging.info("Initiate issue of licence %s (status: %s)", licence.reference_code, licence.status)
+            licence.issue()
+
+            if Licence.objects.filter(case=self).count() > 1:
+                audit_trail_service.create(
+                    actor=user,
+                    verb=AuditType.REINSTATED_APPLICATION,
+                    target=self,
+                    payload={
+                        "licence_duration": licence.duration,
+                        "start_date": licence.start_date.strftime("%Y-%m-%d"),
+                    },
+                )
+
+        # Finalise Case
+        old_status = self.status.status
+        self.status = get_case_status_by_status(CaseStatusEnum.FINALISED)
+        self.save()
+
+        audit_trail_service.create(
+            actor=user,
+            verb=AuditType.UPDATED_STATUS,
+            target=self,
+            payload={
+                "status": {"new": self.status.status, "old": old_status},
+                "additional_text": note,
+            },
+        )
+        logging.info("Case is now finalised")
+
+        decision_actions = self.get_decision_actions()
+        for advice_type in decisions:
+
+            decision_actions[advice_type](self)
+
+            # NLR is not considered as licence decision
+            if advice_type in [AdviceType.APPROVE, AdviceType.REFUSE]:
+                decision = LicenceDecisionType.advice_type_to_decision(advice_type)
+                previous_licence_decision = self.licence_decisions.last()
+
+                previous_decision = None
+                current_decision = decision
+                if previous_licence_decision and decision == LicenceDecisionType.ISSUED:
+                    # In case if it is being issued after an appeal then we want to reflect that in the decision
+                    if previous_licence_decision.decision in [
+                        LicenceDecisionType.REFUSED,
+                        LicenceDecisionType.ISSUED_ON_APPEAL,
+                    ]:
+                        current_decision = LicenceDecisionType.ISSUED_ON_APPEAL
+
+                    # link up to previous instance if the decision remains same
+                    if previous_licence_decision.decision == current_decision:
+                        previous_decision = previous_licence_decision
+
+                licence_decision = LicenceDecision.objects.create(
+                    case=self,
+                    decision=current_decision,
+                    licence=licence,
+                    previous_decision=previous_decision,
+                )
+                if advice_type == AdviceType.REFUSE:
+                    denial_reasons = (
+                        self.advice.filter(
+                            level=AdviceLevel.FINAL,
+                            type=AdviceType.REFUSE,
+                        )
+                        .only("denial_reasons__id")
+                        .distinct()
+                        .values_list("denial_reasons__id", flat=True)
+                    )
+                    licence_decision.denial_reasons.set(denial_reasons)
+
+            licence_reference = licence.reference_code if licence and advice_type == AdviceType.APPROVE else ""
+            audit_trail_service.create(
+                actor=user,
+                verb=AuditType.CREATED_FINAL_RECOMMENDATION,
+                target=self,
+                payload={
+                    "case_reference": self.reference_code,
+                    "decision": advice_type,
+                    "licence_reference": licence_reference,
+                },
+            )
+
+        self.publish_decision_documents()
+
+        # Remove Flags and related Audits when Finalising
+        remove_flags_on_finalisation(self)
+        remove_flags_from_audit_trail(self)
+
+        return licence.id if licence else ""
+
+    def publish_decision_documents(self):
+        from api.cases.generated_documents.models import GeneratedCaseDocument
+
+        documents = GeneratedCaseDocument.objects.filter(advice_type__isnull=False, case=self)
+        documents.update(visible_to_exporter=True)
+        for document in documents:
+            document.send_exporter_notifications()
+
+        logging.info("Licence documents published to exporter, notification sent")
+
+    def delete(self, *args, **kwargs):
+        # This simulates `models.SET_NULL` as a `GenericRelation`, which `audit_trail` is, implicitly does a cascased
+        # delete.
+        # Without doing this we would delete the audit trails associated to this case when this case is deleted and
+        # we want to keep them.
+        self.audit_trail.update(
+            target_content_type=None,
+            target_object_id=None,
+        )
+        return super().delete(*args, **kwargs)
 
 
 class CaseQueue(TimestampableModel):
@@ -680,3 +848,23 @@ class EnforcementCheckID(models.Model):
     id = models.AutoField(primary_key=True)
     entity_id = models.UUIDField(unique=True)
     entity_type = models.CharField(choices=EnforcementXMLEntityTypes.choices, max_length=20)
+
+
+class LicenceDecision(TimestampableModel):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    case = models.ForeignKey(Case, on_delete=models.DO_NOTHING, related_name="licence_decisions")
+    decision = models.CharField(choices=LicenceDecisionType.choices, max_length=50, null=False, blank=False)
+    licence = models.ForeignKey(
+        "licences.Licence", on_delete=models.DO_NOTHING, related_name="licence_decisions", null=True, blank=True
+    )
+    denial_reasons = models.ManyToManyField(DenialReason)
+    excluded_from_statistics_reason = models.TextField(default=None, blank=True, null=True)
+    previous_decision = models.ForeignKey(
+        "self", related_name="previous_decisions", default=None, null=True, on_delete=models.DO_NOTHING
+    )
+
+    class Meta:
+        ordering = ("created_at",)
+
+    def __str__(self):
+        return f"{self.case.reference_code} - {self.decision} ({self.created_at})"

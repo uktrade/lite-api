@@ -1,5 +1,6 @@
 from rest_framework import permissions
 
+from api.core.constants import GovPermissions
 from api.core.exceptions import PermissionDeniedError
 from api.organisations.libraries.get_organisation import get_request_user_organisation
 from api.organisations.models import Organisation
@@ -19,6 +20,13 @@ def assert_user_has_permission(user, permission, organisation: Organisation = No
             raise PermissionDeniedError()
 
 
+def assert_user_in_role(user, role):
+    if isinstance(user, GovUser):
+        if user.role.id == role:
+            return True
+    raise PermissionDeniedError()
+
+
 def check_user_has_permission(user, permission, organisation: Organisation = None):
     if isinstance(user, GovUser):
         return user.has_permission(permission)
@@ -29,3 +37,13 @@ def check_user_has_permission(user, permission, organisation: Organisation = Non
 class IsExporterInOrganisation(permissions.BasePermission):
     def has_permission(self, request, view):
         return get_request_user_organisation(request) == view.get_organisation()
+
+
+class CaseInCaseworkerOperableStatus(permissions.BasePermission):
+    def has_permission(self, request, view):
+        return view.get_case().status.is_caseworker_operable
+
+
+class CanCaseworkersManageOrgainsation(permissions.BasePermission):
+    def has_permission(self, request, view):
+        return check_user_has_permission(request.user.govuser, GovPermissions.MANAGE_ORGANISATIONS)

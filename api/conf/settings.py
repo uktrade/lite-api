@@ -124,12 +124,12 @@ INSTALLED_APPS = [
     "api.external_data",
     "api.support",
     "health_check",
-    "health_check.db",
     "health_check.cache",
-    "health_check.storage",
-    "health_check.contrib.migrations",
     "health_check.contrib.celery",
     "health_check.contrib.celery_ping",
+    "health_check.db",
+    "health_check.contrib.migrations",
+    "health_check.storage",
     "django_audit_log_middleware",
     "lite_routing",
     "api.appeals",
@@ -138,6 +138,7 @@ INSTALLED_APPS = [
     "api.survey",
     "django_db_anonymiser.db_anonymiser",
     "reversion",
+    "drf_spectacular",
 ]
 
 MOCK_VIRUS_SCAN_ACTIVATE_ENDPOINTS = env("MOCK_VIRUS_SCAN_ACTIVATE_ENDPOINTS")
@@ -193,6 +194,7 @@ REST_FRAMEWORK = {
     "DEFAULT_METADATA_CLASS": "api.core.metadata.SimpleMetadataForAllMethods",
     "DEFAULT_PARSER_CLASSES": ("rest_framework.parsers.JSONParser", "rest_framework.parsers.FormParser"),
     "DEFAULT_PAGINATION_CLASS": "api.conf.pagination.MaxPageNumberPagination",
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
     "PAGE_SIZE": 25,
     "TEST_REQUEST_DEFAULT_FORMAT": "json",
     "EXCEPTION_HANDLER": "api.core.handlers.lite_exception_handler",
@@ -319,6 +321,7 @@ if env.str("SENTRY_DSN", ""):
         environment=env.str("SENTRY_ENVIRONMENT"),
         integrations=[DjangoIntegration()],
         send_default_pii=True,
+        traces_sample_rate=env.float("SENTRY_TRACES_SAMPLE_RATE", 1.0),
     )
 
 # Application Performance Monitoring
@@ -462,17 +465,36 @@ LOGGING = {
 
 if IS_ENV_DBT_PLATFORM:
     ALLOWED_HOSTS = setup_allowed_hosts(ALLOWED_HOSTS)
-
+    AWS_ENDPOINT_URL = env("AWS_ENDPOINT_URL", default=None)
+    AWS_REGION = "eu-west-2"
     DATABASES = {"default": dj_database_url.config(default=database_url_from_env("DATABASE_CREDENTIALS"))}
     CELERY_BROKER_URL = env("CELERY_BROKER_URL", default=None)
     CELERY_RESULT_BACKEND = CELERY_BROKER_URL
     REDIS_BASE_URL = env("REDIS_BASE_URL", default=None)
 
+    AWS_STORAGE_BUCKET_NAME = env("AWS_STORAGE_BUCKET_NAME")
+    DB_ANONYMISER_AWS_ENDPOINT_URL = AWS_ENDPOINT_URL
+    DB_ANONYMISER_AWS_ACCESS_KEY_ID = env("DB_ANONYMISER_AWS_ACCESS_KEY_ID", default=None)
+    DB_ANONYMISER_AWS_SECRET_ACCESS_KEY = env("DB_ANONYMISER_AWS_SECRET_ACCESS_KEY", default=None)
+    DB_ANONYMISER_AWS_REGION = env("DB_ANONYMISER_AWS_REGION", default=None)
+    DB_ANONYMISER_AWS_STORAGE_BUCKET_NAME = env("DB_ANONYMISER_AWS_STORAGE_BUCKET_NAME", default=None)
+
+    if REDIS_BASE_URL:
+        # Give celery tasks their own redis DB - future uses of redis should use a different DB
+        REDIS_CELERY_DB = env("REDIS_CELERY_DB", default=0)
+        is_redis_ssl = REDIS_BASE_URL.startswith("rediss://")
+        url_args = {"ssl_cert_reqs": "CERT_REQUIRED"} if is_redis_ssl else {}
+        CELERY_BROKER_URL = _build_redis_url(REDIS_BASE_URL, REDIS_CELERY_DB, **url_args)
+        CELERY_RESULT_BACKEND = CELERY_BROKER_URL
+
     # Elasticsearch configuration
     LITE_API_ENABLE_ES = env.bool("LITE_API_ENABLE_ES", False)
     if LITE_API_ENABLE_ES:
         ELASTICSEARCH_DSL = {
-            "default": {"hosts": env.str("OPENSEARCH_ENDPOINT")},
+            "default": {
+                "hosts": env.str("OPENSEARCH_ENDPOINT"),
+                "timeout": 30,
+            },
         }
 
         ENABLE_SPIRE_SEARCH = env.bool("ENABLE_SPIRE_SEARCH", False)
@@ -612,3 +634,5 @@ else:
     LOGGING.update({"formatters": {"simple": {"format": "{asctime} {levelname} {message}", "style": "{"}}})
     LOGGING["handlers"].update({"stdout": {"class": "logging.StreamHandler", "formatter": "simple"}})
     LOGGING.update({"root": {"handlers": ["stdout"], "level": env("LOG_LEVEL").upper()}})
+
+ROUTING_DOCS_DIRECTORY = os.path.join(BASE_DIR, "..", "lite_routing", "docs")

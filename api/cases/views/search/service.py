@@ -163,7 +163,7 @@ def populate_is_recently_updated(cases: List[Dict]):
         .annotate(Count("target_object_id"))
     )
 
-    audit_dict = {audit["target_object_id"]: audit["target_object_id__count"] for audit in recent_audits}
+    audit_dict = {str(audit["target_object_id"]): audit["target_object_id__count"] for audit in recent_audits}
 
     for case in cases:
         case["is_recently_updated"] = bool(
@@ -268,19 +268,19 @@ def populate_activity_updates(case_map):
     case_ids = list(case_map.keys())
     activities_qs = Audit.objects.get_latest_activities(case_ids, 2)
     # get users data for activities en bulk to reduce query count
-    user_ids = {activity.actor_object_id for activity in activities_qs}
+    user_ids = {str(activity.actor_object_id) for activity in activities_qs}
     users = BaseUser.objects.select_related("exporteruser", "govuser", "govuser__team").filter(id__in=user_ids)
     user_map = {str(user.id): user for user in users}
 
     for activity in activities_qs:
         case_id = None
         # get case id from either of the audit record fields
-        if activity.target_object_id in case_ids:
-            case_id = activity.target_object_id
+        if str(activity.target_object_id) in case_ids:
+            case_id = str(activity.target_object_id)
         else:
-            case_id = activity.action_object_object_id
+            case_id = str(activity.action_object_object_id)
         # prepopulate actor for AuditSerializer
-        actor = user_map[activity.actor_object_id]
+        actor = user_map[str(activity.actor_object_id)]
         activity_obj = serialize_case_activity(activity, actor)
         case = case_map[case_id]
         if "activity_updates" in case:

@@ -263,8 +263,8 @@
       </tr>
       <tr>
         <td class="border-black" colspan="6">
-          <span class="cell__heading">2b. Applicant reference</span>
-          <span class="cell__uppercase">{{ details.user_reference }}</span>
+          <div class="cell__heading">2b. Applicant reference</div>
+          <div class="cell__uppercase max-width">{{ details.user_reference }}</div>
         </td>
       </tr>
       <tr>
@@ -282,7 +282,7 @@
                   <table border="0">
                     <tr id="row-{{ forloop.counter}}-description-name">
                         <td><strong>Name:</strong></td>
-                        <td>{% if good.name %}{{ good.name }}{% else %}{{ good.description }}{% endif %}
+                        <td>{% if good.name %}{{ good.name|split_good_name_across_lines }}{% else %}{{ good.description|split_good_name_across_lines }}{% endif %}
                         </td>
                     </tr>
                     <tr>
@@ -309,12 +309,12 @@
                   </table>
                 </td>
                 <td id="row-{{ forloop.counter}}-control-list-entries" class="border-black" colspan="2">
-                    {% for clc in good.control_list_entries %}
+                    {% for clc in good_item.control_list_entries %}
                         {{ clc }}{% if not forloop.last %},{% endif %}
                     {% endfor %}
                 </td>
-                <td id="row-{{ forloop.counter}}-value" class="border-black" colspan="2">{{ good_item.value }}</td>
-                <td id="row-{{ forloop.counter}}-quantity" class="border-black" colspan="2">{{ good_item.quantity }}</td>
+                <td id="row-{{ forloop.counter}}-value" class="border-black" colspan="2">{{ good_item.applied_for_value }}</td>
+                <td id="row-{{ forloop.counter}}-quantity" class="border-black" colspan="2">{{ good_item.applied_for_quantity }}</td>
             </tr>
           {% endwith %}
         {% endfor %}

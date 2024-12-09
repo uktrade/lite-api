@@ -1,4 +1,4 @@
-from django.db import migrations, models
+from django.db import migrations
 
 
 class Migration(migrations.Migration):
@@ -6,6 +6,7 @@ class Migration(migrations.Migration):
         ControlListEntry = apps.get_model("control_list_entries", "ControlListEntry")
 
         great_grandparent_cle, _ = ControlListEntry.objects.update_or_create(
+            id="ce17c22f-cc8c-4fa5-af3a-92c5310a9a46",
             rating="5",
             parent_id=None,
             category="Dual-Use List",
@@ -13,6 +14,7 @@ class Migration(migrations.Migration):
             defaults={"text": "Telecommunications and Information Security"},
         )
         grandparent_cle, _ = ControlListEntry.objects.update_or_create(
+            id="addb336b-4ef2-4515-b1ea-493f11f95b03",
             rating="5P1",
             text="Telecommunications",
             parent_id=great_grandparent_cle.id,
@@ -20,6 +22,7 @@ class Migration(migrations.Migration):
             controlled=True,
         )
         parent_cle, _ = ControlListEntry.objects.update_or_create(
+            id="f7ecac05-ef4c-4724-a89f-0972d449bc63",
             rating="5D1",
             parent_id=grandparent_cle.id,
             category="Dual-Use List",

@@ -1,7 +1,7 @@
 from unittest import mock
 
-from django.test import override_settings
 
+from api.applications.tests.factories import StandardApplicationFactory
 from api.cases.models import Case
 from api.cases.signals import case_post_save_handler
 from api.cases.tests.factories import CaseFactory
@@ -61,6 +61,16 @@ class TestSignals(DataTestClient):
         case = CaseFactory(status=submitted)
         case.status = CaseStatus.objects.get(status="initial_checks")
         case.save()
+        assert mocked_flagging_func.called
+
+    @mock.patch("api.cases.signals.apply_flagging_rules_to_case")
+    def test_case_post_save_handler_standard_application_signal_fires(self, mocked_flagging_func):
+        submitted = CaseStatus.objects.get(status="submitted")
+        # We don't expect the initial save to call flagging rules (since the case is new)
+        assert not mocked_flagging_func.called
+        application = StandardApplicationFactory(status=submitted)
+        application.status = CaseStatus.objects.get(status="initial_checks")
+        application.save()
         assert mocked_flagging_func.called
 
     """

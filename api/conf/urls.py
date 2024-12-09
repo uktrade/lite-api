@@ -5,11 +5,12 @@ from django.urls import path, include
 from django.conf import settings
 
 import api.core.views
-from api.healthcheck.views import HealthCheckPingdomView
+from api.healthcheck.views import HealthCheckPingdomView, ServiceAvailableHealthCheckView
 
 urlpatterns = [
     path("healthcheck/", include("health_check.urls")),
     path("pingdom/ping.xml", HealthCheckPingdomView.as_view(), name="healthcheck-pingdom"),
+    path("service-available-check/", ServiceAvailableHealthCheckView.as_view(), name="service-available-check"),
     path("applications/", include("api.applications.urls")),
     path("assessments/", include("api.assessments.urls")),
     path("audit-trail/", include("api.audit_trail.urls")),
@@ -31,11 +32,15 @@ urlpatterns = [
     path("routing-rules/", include("api.workflow.routing_rules.urls")),
     path("licences/", include("api.licences.urls")),
     path("open-general-licences/", include("api.open_general_licences.urls")),
-    path("data-workspace/", include("api.data_workspace.urls")),
+    path(
+        "data-workspace/", include("api.data_workspace.urls")
+    ),  # when changing this value please update schema_generator_urls.py
     path("external-data/", include("api.external_data.urls")),
     path("bookmarks/", include("api.bookmarks.urls")),
     path("appeals/", include("api.appeals.urls")),
     path("survey/", include("api.survey.urls")),
+    path("caseworker/", include("api.conf.caseworker_urls")),
+    path("exporter/", include("api.conf.exporter_urls")),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 
 handler500 = "rest_framework.exceptions.server_error"

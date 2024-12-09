@@ -1,4 +1,4 @@
-import datetime
+from datetime import datetime, timedelta
 
 from unittest import mock
 
@@ -29,9 +29,12 @@ class OrganisationDocumentViewTests(DataTestClient):
         mock_virus_scan.return_value = False
 
         url = reverse("organisations:documents", kwargs={"pk": self.organisation.pk})
+
+        future_date = datetime.now() + timedelta(days=365)
+        future_date_formatted = future_date.strftime("%Y-%m-%d")
         data = {
             "document": {"name": "some-document", "s3_key": "some-document", "size": 476},
-            "expiry_date": "2026-01-01",
+            "expiry_date": future_date_formatted,
             "reference_code": "123",
             "document_type": OrganisationDocumentType.FIREARM_SECTION_FIVE,
         }
@@ -46,7 +49,8 @@ class OrganisationDocumentViewTests(DataTestClient):
         self.assertEqual(instance.document.s3_key, "some-document")
         self.assertEqual(instance.reference_code, "123")
         self.assertEqual(instance.document.size, 476)
-        self.assertEqual(instance.expiry_date, datetime.date(2026, 1, 1))
+
+        self.assertEqual(instance.expiry_date.strftime("%Y-%m-%d"), future_date_formatted)
         self.assertEqual(instance.document_type, OrganisationDocumentType.FIREARM_SECTION_FIVE)
         self.assertEqual(instance.organisation, self.organisation)
 
@@ -58,9 +62,10 @@ class OrganisationDocumentViewTests(DataTestClient):
         other_organisation, _ = self.create_organisation_with_exporter_user()
         url = reverse("organisations:documents", kwargs={"pk": other_organisation.pk})
 
+        future_date = datetime.now() + timedelta(days=365)
         data = {
             "document": {"name": "some-document", "s3_key": "some-document", "size": 476},
-            "expiry_date": "2026-01-01",
+            "expiry_date": future_date,
             "reference_code": "123",
             "document_type": OrganisationDocumentType.FIREARM_SECTION_FIVE,
         }
@@ -74,18 +79,21 @@ class OrganisationDocumentViewTests(DataTestClient):
             document__s3_key="thisisakey",
             document__safe=True,
             organisation=self.organisation,
+            expiry_date=datetime.now() + timedelta(days=4 * 365),
         )
         DocumentOnOrganisationFactory.create(
             document__name="some-document-two",
             document__s3_key="thisisakey",
             document__safe=True,
             organisation=self.organisation,
+            expiry_date=datetime.now() + timedelta(days=3 * 365),
         )
         DocumentOnOrganisationFactory.create(
             document__name="some-document-three",
             document__s3_key="thisisakey",
             document__safe=True,
             organisation=self.organisation,
+            expiry_date=datetime.now() + timedelta(days=2 * 365),
         )
         other_organisation, _ = self.create_organisation_with_exporter_user()
         DocumentOnOrganisationFactory.create(
@@ -93,6 +101,7 @@ class OrganisationDocumentViewTests(DataTestClient):
             document__s3_key="thisisakey",
             document__safe=True,
             organisation=other_organisation,
+            expiry_date=datetime.now() + timedelta(days=365),
         )
 
         url = reverse("organisations:documents", kwargs={"pk": self.organisation.pk})
@@ -111,9 +120,11 @@ class OrganisationDocumentViewTests(DataTestClient):
         self.assertEqual(response.status_code, 403)
 
     def test_retrieve_organisation_documents(self):
+        future_date = datetime.now() + timedelta(days=365)
+        future_date_formatted = future_date.strftime("%d %B %Y")
         document_on_application = DocumentOnOrganisationFactory.create(
             organisation=self.organisation,
-            expiry_date=datetime.date(2026, 1, 1),
+            expiry_date=future_date,
             document_type=OrganisationDocumentType.FIREARM_SECTION_FIVE,
             reference_code="123",
             document__name="some-document-one",
@@ -128,14 +139,13 @@ class OrganisationDocumentViewTests(DataTestClient):
         )
 
         response = self.client.get(url, **self.exporter_headers)
-
         self.assertEqual(response.status_code, 200)
 
         self.assertEqual(
             response.json(),
             {
                 "id": str(document_on_application.pk),
-                "expiry_date": "01 January 2026",
+                "expiry_date": future_date_formatted,
                 "document_type": "section-five-certificate",
                 "organisation": str(self.organisation.id),
                 "is_expired": False,
@@ -151,11 +161,46 @@ class OrganisationDocumentViewTests(DataTestClient):
             },
         )
 
+    def test_retrieve_documents_on_organisation_details(self):
+        # We create 2 documents on the organisation
+
+        DocumentOnOrganisationFactory.create(
+            organisation=self.organisation,
+            expiry_date=datetime.now() + timedelta(days=365),
+            document_type=OrganisationDocumentType.REGISTERED_FIREARM_DEALER_CERTIFICATE,
+            reference_code="123",
+            document__name="some-document-one",
+            document__s3_key="some-document-one",
+            document__size=476,
+            document__safe=True,
+            created_at=datetime.now() - timedelta(hours=1),
+        )
+        DocumentOnOrganisationFactory.create(
+            organisation=self.organisation,
+            expiry_date=datetime.now() + timedelta(days=365),
+            document_type=OrganisationDocumentType.REGISTERED_FIREARM_DEALER_CERTIFICATE,
+            reference_code="321",
+            document__name="some-document-two",
+            document__s3_key="some-document-two",
+            document__size=476,
+            document__safe=True,
+            created_at=datetime.now(),
+        )
+
+        url = reverse("organisations:organisation", kwargs={"pk": self.organisation.pk})
+
+        response = self.client.get(url, **self.exporter_headers)
+
+        # We check that the first document delivered to organisation details is the most recently created
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()["documents"][0]["document"]["name"], "some-document-two")
+
     def test_retrieve_organisation_documents_invalid_organisation(self):
         other_organisation, _ = self.create_organisation_with_exporter_user()
         document_on_application = DocumentOnOrganisationFactory.create(
             organisation=other_organisation,
-            expiry_date=datetime.date(2026, 1, 1),
+            expiry_date=datetime.now() + timedelta(days=365),
             document_type=OrganisationDocumentType.FIREARM_SECTION_FIVE,
             reference_code="123",
             document__name="some-document-one",
@@ -215,11 +260,12 @@ class OrganisationDocumentViewTests(DataTestClient):
                 "document_on_application_pk": document_on_application.pk,
             },
         )
-
+        future_date = datetime.now() + timedelta(days=365)
+        future_date_formatted = future_date.strftime("%Y-%m-%d")
         response = self.client.put(
             url,
             data={
-                "expiry_date": "2030-12-12",
+                "expiry_date": future_date_formatted,
                 "reference_code": "567",
             },
             **self.exporter_headers,
@@ -228,8 +274,8 @@ class OrganisationDocumentViewTests(DataTestClient):
 
         document_on_application.refresh_from_db()
         self.assertEqual(
-            document_on_application.expiry_date,
-            datetime.date(2030, 12, 12),
+            document_on_application.expiry_date.strftime("%Y-%m-%d"),
+            future_date_formatted,
         )
         self.assertEqual(
             document_on_application.reference_code,
@@ -240,6 +286,7 @@ class OrganisationDocumentViewTests(DataTestClient):
         other_organisation, _ = self.create_organisation_with_exporter_user()
         document_on_application = DocumentOnOrganisationFactory.create(organisation=other_organisation)
 
+        future_date = datetime.now() + timedelta(days=365)
         url = reverse(
             "organisations:documents",
             kwargs={
@@ -251,7 +298,7 @@ class OrganisationDocumentViewTests(DataTestClient):
         response = self.client.put(
             url,
             data={
-                "expiry_date": "2030-12-12",
+                "expiry_date": future_date,
                 "reference_code": "567",
             },
             **self.exporter_headers,

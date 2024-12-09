@@ -10,6 +10,8 @@ from api.staticdata.statuses.models import (
 class CaseStatusSerializer(serializers.ModelSerializer):
     key = serializers.SerializerMethodField()
     value = serializers.SerializerMethodField()
+    is_terminal = serializers.SerializerMethodField()
+    is_read_only = serializers.SerializerMethodField()
 
     def get_key(self, instance):
         return instance.status
@@ -25,7 +27,18 @@ class CaseStatusSerializer(serializers.ModelSerializer):
             "value",
             "status",
             "priority",
+            "is_terminal",
+            "is_read_only",
+            "is_major_editable",
+            "can_invoke_major_editable",
+            "is_caseworker_operable",
         )
+
+    def get_is_terminal(self, instance) -> bool:
+        return instance.is_terminal
+
+    def get_is_read_only(self, instance) -> bool:
+        return instance.is_read_only
 
 
 class CaseStatusPropertiesSerializer(serializers.ModelSerializer):

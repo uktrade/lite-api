@@ -12,7 +12,7 @@ from queryable_properties.managers import (
 )
 
 from api.cases.enums import AdviceLevel, CaseTypeEnum
-from api.cases.helpers import get_updated_case_ids, get_assigned_to_user_case_ids, get_assigned_as_case_officer_case_ids
+from api.cases.helpers import get_assigned_to_user_case_ids, get_assigned_as_case_officer_case_ids
 from api.common.enums import SortOrder
 from api.cases.enums import AdviceType
 from api.compliance.enums import COMPLIANCE_CASE_ACCEPTABLE_GOOD_CONTROL_CODES
@@ -21,7 +21,6 @@ from api.queues.constants import (
     ALL_CASES_QUEUE_ID,
     MY_TEAMS_QUEUES_CASES_ID,
     OPEN_CASES_QUEUE_ID,
-    UPDATED_CASES_QUEUE_ID,
     MY_ASSIGNED_CASES_QUEUE_ID,
     MY_ASSIGNED_AS_CASE_OFFICER_CASES_QUEUE_ID,
 )
@@ -52,13 +51,6 @@ class CaseQuerySet(QueryablePropertiesQuerySet):
     def in_team(self, team_id):
         return self.filter(queues__team_id=team_id).distinct()
 
-    def is_updated(self, user):
-        """
-        Get the cases that have raised notifications when updated by an exporter
-        """
-        updated_case_ids = get_updated_case_ids(user)
-        return self.filter(id__in=updated_case_ids)
-
     def assigned_to_user(self, user, queue_id=None):
         assigned_to_user_case_ids = get_assigned_to_user_case_ids(user, queue_id)
         return self.filter(id__in=assigned_to_user_case_ids)
@@ -81,6 +73,9 @@ class CaseQuerySet(QueryablePropertiesQuerySet):
 
     def has_sub_status(self, sub_status):
         return self.filter(sub_status__name=sub_status)
+
+    def has_licence_status(self, licence_status):
+        return self.filter(baseapplication__licences__status=licence_status)
 
     def is_type(self, case_type):
         return self.filter(case_type=case_type)
@@ -220,8 +215,6 @@ class CaseQuerySet(QueryablePropertiesQuerySet):
             return self.in_team(team_id=team_id)
         elif queue_id == OPEN_CASES_QUEUE_ID:
             return self.is_open()
-        elif queue_id == UPDATED_CASES_QUEUE_ID:
-            return self.is_updated(user=user)
         elif queue_id == MY_ASSIGNED_CASES_QUEUE_ID:
             return self.assigned_to_user(user=user).not_terminal()
         elif queue_id == MY_ASSIGNED_AS_CASE_OFFICER_CASES_QUEUE_ID:
@@ -259,6 +252,7 @@ class CaseManager(QueryablePropertiesManager):
         user=None,
         status=None,
         sub_status=None,
+        licence_status=None,
         case_type=None,
         assigned_user=None,
         case_officer=None,
@@ -320,6 +314,7 @@ class CaseManager(QueryablePropertiesManager):
                 "case_assignments__queue",
                 "queues",
                 "queues__team",
+                "baseapplication__licences",
                 Prefetch(
                     "baseapplication__parties",
                     to_attr="end_user_parties",
@@ -350,6 +345,9 @@ class CaseManager(QueryablePropertiesManager):
 
         if sub_status:
             case_qs = case_qs.has_sub_status(sub_status=sub_status)
+
+        if licence_status:
+            case_qs = case_qs.has_licence_status(licence_status=licence_status)
 
         if case_type:
             case_type = CaseTypeEnum.reference_to_id(case_type)

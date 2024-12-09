@@ -8,7 +8,6 @@ from typing import Tuple
 import django.utils.timezone
 from django.db import connection
 from django.test import override_settings
-from faker import Faker
 from rest_framework.test import APITestCase, URLPatternsTestCase, APIClient
 import pytest
 
@@ -44,7 +43,7 @@ from api.cases.models import (
 )
 from api.cases.celery_tasks import get_application_target_sla
 from django.conf import settings
-from api.core.constants import Roles
+from api.core.constants import GovPermissions, Roles
 from api.conf.urls import urlpatterns
 from api.documents.libraries.s3_operations import init_s3_client
 from api.flags.enums import SystemFlags, FlagStatuses, FlagLevels
@@ -84,21 +83,17 @@ from api.staticdata.urls import urlpatterns as static_urlpatterns
 from api.teams.models import Team
 from api.users.tests.factories import GovUserFactory
 from test_helpers import colours
+from test_helpers.faker import faker
 from api.users.enums import SystemUser, UserType
 from api.users.libraries.user_to_token import user_to_token
 from api.users.models import ExporterUser, UserOrganisationRelationship, BaseUser, GovUser, Role
-from api.workflow.flagging_rules_automation import apply_flagging_rules_to_case
+from lite_routing.routing_rules_internal.flagging_engine import apply_flagging_rules_to_case
 from api.workflow.routing_rules.enum import RoutingRulesAdditionalFields
 from api.workflow.routing_rules.models import RoutingRule
 
 
 class Static:
     seeded = False
-
-
-# Instantiating this once so that we have a single instance across all tests allowing us to use things like .unique
-# and we can guarantee that we will always have unique values even if we use things like `setUpClass`.
-faker = Faker()
 
 
 class DataTestClient(APITestCase, URLPatternsTestCase):
@@ -109,6 +104,8 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
     urlpatterns = urlpatterns + static_urlpatterns
     client = APIClient
     faker = faker  # Assigning this to the class as `self.faker` is expected in tests
+
+    INITIAL_QUEUE_ID = uuid.uuid4()
 
     @classmethod
     def setUpClass(cls):
@@ -142,6 +139,17 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         self.gov_user.save()
         self.gov_headers = {"HTTP_GOV_USER_TOKEN": user_to_token(self.base_user)}
 
+        self.lu_case_officer = GovUserFactory(
+            baseuser_ptr__email="case.officer@lu.gov.uk",
+            baseuser_ptr__first_name="Case",
+            baseuser_ptr__last_name="Officer",
+            team=Team.objects.get(name="Licensing Unit"),
+        )
+        self.lu_case_officer_headers = {"HTTP_GOV_USER_TOKEN": user_to_token(self.lu_case_officer.baseuser_ptr)}
+        self.lu_case_officer.role.permissions.set(
+            [GovPermissions.MANAGE_LICENCE_FINAL_ADVICE.name, GovPermissions.REOPEN_CLOSED_CASES.name]
+        )
+
         # Exporter User Setup
         (self.organisation, self.exporter_user) = self.create_organisation_with_exporter_user()
         (self.hmrc_organisation, self.hmrc_exporter_user) = self.create_organisation_with_exporter_user(
@@ -163,7 +171,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             "HTTP_ORGANISATION_ID": str(self.hmrc_organisation.id),
         }
 
-        self.queue = self.create_queue("Initial Queue", self.team)
+        self.queue = self.create_queue("Initial Queue", self.team, pk=self.INITIAL_QUEUE_ID)
 
         if settings.TIME_TESTS:
             self.tick = timezone.localtime()
@@ -291,8 +299,10 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         return case_note_mention
 
     @staticmethod
-    def create_queue(name: str, team: Team):
-        queue = Queue(name=name, team=team)
+    def create_queue(name: str, team: Team, pk=None):
+        if not pk:
+            pk = uuid.uuid4()
+        queue = Queue(id=pk, name=name, team=team)
         queue.save()
         return queue
 
@@ -886,7 +896,6 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         target=None,
         payload=None,
         ignore_case_status=False,
-        send_notification=True,
     ):
         if not payload:
             payload = {}
@@ -898,7 +907,6 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             target=target,
             payload=payload,
             ignore_case_status=ignore_case_status,
-            send_notification=send_notification,
         )
 
     def add_users(self, count=3):

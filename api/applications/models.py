@@ -1,3 +1,4 @@
+import logging
 import uuid
 
 from django.contrib.postgres.fields import ArrayField
@@ -14,6 +15,7 @@ from api.applications.enums import (
     NSGListType,
 )
 from api.appeals.models import Appeal
+from api.applications.exceptions import AmendmentError
 from api.applications.managers import BaseApplicationManager
 from api.applications.validators import StandardApplicationValidator
 from api.applications.libraries.application_helpers import create_submitted_audit
@@ -48,6 +50,9 @@ from api.users.models import ExporterUser, GovUser, BaseUser
 from lite_content.lite_api.strings import PartyErrors
 
 from lite_routing.routing_rules_internal.enums import QueuesEnum
+
+
+logger = logging.getLogger(__name__)
 
 
 class ApplicationException(APIException):
@@ -325,6 +330,7 @@ class StandardApplication(BaseApplication, Clonable):
     f1686_reference_number = models.CharField(default=None, blank=True, null=True, max_length=100)
     f1686_approval_date = models.DateField(blank=False, null=True)
     other_security_approval_details = models.TextField(default=None, blank=True, null=True)
+    subject_to_itar_controls = models.BooleanField(blank=True, default=None, null=True)
 
     clone_exclusions = [
         "appeal",
@@ -359,10 +365,9 @@ class StandardApplication(BaseApplication, Clonable):
     def clone(self, exclusions=None, **overrides):
         cloned_application = super().clone(exclusions=exclusions, **overrides)
 
-        # TODO: Figure out whether it is desirable to clone ApplicationDocument records
-        # application_documents = ApplicationDocument.objects.filter(application=self)
-        # for application_document in application_documents:
-        #    application_document.clone(application=cloned_application)
+        application_documents = ApplicationDocument.objects.filter(application=self, safe=True)
+        for application_document in application_documents:
+            application_document.clone(application=cloned_application)
 
         site_on_applications = SiteOnApplication.objects.filter(application=self)
         for site_on_application in site_on_applications:
@@ -380,6 +385,30 @@ class StandardApplication(BaseApplication, Clonable):
 
     @transaction.atomic
     def create_amendment(self, user):
+        # It's possible that we've arrived here multiple times simultaneously because multiple requests to create an
+        # amendment have been made at the same time.
+        # The views that call this may have already checked the status but it's possible that when they checked it was
+        # before the status has actually been updated on the application so we've got a potential race condition going.
+        # What we want to do here is lock the row to make sure that only one request can be trying to create an
+        # amendment at any one time and if we have multiple requests clashing we'll re-check the status once the lock
+        # has been removed from any other racing requests.
+        # To be helpful to the caller we'll return the amendment that did happen even if there are multiple requests.
+        original = StandardApplication.objects.select_for_update().get(pk=self.pk)
+        if not CaseStatusEnum.can_invoke_major_edit(original.status.status):
+            logger.warning(
+                "Attempted to create an amendment from an already amended application %s with status %s",
+                original.pk,
+                original.status,
+            )
+            if original.superseded_by:
+                logger.info(
+                    "Found an amendment already: %s for the application: %s",
+                    original.superseded_by.pk,
+                    original.pk,
+                )
+                return StandardApplication.objects.get(pk=original.superseded_by.pk)
+            raise AmendmentError(f"Failed to create an amendment from {original.pk}")
+
         amendment_application = self.clone(amendment_of=self)
         CaseQueue.objects.filter(case=self.case_ptr).delete()
         audit_trail_service.create(
@@ -395,7 +424,7 @@ class StandardApplication(BaseApplication, Clonable):
             ignore_case_status=True,
         )
         system_user = BaseUser.objects.get(id=SystemUser.id)
-        self.case_ptr.change_status(system_user, get_case_status_by_status(CaseStatusEnum.SUPERSEDED_BY_AMENDMENT))
+        self.case_ptr.change_status(system_user, get_case_status_by_status(CaseStatusEnum.SUPERSEDED_BY_EXPORTER_EDIT))
         return amendment_application
 
     def validate(self):
@@ -472,6 +501,7 @@ class AbstractGoodOnApplication(TimestampableModel):
     is_good_incorporated = models.BooleanField(null=True, blank=True, default=None)
     is_good_controlled = models.BooleanField(default=None, blank=True, null=True)
     comment = models.TextField(help_text="control review comment", default=None, blank=True, null=True)
+    # DEPRECATED: We should remove this after checking that report_summaries supersedes it (including data)
     report_summary = models.TextField(default=None, blank=True, null=True)
     application = models.ForeignKey(BaseApplication, on_delete=models.CASCADE, null=False)
     control_list_entries = models.ManyToManyField(ControlListEntry)
@@ -530,10 +560,11 @@ class GoodOnApplication(AbstractGoodOnApplication, Clonable):
     unit = models.CharField(choices=Units.choices, max_length=50, null=True, blank=True, default=None)
     value = models.DecimalField(max_digits=15, decimal_places=2, null=True, blank=True, default=None)
 
-    # Report Summary prefix and subject
+    # DEPRECATED: we should remove this after checking report_summaries fully supersedes this (including legacy data)
     report_summary_prefix = models.ForeignKey(
         ReportSummaryPrefix, on_delete=models.PROTECT, blank=True, null=True, related_name="prefix_good_on_application"
     )
+    # DEPRECATED: we should remove this after checking report_summaries fully supersedes this (including legacy data)
     report_summary_subject = models.ForeignKey(
         ReportSummarySubject,
         on_delete=models.PROTECT,
@@ -541,6 +572,7 @@ class GoodOnApplication(AbstractGoodOnApplication, Clonable):
         null=True,
         related_name="subject_good_on_application",
     )
+    # report_summaries supersedes report_summary_subject and report_summary_prefix
     report_summaries = models.ManyToManyField(ReportSummary, related_name="goods_on_application")
 
     # Exhibition applications are the only applications that contain the following as such may be null
@@ -605,14 +637,15 @@ class GoodOnApplication(AbstractGoodOnApplication, Clonable):
             cloned_good_on_application.firearm_details = self.firearm_details.clone()
             cloned_good_on_application.save()
 
-        good_on_application_documents = GoodOnApplicationDocument.objects.filter(good_on_application=self)
+        good_on_application_documents = GoodOnApplicationDocument.objects.filter(good_on_application=self, safe=True)
         for good_on_application_document in good_on_application_documents:
             good_on_application_document.clone(
                 good_on_application=cloned_good_on_application, application=overrides["application"]
             )
 
         good_on_application_internal_documents = GoodOnApplicationInternalDocument.objects.filter(
-            good_on_application=self
+            good_on_application=self,
+            safe=True,
         )
         for good_on_application_internal_document in good_on_application_internal_documents:
             good_on_application_internal_document.clone(good_on_application=cloned_good_on_application)
@@ -726,10 +759,14 @@ class PartyOnApplication(TimestampableModel, Clonable):
         "id",
         "application",
         "flags",
+        "party",
     ]
-    clone_mappings = {
-        "party": "party_id",
-    }
+
+    def clone(self, exclusions=None, **overrides):
+        if not overrides.get("party"):
+            cloned_party = self.party.clone()
+            overrides["party"] = cloned_party
+        return super().clone(exclusions=exclusions, **overrides)
 
 
 class DenialMatchOnApplication(TimestampableModel):

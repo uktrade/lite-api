@@ -388,9 +388,7 @@ class OrganisationDetailSerializer(serializers.ModelSerializer):
             return list(instance.flags.values("id", "name", "colour", "label", "priority"))
 
     def get_documents(self, instance):
-        queryset = instance.document_on_organisations.order_by("document_type", "-expiry_date").distinct(
-            "document_type"
-        )
+        queryset = instance.document_on_organisations.order_by("document_type", "-created_at").distinct("document_type")
         serializer = DocumentOnOrganisationSerializer(queryset, many=True)
         return serializer.data
 
