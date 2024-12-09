@@ -18,6 +18,8 @@ class PartyFactory(factory.django.DjangoModelFactory):
 
 
 class PartyDocumentFactory(factory.django.DjangoModelFactory):
+    s3_key = factory.Faker("name")
+
     class Meta:
         model = PartyDocument
 
