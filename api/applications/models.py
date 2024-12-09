@@ -17,7 +17,6 @@ from api.applications.enums import (
 from api.appeals.models import Appeal
 from api.applications.exceptions import AmendmentError
 from api.applications.managers import BaseApplicationManager
-from api.applications.validators import StandardApplicationValidator
 from api.applications.libraries.application_helpers import create_submitted_audit
 from api.audit_trail.models import AuditType
 from api.audit_trail import service as audit_trail_service
@@ -278,6 +277,8 @@ class BaseApplication(ApplicationPartyMixin, Case):
 
 # Licence     Applications
 class StandardApplication(BaseApplication, Clonable):
+    from api.applications.validators import StandardApplicationValidator
+
     GB = "GB"
     NI = "NI"
     GOODS_STARTING_POINT_CHOICES = [

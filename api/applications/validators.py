@@ -1,6 +1,7 @@
 from django.db.models import Q
 
 from api.applications.enums import ApplicationExportType
+from api.core.model_mixins import BaseApplicationValidator
 from api.goods.models import GoodDocument
 from api.parties.models import PartyDocument
 
@@ -159,23 +160,6 @@ def siel_temporary_export_details_validator(application):
         return "To submit the application, add temporary export details"
 
     return None
-
-
-class BaseApplicationValidator:
-    config = {}
-
-    def __init__(self, application):
-        self.application = application
-
-    def validate(self):
-        all_errors = {}
-        for entity, func in self.config.items():
-            error = func(self.application)
-            if error:
-                entity_errors = {entity: [error]}
-                all_errors = {**entity_errors, **all_errors}
-
-        return all_errors
 
 
 class StandardApplicationValidator(BaseApplicationValidator):
