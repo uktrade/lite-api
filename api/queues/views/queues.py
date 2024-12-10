@@ -58,7 +58,7 @@ class QueueDetail(APIView):
         """
         Retrieve a queue instance (be that a system queue or a team queue)
         """
-        print("This is the request---", request)
+        print("This is the request---", request.__dict__)
 
         queue = get_queue(pk)
 
