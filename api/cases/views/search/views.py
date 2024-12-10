@@ -129,7 +129,11 @@ class CasesSearchView(generics.ListAPIView):
         )
 
     def get_filters(self, request):
-        filters = {key: value for key, value in request.GET.items() if key not in ["hidden", "queue_id", "flags"]}
+        filters = {
+            key: value
+            for key, value in request.GET.items()
+            if key not in ["hidden", "queue_id", "flags", "exclude_flags"]
+        }
 
         search_tabs = ("my_cases", "open_queries")
         selected_tab = request.GET.get("selected_tab")
@@ -143,6 +147,7 @@ class CasesSearchView(generics.ListAPIView):
                 del filters["max_total_value"]
 
         filters["flags"] = request.GET.getlist("flags", [])
+        filters["exclude_flags"] = request.GET.getlist("exclude_flags", [])
         filters["regime_entry"] = [regime for regime in request.GET.getlist("regime_entry", []) if regime]
         filters["exclude_regime_entry"] = request.GET.get("exclude_regime_entry", False)
         filters["control_list_entry"] = [cle for cle in request.GET.getlist("control_list_entry", []) if cle]
