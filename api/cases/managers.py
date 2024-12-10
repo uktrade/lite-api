@@ -123,7 +123,7 @@ class CaseQuerySet(QueryablePropertiesQuerySet):
     def without_regime_entries(self, regime_entries):
         return self.exclude(baseapplication__goods__regime_entries__id__in=regime_entries)
 
-    def with_flags(self, flags):
+    def _get_case_ids_with_any_flags(self, flags):
         case_flag_ids = self.filter(flags__id__in=flags).values_list("id", flat=True)
         org_flag_ids = self.filter(organisation__flags__id__in=flags).values_list("id", flat=True)
         goods_flag_ids = self.filter(baseapplication__goods__good__flags__id__in=flags).values_list("id", flat=True)
@@ -131,8 +131,15 @@ class CaseQuerySet(QueryablePropertiesQuerySet):
             "id", flat=True
         )
 
-        case_ids = set(list(case_flag_ids) + list(org_flag_ids) + list(goods_flag_ids) + list(parties_flag_ids))
+        return set(list(case_flag_ids) + list(org_flag_ids) + list(goods_flag_ids) + list(parties_flag_ids))
+
+    def with_flags(self, flags):
+        case_ids = self._get_case_ids_with_any_flags(flags)
         return self.filter(id__in=case_ids)
+
+    def without_flags(self, flags):
+        case_ids = self._get_case_ids_with_any_flags(flags)
+        return self.exclude(id__in=case_ids)
 
     def with_country(self, country_id):
         return self.filter(Q(baseapplication__parties__party__country_id=country_id))
@@ -267,6 +274,7 @@ class CaseManager(QueryablePropertiesManager):
         exclude_regime_entry=None,
         regime_entry=None,
         flags=None,
+        exclude_flags=None,
         country=None,
         countries=None,
         team_advice_type=None,
@@ -401,6 +409,9 @@ class CaseManager(QueryablePropertiesManager):
 
         if flags:
             case_qs = case_qs.with_flags(flags)
+
+        if exclude_flags:
+            case_qs = case_qs.without_flags(exclude_flags)
 
         if country:
             case_qs = case_qs.with_country(country)
