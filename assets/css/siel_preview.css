@@ -6,7 +6,7 @@
     container-type: inline-size;
   }
   .document * {
-    font-size: 1.75cqw;
+    font-size: 12px;
     font-family: Helvetica;
     word-wrap: break-word;
   }
@@ -29,7 +29,7 @@
     margin: 0;
     padding: 5px;
   }
-  .document table.fixed-layout {
+  .document table {
     table-layout: fixed;
   }
   .document .border-black {
