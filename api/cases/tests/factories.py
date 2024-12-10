@@ -12,6 +12,7 @@ from api.cases.models import (
     EcjuQuery,
     GoodCountryDecision,
     DepartmentSLA,
+    LicenceDecision,
 )
 from api.queues.tests.factories import QueueFactory
 from api.organisations.tests.factories import OrganisationFactory
@@ -125,3 +126,8 @@ class CaseNoteFactory(factory.django.DjangoModelFactory):
 
     class Meta:
         model = CaseNote
+
+
+class LicenceDecisionFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = LicenceDecision
