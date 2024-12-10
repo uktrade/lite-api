@@ -1,3 +1,4 @@
+import time
 from typing import List, Dict
 
 from django.db.models import Count, QuerySet
@@ -19,6 +20,8 @@ def get_queue(pk):
     """
     Returns the specified queue (system or user created)
     """
+    print("we are here")
+    time.sleep(5)
     return next((queue for queue in get_system_queues() if queue["id"] == str(pk)), None) or helpers.get_queue(pk=pk)
 
 
