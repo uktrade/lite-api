@@ -2,8 +2,11 @@
     font-family: Helvetica;
     src: url("../fonts/Helvetica.ttf") format("truetype");
   }
+  .document {
+    container-type: inline-size;
+  }
   .document * {
-    font-size: 12px;
+    font-size: 1.75cqw;
     font-family: Helvetica;
     word-wrap: break-word;
   }
