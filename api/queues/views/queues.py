@@ -58,6 +58,8 @@ class QueueDetail(APIView):
         """
         Retrieve a queue instance (be that a system queue or a team queue)
         """
+        print("This is the request---", request)
+
         queue = get_queue(pk)
 
         serializer = QueueViewSerializer(queue)
