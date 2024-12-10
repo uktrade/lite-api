@@ -20,8 +20,8 @@ from api.external_data.models import Denial, DenialEntity, SanctionMatch
 from api.documents.tests.factories import DocumentFactory
 from api.staticdata.statuses.models import CaseStatus
 from api.goods.tests.factories import GoodFactory
-from api.organisations.tests.factories import OrganisationFactory, SiteFactory, ExternalLocationFactory
 from api.parties.tests.factories import ConsigneeFactory, EndUserFactory, PartyFactory, ThirdPartyFactory
+from api.organisations.tests.factories import OrganisationFactory, SiteFactory, ExternalLocationFactory
 from api.users.tests.factories import ExporterUserFactory, GovUserFactory
 from api.staticdata.units.enums import Units
 from api.staticdata.control_list_entries.helpers import get_control_list_entry

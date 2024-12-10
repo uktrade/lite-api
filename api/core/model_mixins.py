@@ -42,3 +42,20 @@ class Trackable:
 
     def get_history(self, field):
         raise NotImplementedError()
+
+
+class BaseApplicationValidator:
+    config = {}
+
+    def __init__(self, application):
+        self.application = application
+
+    def validate(self):
+        all_errors = {}
+        for entity, func in self.config.items():
+            error = func(self.application)
+            if error:
+                entity_errors = {entity: [error]}
+                all_errors = {**entity_errors, **all_errors}
+
+        return all_errors
