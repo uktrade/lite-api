@@ -18,9 +18,9 @@
   margin-bottom: 20px;
 }
 .document table {
+  table-layout: fixed;
   border-collapse: collapse;
   width: 100%;
-  table-layout: fixed;
 }
 .document td {
   vertical-align: top;
