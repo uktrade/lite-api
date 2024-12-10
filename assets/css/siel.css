@@ -20,14 +20,12 @@
 .document table {
   border-collapse: collapse;
   width: 100%;
+  table-layout: fixed;
 }
 .document td {
   vertical-align: top;
   margin: 0;
   padding: 5px;
-}
-.document table {
-  table-layout: fixed;
 }
 .document .border-black {
   border: 1px solid black;
