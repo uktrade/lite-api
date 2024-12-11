@@ -24,7 +24,7 @@ class CasesSearchView(generics.ListAPIView):
     authentication_classes = (HawkOnlyAuthentication,)
 
     def get(self, request, *args, **kwargs):
-        user = request.user.govuser
+        user = service.get_gov_users_list().first()
         queue_id = request.GET.get("queue_id", ALL_CASES_QUEUE_ID)
         is_work_queue = queue_id not in NON_WORK_QUEUES.keys()
         is_system_queue = queue_id in SYSTEM_QUEUES.keys()
