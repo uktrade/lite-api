@@ -30,7 +30,7 @@ class TemplatesTestCase(TestCase):
 
         self.assertIn("Test Good 1", rendered_template)
 
-        self.assertIn("Test Good 2\n Another line", rendered_template)
+        self.assertIn("Test Good 2, Another line", rendered_template)
         self.assertIn("Criterion 1", rendered_template)
         self.assertIn("Test Description 1", rendered_template)
 
@@ -59,7 +59,7 @@ class TemplatesTestCase(TestCase):
             {"goods": goods_data},
         )
 
-        self.assertIn("Test Good 2\n Another line", rendered_template)
+        self.assertIn("Test Good 2, Another line", rendered_template)
         self.assertIn("999111", rendered_template)
         self.assertIn("999222", rendered_template)
         self.assertNotIn("555111", rendered_template)
