@@ -8,7 +8,7 @@ from api.cases.libraries.dates import make_date_from_params
 from api.cases.models import Case, EcjuQuery
 from api.cases.serializers import CaseListSerializer
 from api.cases.views.search import service
-from api.core.authentication import GovAuthentication
+from api.core.authentication import HawkOnlyAuthentication
 from api.core.helpers import str_to_bool
 from api.queues.constants import SYSTEM_QUEUES, ALL_CASES_QUEUE_ID, NON_WORK_QUEUES
 from api.queues.models import Queue
@@ -20,7 +20,8 @@ class CasesSearchView(generics.ListAPIView):
     Provides a search view for the Case model.
     """
 
-    authentication_classes = (GovAuthentication,)
+    #authentication_classes = (GovAuthentication,)
+    authentication_classes = (HawkOnlyAuthentication,)
 
     def get(self, request, *args, **kwargs):
         user = request.user.govuser
