@@ -88,7 +88,7 @@ class CasesSearchView(generics.ListAPIView):
         advice_types = service.get_advice_types_list()
 
 
-        return self.get_paginated_response(
+        res = self.get_paginated_response(
             {
                 "queues": queues,
                 "cases": cases,
@@ -104,6 +104,10 @@ class CasesSearchView(generics.ListAPIView):
                 "queue": queue,
             }
         )
+
+        print(res)
+
+        return res
 
     def head(self, request, *agrs, **kwargs):
         user = request.user.govuser
