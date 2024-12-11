@@ -156,6 +156,13 @@ class ApplicationPartyMixin:
             pass
 
     @property
+    def end_users(self):
+        try:
+            return self.active_parties.filter(party__type=PartyType.END_USER)
+        except PartyOnApplication.DoesNotExist:
+            pass
+
+    @property
     def ultimate_end_users(self):
         """
         Backwards compatible

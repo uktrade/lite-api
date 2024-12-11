@@ -96,23 +96,28 @@ def check_party_error(party, object_not_found_error, is_mandatory, is_document_m
             return document_error
 
 
-def _validate_end_user(draft, errors, is_mandatory, open_application=False):
+def _validate_end_users(draft, errors, is_mandatory, open_application=False):
     """Validates end user. If a document is mandatory, this is also validated."""
 
     # Document is only mandatory if application is standard permanent or HMRC query
     is_document_mandatory = (
         draft.case_type.sub_type == CaseTypeSubTypeEnum.STANDARD
         and draft.export_type == ApplicationExportType.PERMANENT
-    ) or draft.case_type.sub_type == CaseTypeSubTypeEnum.HMRC
-
-    end_user_errors = check_party_error(
-        draft.end_user.party if draft.end_user else None,
-        object_not_found_error=strings.Applications.Standard.NO_END_USER_SET,
-        is_mandatory=is_mandatory,
-        is_document_mandatory=is_document_mandatory,
     )
-    if end_user_errors:
-        errors["end_user"] = [end_user_errors]
+    error_messages = []
+
+    for end_user in draft.end_users:
+        end_user_errors = check_party_error(
+            end_user.party if end_user else None,
+            object_not_found_error=strings.Applications.Standard.NO_END_USER_SET,
+            is_mandatory=is_mandatory,
+            is_document_mandatory=is_document_mandatory,
+        )
+        if end_user_errors:
+            error_messages.append(end_user_errors)
+
+    if error_messages:
+        errors["end_user"] = error_messages
 
     return errors
 
@@ -263,7 +268,7 @@ def _validate_standard_licence(draft, errors):
     """Checks that a standard licence has all party types & goods"""
 
     errors = _validate_siel_locations(draft, errors)
-    errors = _validate_end_user(draft, errors, is_mandatory=True)
+    errors = _validate_end_users(draft, errors, is_mandatory=True)
     errors = _validate_security_approvals(draft, errors, is_mandatory=True)
     errors = _validate_consignee(draft, errors, is_mandatory=True)
     errors = _validate_third_parties(draft, errors, is_mandatory=False)
