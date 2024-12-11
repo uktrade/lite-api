@@ -22,7 +22,10 @@ def update_licencedecision_denial_reasons(apps, schema_editor):
         .only("denial_reasons__id", "case__licence_decisions__id")
         .exclude(denial_reasons__id__isnull=True)  # This removes refusals without any criteria
         .values_list("denial_reasons__id", "case__licence_decisions__id")
-        .order_by()  # We need to remove the order_by to make sure the distinct works
+        # The AdviceManager orders by `created_at` and this affects the distinct
+        # so we remove the ordering completely to ensure the distinct workds as
+        # expected
+        .order_by()
         .distinct()
     )
 
