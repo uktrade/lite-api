@@ -151,7 +151,7 @@ class ApplicationPartyMixin:
         Standard and HMRC Query applications
         """
         try:
-            return self.active_parties.get(party__type=PartyType.END_USER)
+            return self.active_parties.filter(party__type=PartyType.END_USER).first()
         except PartyOnApplication.DoesNotExist:
             pass
 
