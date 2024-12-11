@@ -25,6 +25,7 @@ class CasesSearchView(generics.ListAPIView):
     def get(self, request, *args, **kwargs):
         user = request.user.govuser
         queue_id = request.GET.get("queue_id", ALL_CASES_QUEUE_ID)
+        print("Hello world")
         is_work_queue = queue_id not in NON_WORK_QUEUES.keys()
         is_system_queue = queue_id in SYSTEM_QUEUES.keys()
 
@@ -48,6 +49,7 @@ class CasesSearchView(generics.ListAPIView):
         }
 
         cases = CaseListSerializer(page, context=context, team=user.team, include_hidden=include_hidden, many=True).data
+        print(cases)
         # performance
         case_map = {}
         for case in cases:
@@ -84,6 +86,7 @@ class CasesSearchView(generics.ListAPIView):
         case_types = service.get_case_type_type_list()
         gov_users = service.get_gov_users_list()
         advice_types = service.get_advice_types_list()
+
 
         return self.get_paginated_response(
             {
