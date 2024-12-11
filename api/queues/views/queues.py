@@ -16,6 +16,7 @@ class QueuesList(generics.ListAPIView):
     serializer_class = QueueListSerializer
 
     def get(self, request, *args, **kwargs):
+        print("This is the request---", request.__dict__)
         include_system = request.GET.get("include_system", False)
         disable_pagination = request.GET.get("disable_pagination", False)
 
