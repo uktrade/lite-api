@@ -3,7 +3,10 @@
 from django.db import migrations
 
 from api.audit_trail.enums import AuditType
-from api.cases.enums import AdviceLevel
+from api.cases.enums import (
+    AdviceLevel,
+    AdviceType,
+)
 
 
 LICENSING_UNIT_ID = "58e77e47-42c8-499f-a58d-94f94541f8c6"
@@ -18,9 +21,9 @@ def update_licencedecision_denial_reasons(apps, schema_editor):
             case__licence_decisions__decision="refused",
             level=AdviceLevel.FINAL,
             team_id=LICENSING_UNIT_ID,  # Just care about LU advice
+            type=AdviceType.REFUSE,
         )
         .only("denial_reasons__id", "case__licence_decisions__id")
-        .exclude(denial_reasons__id__isnull=True)  # This removes refusals without any criteria
         .values_list("denial_reasons__id", "case__licence_decisions__id")
         # The AdviceManager orders by `created_at` and this affects the distinct
         # so we remove the ordering completely to ensure the distinct workds as
