@@ -24,6 +24,7 @@ from api.applications.models import PartyOnApplication
 from api.applications.tests.factories import (
     DraftStandardApplicationFactory,
     GoodOnApplicationFactory,
+    EndUserFactory,
     PartyOnApplicationFactory,
     StandardApplicationFactory,
 )
@@ -438,6 +439,20 @@ def add_end_user_to_application(draft_standard_application, country):
     end_user = draft_standard_application.parties.get(party__type=PartyType.END_USER)
     end_user.party.country = Country.objects.get(name=country)
     end_user.party.save()
+
+
+@given(parsers.parse("a new end-user added to the application of `{country}`"))
+def add_new_end_user_to_application(draft_standard_application, country):
+    country = Country.objects.get(name=country)
+    end_user = PartyOnApplicationFactory(
+        application=draft_standard_application,
+        party=EndUserFactory(country=country, organisation=draft_standard_application.organisation),
+    )
+    PartyDocumentFactory(
+        party=end_user.party,
+        s3_key="party-document-second",
+        safe=True,
+    )
 
 
 @when(

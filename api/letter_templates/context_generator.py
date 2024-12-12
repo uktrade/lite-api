@@ -737,6 +737,7 @@ def get_document_context(case, addressee=None):
     appeal_deadline = timezone.localtime() + timedelta(days=APPEAL_DAYS)
     exporter_reference = ""
     date_application_submitted = ""
+    end_users = []
 
     if base_application:
         if base_application.name:
@@ -744,6 +745,8 @@ def get_document_context(case, addressee=None):
 
         if base_application.submitted_at:
             date_application_submitted = base_application.submitted_at.strftime("%d %B %Y")
+
+        end_users = base_application.end_users
 
     return {
         "case_reference": case.reference_code,
@@ -756,11 +759,7 @@ def get_document_context(case, addressee=None):
         "addressee": AddresseeSerializer(addressee).data,
         "organisation": OrganisationSerializer(case.organisation).data,
         "licence": LicenceSerializer(licence).data if licence else None,
-        "end_user": (
-            PartySerializer(base_application.end_user.party).data
-            if base_application and base_application.end_user
-            else None
-        ),
+        "end_user": (PartySerializer(end_users[0].party).data if end_users else None),
         "consignee": (
             PartySerializer(base_application.consignee.party).data
             if base_application and base_application.consignee

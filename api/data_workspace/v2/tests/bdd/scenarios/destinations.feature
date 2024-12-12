@@ -13,10 +13,12 @@ Scenario: Check that the country code and type are included in the extract
         | id                  | 03fb08eb-1564-4b68-9336-3ca8906543f9 |
     And a consignee added to the application in `Australia`
     And an end-user added to the application of `New Zealand`
+    And a new end-user added to the application of `South Korea`
     When the application is submitted
     And the application is issued at 2024-11-22T13:35:15
     Then the `destinations` table has the following rows:
         | application_id                       | country_code  | type        |
+        | 03fb08eb-1564-4b68-9336-3ca8906543f9 | KR            | end_user    |
         | 03fb08eb-1564-4b68-9336-3ca8906543f9 | NZ            | end_user    |
         | 03fb08eb-1564-4b68-9336-3ca8906543f9 | AU            | consignee   |
 

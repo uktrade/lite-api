@@ -161,8 +161,8 @@ def delete_uploaded_document(data):
 
 def auto_match_sanctions(application):
     parties = []
-    if application.end_user:
-        parties.append(application.end_user.party)
+    if application.end_users[0]:
+        parties.append(application.end_users[0].party)
 
     for item in application.ultimate_end_users:
         parties.append(item.party)
