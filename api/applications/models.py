@@ -268,12 +268,17 @@ class BaseApplication(ApplicationPartyMixin, Case):
         self.set_sub_status(CaseSubStatusIdEnum.UNDER_APPEAL__APPEAL_RECEIVED)
         self.add_to_queue(Queue.objects.get(id=QueuesEnum.LU_APPEALS))
 
+    def validate(self):
+        raise NotImplementedError("Validator to validate application attributes is not implemented")
+
     def create_amendment(self, user):
         raise NotImplementedError()
 
 
 # Licence     Applications
 class StandardApplication(BaseApplication, Clonable):
+    from api.applications.validators import StandardApplicationValidator
+
     GB = "GB"
     NI = "NI"
     GOODS_STARTING_POINT_CHOICES = [
@@ -289,6 +294,7 @@ class StandardApplication(BaseApplication, Clonable):
         (VIA_CONSIGNEE, "To an end-user via a consignee"),
         (VIA_CONSIGNEE_AND_THIRD_PARTIES, "To an end-user via a consignee, with additional third parties"),
     ]
+    validator_class = StandardApplicationValidator
 
     export_type = models.TextField(choices=ApplicationExportType.choices, blank=True, default="")
     reference_number_on_information_form = models.CharField(blank=True, null=True, max_length=255)
@@ -421,6 +427,10 @@ class StandardApplication(BaseApplication, Clonable):
         system_user = BaseUser.objects.get(id=SystemUser.id)
         self.case_ptr.change_status(system_user, get_case_status_by_status(CaseStatusEnum.SUPERSEDED_BY_EXPORTER_EDIT))
         return amendment_application
+
+    def validate(self):
+        validator = self.validator_class(self)
+        return validator.validate()
 
 
 class ApplicationDocument(Document, Clonable):
