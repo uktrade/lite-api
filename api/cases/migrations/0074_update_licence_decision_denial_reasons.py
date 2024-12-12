@@ -32,10 +32,6 @@ def update_licencedecision_denial_reasons(apps, schema_editor):
         .distinct()
     )
 
-    for denial_reason, licence_decision_id in denial_reasons:
-        licence_decision = LicenceDecision.objects.get(pk=licence_decision_id)
-        licence_decision.denial_reasons.add(denial_reason)
-
     updated_cases = set()
     for denial_reason, licence_decision_id in denial_reasons:
         licence_decision = LicenceDecision.objects.get(pk=licence_decision_id)
