@@ -9,7 +9,6 @@ from api.audit_trail.enums import AuditType
 from api.core.authentication import ExporterAuthentication
 from api.core.decorators import (
     authorised_to_view_application,
-    allowed_party_type_for_open_application_goodstype_category,
     application_is_major_editable,
 )
 from api.core.helpers import str_to_bool
@@ -35,7 +34,6 @@ class ApplicationPartyView(APIView):
         party_on_application = application.active_parties.get(party_id=self.kwargs["party_pk"])
         return party_on_application.party
 
-    @allowed_party_type_for_open_application_goodstype_category()
     @authorised_to_view_application(ExporterUser)
     @application_is_major_editable
     def post(self, request, pk):
