@@ -155,21 +155,6 @@ class LicenceSerializer(serializers.ModelSerializer):
         return add_months(obj.start_date, obj.duration)
 
 
-class OpenLicenceReturnsSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = OpenLicenceReturns
-        fields = ["file_name", "year", "timestamp"]
-
-    file_name = serializers.SerializerMethodField()
-    timestamp = serializers.SerializerMethodField()
-
-    def get_file_name(self, obj):
-        return f"{obj.year}OpenLicenceReturns.csv"
-
-    def get_timestamp(self, obj):
-        return obj.created_at.strftime(f"{DATE_FORMAT} {TIME_FORMAT}")
-
-
 class PartySerializer(serializers.ModelSerializer):
     class Meta:
         model = Party
