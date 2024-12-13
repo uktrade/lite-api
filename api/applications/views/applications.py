@@ -316,7 +316,6 @@ class ApplicationSubmission(APIView):
 
         elif application.case_type.sub_type in [
             CaseTypeSubTypeEnum.STANDARD,
-            CaseTypeSubTypeEnum.OPEN,
             CaseTypeSubTypeEnum.F680,
             CaseTypeSubTypeEnum.GIFTING,
             CaseTypeSubTypeEnum.EXHIBITION,
@@ -354,13 +353,12 @@ class ApplicationSubmission(APIView):
 
         if application.case_type.sub_type in [
             CaseTypeSubTypeEnum.STANDARD,
-            CaseTypeSubTypeEnum.OPEN,
             CaseTypeSubTypeEnum.HMRC,
         ]:
             if UUID(SystemFlags.ENFORCEMENT_CHECK_REQUIRED) not in application.flags.values_list("id", flat=True):
                 application.flags.add(SystemFlags.ENFORCEMENT_CHECK_REQUIRED)
 
-        if application.case_type.sub_type in [CaseTypeSubTypeEnum.STANDARD, CaseTypeSubTypeEnum.OPEN]:
+        if application.case_type.sub_type in [CaseTypeSubTypeEnum.STANDARD]:
             auto_match_sanctions(application)
 
         # Serialize for the response message
@@ -768,7 +766,7 @@ class ApplicationRouteOfGoods(UpdateAPIView):
 
     @authorised_to_view_application(ExporterUser)
     @application_is_major_editable
-    @allowed_application_types([CaseTypeSubTypeEnum.OPEN, CaseTypeSubTypeEnum.STANDARD])
+    @allowed_application_types([CaseTypeSubTypeEnum.STANDARD])
     def put(self, request, pk):
         """Update an application instance with route of goods data."""
 

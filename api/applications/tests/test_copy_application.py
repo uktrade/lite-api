@@ -176,7 +176,7 @@ class CopyApplicationSuccessTests(DataTestClient):
     def _validate_end_use_details(self, application_type=None):
         if application_type == CaseTypeSubTypeEnum.F680:
             self.assertIsNone(self.copied_application.intended_end_use)
-        elif application_type in [CaseTypeSubTypeEnum.STANDARD, CaseTypeSubTypeEnum.OPEN]:
+        elif application_type in [CaseTypeSubTypeEnum.STANDARD]:
             self.assertIsNone(self.copied_application.intended_end_use)
             self.assertIsNone(self.copied_application.is_informed_wmd)
             self.assertIsNone(self.copied_application.is_suspected_wmd)

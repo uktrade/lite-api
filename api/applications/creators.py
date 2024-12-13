@@ -174,7 +174,7 @@ def _validate_ultimate_end_users(draft, errors, is_mandatory):
 
 
 def _validate_end_use_details(draft, errors, application_type):
-    if application_type in [CaseTypeSubTypeEnum.STANDARD, CaseTypeSubTypeEnum.OPEN]:
+    if application_type in [CaseTypeSubTypeEnum.STANDARD]:
         if (
             draft.is_military_end_use_controls is None
             or draft.is_informed_wmd is None
@@ -216,7 +216,7 @@ def _validate_agree_to_declaration(request, errors):
 
 def _validate_temporary_export_details(draft, errors):
     if (
-        draft.case_type.sub_type in [CaseTypeSubTypeEnum.STANDARD, CaseTypeSubTypeEnum.OPEN]
+        draft.case_type.sub_type in [CaseTypeSubTypeEnum.STANDARD]
         and draft.export_type == ApplicationExportType.TEMPORARY
     ):
         if not draft.temp_export_details or draft.is_temp_direct_control is None or draft.proposed_return_date is None:
