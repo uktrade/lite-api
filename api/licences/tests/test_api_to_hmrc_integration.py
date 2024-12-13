@@ -280,12 +280,6 @@ class HMRCIntegrationSerializersTests(DataTestClient):
     def _assert_countries(self, data, countries):
         self.assertEqual(data["countries"], [{"id": country.id, "name": country.name} for country in countries])
 
-    def _assert_goods_types(self, data, goods):
-        self.assertEqual(
-            data["goods"],
-            [{"id": str(good.id), "description": good.description, "usage": good.usage} for good in goods],
-        )
-
     def _assert_goods_on_licence(self, data, goods):
         data = data["goods"]
         for i in range(len(goods)):

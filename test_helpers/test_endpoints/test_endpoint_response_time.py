@@ -32,7 +32,6 @@ class EndPointTests(SimpleTestCase):
     # stored variables for requests, so no need to get the data multiple times across tests
     standard_application_id = None
     open_application_id = None
-    goods_type_id = None
     application_party_id = None
     good_id = None
     good_document_id = None

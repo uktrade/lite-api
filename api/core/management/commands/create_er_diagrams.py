@@ -11,7 +11,6 @@ apps = [
     "documents",
     "flags",
     "goods",
-    "goodstype",
     "letter_templates",
     "licences",
     "organisations",

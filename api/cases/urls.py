@@ -56,11 +56,6 @@ urlpatterns = [
         name="final_advice_documents",
     ),
     path(
-        "<uuid:pk>/goods-countries-decisions/",
-        views.GoodsCountriesDecisions.as_view(),
-        name="goods_countries_decisions",
-    ),
-    path(
         "<uuid:pk>/ecju-queries/",
         views.ECJUQueries.as_view(),
         name="case_ecju_queries",

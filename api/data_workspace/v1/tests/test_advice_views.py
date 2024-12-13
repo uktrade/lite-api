@@ -35,7 +35,6 @@ class AdviceDataWorkspaceTests(DataTestClient):
             "user",
             "team",
             "good",
-            "goods_type",
             "country",
             "end_user",
             "ultimate_end_user",

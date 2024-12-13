@@ -12,9 +12,8 @@ from api.cases.serializers import SimpleAdviceSerializer
 from api.core.serializers import KeyValueChoiceField, CountrySerializerField, ControlListEntryField
 from api.goods.models import Good
 from api.goods.enums import GoodControlled
-from api.goodstype.models import GoodsType
 from api.licences.enums import LicenceStatus
-from api.licences.helpers import serialize_goods_on_licence, get_approved_countries
+from api.licences.helpers import serialize_goods_on_licence
 from api.licences.models import (
     GoodOnLicence,
     Licence,
@@ -52,19 +51,6 @@ class DocumentLicenceSerializer(serializers.ModelSerializer):
             "advice_type",
             "name",
             "id",
-        )
-        read_only_fields = fields
-
-
-class GoodsTypeOnLicenceSerializer(serializers.ModelSerializer):
-    control_list_entries = ControlListEntrySerializer(many=True)
-
-    class Meta:
-        model = GoodsType
-        fields = (
-            "description",
-            "control_list_entries",
-            "usage",
         )
         read_only_fields = fields
 
@@ -306,20 +292,6 @@ class GoodLicenceListSerializer(serializers.ModelSerializer):
         fields = (
             "description",
             "control_list_entries",
-        )
-        read_only_fields = fields
-
-
-class GoodsTypeOnLicenceListSerializer(serializers.ModelSerializer):
-    control_list_entries = ControlListEntryField(many=True)
-
-    class Meta:
-        model = GoodsType
-        fields = (
-            "id",
-            "description",
-            "control_list_entries",
-            "usage",
         )
         read_only_fields = fields
 

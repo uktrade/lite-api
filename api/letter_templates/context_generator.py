@@ -2,7 +2,6 @@ from collections import defaultdict
 from datetime import timedelta
 
 from django.contrib.humanize.templatetags.humanize import intcomma
-from django.db.models import Q
 from django.utils import timezone
 
 from rest_framework import serializers
@@ -30,8 +29,7 @@ from api.applications.models import (
     GoodOnApplication,
 )
 from api.goods.models import PvGradingDetails, Good, FirearmGoodDetails
-from api.goodstype.models import GoodsType
-from api.cases.models import Advice, EcjuQuery, CaseNote, Case, GoodCountryDecision, CaseType
+from api.cases.models import Advice, EcjuQuery, CaseNote, Case, CaseType
 from api.organisations.models import Organisation
 from api.addresses.models import Address
 from api.parties.models import Party
@@ -366,18 +364,6 @@ class PvGradingDetailsSerializer(serializers.ModelSerializer):
         return obj.custom_grading
 
 
-class GoodsTypeSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = GoodsType
-        fields = ["description", "control_list_entries", "is_controlled"]
-
-    control_list_entries = serializers.SerializerMethodField()
-    is_controlled = FriendlyBooleanField(source="is_good_controlled")
-
-    def get_control_list_entries(self, obj):
-        return [clc.rating for clc in obj.control_list_entries.all()]
-
-
 class GoodsQueryGoodSerializer(serializers.ModelSerializer):
     class Meta:
         model = Good
@@ -699,13 +685,6 @@ def get_document_context(case, addressee=None):
 
     if getattr(base_application, "goods", "") and base_application.goods.exists():
         goods = _get_goods_context(base_application, final_advice, licence)
-    elif getattr(base_application, "goods_type", "") and base_application.goods_type.exists():
-        goods = _get_goods_type_context(
-            base_application.goods_type.all()
-            .order_by("created_at")
-            .prefetch_related("countries", "control_list_entries"),
-            case.pk,
-        )
     else:
         goods = None
 
@@ -906,100 +885,3 @@ def _get_goods_context(application, final_advice, licence=None):
     ordered_goods = sorted(approved_goods, key=lambda d: d["created_at"])
     goods_context[AdviceType.APPROVE] = ordered_goods
     return goods_context
-
-
-def _get_approved_goods_type_context(approved_goods_type_on_country_decisions):
-    # Approved goods types on country
-    if approved_goods_type_on_country_decisions:
-        context = {}
-        for decision in approved_goods_type_on_country_decisions:
-            if decision.country.name not in context:
-                context[decision.country.name] = [GoodsTypeSerializer(decision.goods_type).data]
-            else:
-                context[decision.country.name].append(GoodsTypeSerializer(decision.goods_type).data)
-        return context
-
-
-def _get_entities_refused_at_the_final_advice_level(case_pk):
-    # Get Refused Final advice on Country & GoodsType
-    rejected_entities = Advice.objects.filter(
-        Q(goods_type__isnull=False) | Q(country__isnull=False),
-        case_id=case_pk,
-        level=AdviceLevel.FINAL,
-        type=AdviceType.REFUSE,
-    ).prefetch_related("goods_type", "goods_type__control_list_entries", "country")
-
-    refused_final_advice_countries = []
-    refused_final_advice_goods_types = []
-    for rejected_entity in rejected_entities:
-        if rejected_entity.goods_type:
-            refused_final_advice_goods_types.append(rejected_entity.goods_type)
-        else:
-            refused_final_advice_countries.append(rejected_entity.country)
-
-    return refused_final_advice_countries, refused_final_advice_goods_types
-
-
-def _get_refused_goods_type_context(case_pk, goods_types, refused_goods_type_on_country_decisions):
-    # Refused goods types on country from GoodCountryDecisions
-    context = {}
-    if refused_goods_type_on_country_decisions:
-        for decision in refused_goods_type_on_country_decisions:
-            if decision.country.name not in context:
-                context[decision.country.name] = {decision.goods_type.id: GoodsTypeSerializer(decision.goods_type).data}
-            else:
-                context[decision.country.name][decision.goods_type.id] = GoodsTypeSerializer(decision.goods_type).data
-
-    refused_final_advice_countries, refused_final_advice_goods_types = _get_entities_refused_at_the_final_advice_level(
-        case_pk
-    )
-
-    # Countries refused for all goods types at final advice level
-    if refused_final_advice_countries:
-        for country in refused_final_advice_countries:
-            goods_type_for_country = goods_types.filter(countries=country)
-            for goods_type in goods_type_for_country:
-                if country.name not in context:
-                    context[country.name] = {goods_type.id: GoodsTypeSerializer(goods_type).data}
-                elif goods_type.id not in context[country.name]:
-                    context[country.name][goods_type.id] = GoodsTypeSerializer(goods_type).data
-
-    # Goods types refused for all countries at final advice level
-    if refused_final_advice_goods_types:
-        for goods_type in refused_final_advice_goods_types:
-            for country in goods_type.countries.all():
-                if country.name not in context:
-                    context[country.name] = {goods_type.id: GoodsTypeSerializer(goods_type).data}
-                elif goods_type.id not in context[country.name]:
-                    context[country.name][goods_type.id] = GoodsTypeSerializer(goods_type).data
-
-    # Remove ID's used to avoid duplication
-    return {key: list(context[key].values()) for key in context} if context else None
-
-
-def _get_goods_type_context(goods_types, case_pk):
-    goods_type_context = {"all": GoodsTypeSerializer(goods_types, many=True).data}
-
-    # Get GoodCountryDecisions
-    goods_type_on_country_decisions = GoodCountryDecision.objects.filter(case_id=case_pk).prefetch_related(
-        "goods_type", "goods_type__control_list_entries", "country"
-    )
-    approved_goods_type_on_country_decisions = []
-    refused_goods_type_on_country_decisions = []
-    for goods_type_on_country_decision in goods_type_on_country_decisions:
-        if goods_type_on_country_decision.approve:
-            approved_goods_type_on_country_decisions.append(goods_type_on_country_decision)
-        else:
-            refused_goods_type_on_country_decisions.append(goods_type_on_country_decision)
-
-    approved_goods_type_context = _get_approved_goods_type_context(approved_goods_type_on_country_decisions)
-    if approved_goods_type_context:
-        goods_type_context[AdviceType.APPROVE] = approved_goods_type_context
-
-    refused_goods_type_context = _get_refused_goods_type_context(
-        case_pk, goods_types, refused_goods_type_on_country_decisions
-    )
-    if refused_goods_type_context:
-        goods_type_context[AdviceType.REFUSE] = refused_goods_type_context
-
-    return goods_type_context

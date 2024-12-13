@@ -5,21 +5,9 @@ from string import ascii_uppercase
 from api.applications.models import GoodOnApplication
 from api.applications.serializers.good import GoodOnApplicationViewSerializer
 from api.cases.enums import CaseTypeSubTypeEnum
-from api.cases.models import GoodCountryDecision
 from api.licences.models import Licence
 from lite_content.lite_api import strings
-from api.staticdata.countries.models import Country
 from api.staticdata.statuses.enums import CaseStatusEnum
-
-
-def get_approved_goods_types(application):
-    approved_goods = GoodCountryDecision.objects.filter(case_id=application.id).values_list("goods_type", flat=True)
-    return application.goods_type.filter(id__in=approved_goods)
-
-
-def get_approved_countries(application):
-    approved_countries = GoodCountryDecision.objects.filter(case_id=application.id).values_list("country", flat=True)
-    return Country.objects.filter(id__in=approved_countries).order_by("name")
 
 
 @transaction.atomic
@@ -36,15 +24,11 @@ def get_licence_reference_code(application_reference):
 
 
 def serialize_goods_on_licence(licence):
-    from api.licences.serializers.view_licence import GoodOnLicenceViewSerializer, GoodsTypeOnLicenceListSerializer
+    from api.licences.serializers.view_licence import GoodOnLicenceViewSerializer
 
     if licence.goods.exists():
         # Standard Application
         return GoodOnLicenceViewSerializer(licence.goods, many=True).data
-    elif licence.case.baseapplication.goods_type.exists():
-        # Open Application
-        approved_goods_types = get_approved_goods_types(licence.case.baseapplication)
-        return GoodsTypeOnLicenceListSerializer(approved_goods_types, many=True).data
     elif licence.case.case_type.sub_type != CaseTypeSubTypeEnum.STANDARD:
         # MOD clearances
         goods = GoodOnApplication.objects.filter(application=licence.case.baseapplication)

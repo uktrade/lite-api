@@ -7,7 +7,7 @@ from api.goods.enums import GoodStatus
 def add_goods_flags_to_submitted_application(application: BaseApplication):
     """
     When an application is submitted;
-    The 'not yet verified' system flag must be added to its Goods or GoodsTypes
+    The 'not yet verified' system flag must be added to its Goods
     A Good's status must also be updated to 'SUBMITTED'
     """
     if application.case_type.sub_type == CaseTypeSubTypeEnum.STANDARD:

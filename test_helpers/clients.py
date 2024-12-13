@@ -54,8 +54,6 @@ from api.goods.enums import GoodPvGraded
 from api.goods.models import Good, GoodDocument
 from api.applications.models import GoodOnApplicationInternalDocument
 from api.goods.tests.factories import GoodFactory
-from api.goodstype.document.models import GoodsTypeDocument
-from api.goodstype.models import GoodsType
 from api.letter_templates.models import LetterTemplate
 from api.licences.enums import LicenceStatus
 from api.licences.tests.factories import StandardLicenceFactory
@@ -422,14 +420,6 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         return document
 
     @staticmethod
-    def create_document_for_goods_type(goods_type: GoodsType, name="document_name.pdf", safe=True):
-        document = GoodsTypeDocument(
-            goods_type=goods_type, name=name, s3_key="s3_keykey.pdf", size=123456, virus_scanned_at=None, safe=safe
-        )
-        document.save()
-        return document
-
-    @staticmethod
     def create_flag(name: str, level: str, team: Team):
         return FlagFactory(name=name, level=level, team=team)
 
@@ -539,7 +529,6 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         pv_grading=None,
         advice_text="This is some text",
         good=None,
-        goods_type=None,
         countersign_comments="",
         countersigned_by=None,
     ):
@@ -568,8 +557,6 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
 
         if good:
             advice.good = good
-        elif goods_type:
-            advice.goods_type = goods_type
         elif advice_field == "good":
             if case.case_type.sub_type == CaseTypeSubTypeEnum.STANDARD:
                 advice.good = GoodOnApplication.objects.filter(application=case).first().good

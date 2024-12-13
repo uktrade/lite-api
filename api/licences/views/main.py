@@ -62,7 +62,6 @@ class Licences(ListCreateAPIView):
         if clc:
             licences = licences.filter(
                 Q(case__baseapplication__goods__good__control_list_entries__rating=clc)
-                | Q(case__baseapplication__goods_type__control_list_entries__rating=clc)
             ).distinct()
 
         if end_user:
