@@ -6,7 +6,6 @@ from pytest_bdd import (
     when,
 )
 
-
 scenarios("./scenarios/licence_refusal_criteria.feature")
 
 
