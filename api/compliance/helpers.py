@@ -1,11 +1,8 @@
-import csv
-import re
 from typing import Optional
 
 from django.utils import timezone
 from django.conf import settings
 
-from rest_framework.exceptions import ValidationError
 
 from api.audit_trail.enums import AuditType
 from api.audit_trail.models import Audit
@@ -17,9 +14,7 @@ from api.core.constants import ExporterPermissions
 from api.core.exceptions import NotFoundError
 from api.core.permissions import check_user_has_permission
 from api.goods.models import Good
-from api.licences.models import Licence
 from lite_content.lite_api import strings
-from lite_content.lite_api.strings import Compliance
 from api.organisations.libraries.get_organisation import get_request_user_organisation
 from api.organisations.models import Site, Organisation
 from api.staticdata.statuses.enums import CaseStatusEnum
@@ -48,21 +43,16 @@ def case_meets_conditions_for_compliance(case: Case):
             ).exists():
                 return True
         return False
-    elif case.case_type.id in [CaseTypeEnum.OIEL.id, CaseTypeEnum.OICL.id, *CaseTypeEnum.OPEN_GENERAL_LICENCE_IDS]:
-        return True
     else:
         return False
 
 
 def get_record_holding_sites_for_case(case):
-    if case.case_type.id in CaseTypeEnum.OPEN_GENERAL_LICENCE_IDS:
-        return {case.site.site_records_located_at_id}
-    else:
-        return set(
-            Site.objects.filter(sites_on_application__application_id=case.id).values_list(
-                "site_records_located_at_id", flat=True
-            )
+    return set(
+        Site.objects.filter(sites_on_application__application_id=case.id).values_list(
+            "site_records_located_at_id", flat=True
         )
+    )
 
 
 def generate_compliance_site_case(case: Case):
@@ -116,51 +106,6 @@ def generate_compliance_site_case(case: Case):
 
 
 TOTAL_COLUMNS = 5
-
-
-def read_and_validate_csv(text):
-    """
-    Used for parsing Open Licence returns CSV files which are uploaded by the exporter for certain case types
-    and contain the Licence reference as well as other properties for compliance.
-
-    Takes CSV formatted text and returns the licence references & cleaned format of the CSV.
-    Requires the first column to be the licence reference.
-    Requires 5 items per row or throws a ValidationError.
-    Requires the first line to be blank/headers or data will be lost.
-    """
-    references = set()
-    cleaned_text = ""
-
-    try:
-        csv_reader = csv.reader(text.split("\n"), delimiter=",")
-        # skip headers
-        next(csv_reader, None)
-        for row in csv_reader:
-            if row:
-                if len(row) != TOTAL_COLUMNS:
-                    raise ValidationError({"file": [Compliance.OpenLicenceReturns.INVALID_FILE_FORMAT]})
-                references.add(row[0])
-                # https://owasp.org/www-community/attacks/CSV_Injection
-                cleaned_text += ",".join([re.sub("[^A-Za-z0-9/,.-]+", "", item.strip()) for item in row]) + "\n"
-    except csv.Error:
-        raise ValidationError({"file": [Compliance.OpenLicenceReturns.INVALID_FILE_FORMAT]})
-
-    return references, cleaned_text
-
-
-def fetch_and_validate_licences(references, organisation_id):
-    if len(references) == 0:
-        raise ValidationError({"file": [Compliance.OpenLicenceReturns.INVALID_LICENCES]})
-
-    licence_ids = list(
-        Licence.objects.filter(reference_code__in=references, case__organisation_id=organisation_id).values_list(
-            "id", flat=True
-        )
-    )
-    if len(licence_ids) != len(references):
-        raise ValidationError({"file": [Compliance.OpenLicenceReturns.INVALID_LICENCES]})
-
-    return licence_ids
 
 
 def compliance_visit_case_complete(case: ComplianceVisitCase) -> bool:

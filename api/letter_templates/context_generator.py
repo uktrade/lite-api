@@ -35,7 +35,7 @@ from api.cases.models import Advice, EcjuQuery, CaseNote, Case, GoodCountryDecis
 from api.organisations.models import Organisation
 from api.addresses.models import Address
 from api.parties.models import Party
-from api.compliance.models import ComplianceVisitCase, CompliancePerson, OpenLicenceReturns
+from api.compliance.models import ComplianceVisitCase, CompliancePerson
 from api.licences.models import Licence
 from api.organisations.models import Site, ExternalLocation
 from api.queries.end_user_advisories.models import EndUserAdvisoryQuery
@@ -592,7 +592,6 @@ class ComplianceSiteCaseSerializer(serializers.ModelSerializer):
 
     site_name = serializers.SerializerMethodField()
     address = AddressSerializer()
-    open_licence_returns = serializers.SerializerMethodField()
     licences = serializers.SerializerMethodField()
 
     def get_site_name(self, obj):
@@ -633,7 +632,6 @@ class ComplianceSiteSerializer(serializers.Serializer):
     reference_code = serializers.CharField()
     site_name = serializers.SerializerMethodField()
     address = serializers.SerializerMethodField()
-    open_licence_returns = serializers.SerializerMethodField()
     licences = serializers.SerializerMethodField()
 
     def get_site_name(self, obj):
@@ -641,10 +639,6 @@ class ComplianceSiteSerializer(serializers.Serializer):
 
     def get_address(self, obj):
         return AddressSerializer(obj.compliancesitecase.site.address).data
-
-    def get_open_licence_returns(self, obj):
-        olrs = OpenLicenceReturns.objects.filter(organisation_id=obj.organisation.id).order_by("-year", "-created_at")
-        return OpenLicenceReturnsSerializer(olrs, many=True).data
 
     def get_licences(self, obj):
         cases = Case.objects.filter_for_cases_related_to_compliance_case(obj.id)

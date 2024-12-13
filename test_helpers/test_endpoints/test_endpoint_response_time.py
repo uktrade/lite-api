@@ -53,7 +53,6 @@ class EndPointTests(SimpleTestCase):
     case_document = None
     case_ecju_query_id = None
     routing_rule_id = None
-    open_general_licence_id = None
 
     def call_endpoint(self, headers, appended_address, save_results=True):
         response = get(appended_address, headers)
@@ -125,18 +124,6 @@ class EndPointTests(SimpleTestCase):
 
         return self.standard_application_id
 
-    def get_open_application(self):
-        """
-        Function to get or fetch a open applications id.
-        If id is not already set, will request against the "/applications/"
-            endpoint one page at a time until it gets one.
-        :return: open_application_id
-        """
-        if not self.open_application_id:
-            self._get_application_by_case_type(CaseTypeEnum.OIEL.sub_type, "open_application_id")
-
-        return self.open_application_id
-
     def _get_application_by_case_type(self, case_type, attribute):
         response = self.call_endpoint(self.get_exporter_headers(), "/applications/", save_results=False).json()
         for page in range(0, response["total_pages"]):
@@ -154,20 +141,6 @@ class EndPointTests(SimpleTestCase):
 
         if not self.__getattribute__(attribute):
             raise IndexError(f"No application of type {case_type} was found")
-
-    def get_application_goodstype_id(self):
-        if not self.goods_type_id:
-            response = self.call_endpoint(
-                self.get_exporter_headers(),
-                "/applications/" + self.get_open_application()["id"] + "/goodstypes/",
-                save_results=False,
-            )
-            try:
-                self.goods_type_id = response.json()["goods"][0]["id"]
-            except IndexError:
-                raise IndexError("No goodstype were found for application")
-
-        return self.goods_type_id
 
     def get_party_on_application_id(self):
         if not self.application_party_id:
@@ -390,14 +363,3 @@ class EndPointTests(SimpleTestCase):
                 raise IndexError("No routing rules exist or you do not have permission to access them")
 
         return self.routing_rule_id
-
-    def get_open_general_licence_id(self):
-        if not self.open_general_licence_id:
-            response = self.call_endpoint(self.get_gov_headers(), "/open-general-licences/", save_results=False)
-
-            try:
-                self.open_general_licence_id = response.json()["results"][0]["id"]
-            except IndexError:
-                raise IndexError("No routing rules exist or you do not have permission to access them")
-
-        return self.open_general_licence_id

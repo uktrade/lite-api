@@ -14,7 +14,6 @@ apps = [
     "goodstype",
     "letter_templates",
     "licences",
-    "open_general_licences",
     "organisations",
     "parties",
     "picklists",

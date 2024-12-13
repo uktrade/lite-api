@@ -9,8 +9,3 @@ router_v0.register(
     licence_views.LicencesListDW,
     basename="dw-licences-only",
 )
-router_v0.register(
-    "ogl",
-    licence_views.OpenGeneralLicenceListDW,
-    basename="dw-ogl-only",
-)

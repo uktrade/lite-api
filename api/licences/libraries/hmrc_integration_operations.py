@@ -13,7 +13,6 @@ from api.audit_trail.enums import AuditType
 from api.cases.enums import CaseTypeEnum
 from api.core.requests import get, post
 from api.licences.enums import HMRCIntegrationActionEnum
-from api.licences.helpers import get_approved_goods_types
 from api.licences.models import Licence, HMRCIntegrationUsageData, GoodOnLicence
 from api.licences.serializers.hmrc_integration import (
     HMRCIntegrationLicenceSerializer,
@@ -145,12 +144,11 @@ def _validate_licence(data: dict) -> dict:
         data["errors"] = {"action": [f"Must be one of {HMRCIntegrationActionEnum.from_hmrc}"]}
         return data
 
-    if licence.case.case_type_id not in CaseTypeEnum.OPEN_GENERAL_LICENCE_IDS:
-        valid_goods, invalid_goods = _validate_goods_on_licence(licence, data["goods"])
+    valid_goods, invalid_goods = _validate_goods_on_licence(licence, data["goods"])
 
-        if invalid_goods:
-            data["goods"] = {"accepted": valid_goods, "rejected": invalid_goods}
-            data["errors"] = {"goods": ["One or more Goods were rejected."]}
+    if invalid_goods:
+        data["goods"] = {"accepted": valid_goods, "rejected": invalid_goods}
+        data["errors"] = {"goods": ["One or more Goods were rejected."]}
 
     return data
 
@@ -180,10 +178,7 @@ def _validate_good_on_licence(licence: Licence, data: dict) -> dict:
         data["errors"] = serializer.errors
         return data
 
-    if licence.case.case_type_id not in CaseTypeEnum.OPEN_LICENCE_IDS:
-        gol = GoodOnLicence.objects.filter(licence=licence, good_id=data["id"])
-    else:
-        gol = get_approved_goods_types(licence.case.baseapplication).filter(id=data["id"])
+    gol = GoodOnLicence.objects.filter(licence=licence, good_id=data["id"])
 
     if not gol.exists():
         data["errors"] = {"id": ["Good not found on Licence."]}
@@ -205,15 +200,9 @@ def _update_licence(validated_data: dict) -> str:
 def _update_good_on_licence_usage(licence: Licence, validated_good_id: UUID, validated_usage: float):
     """Updates the Usage for a Good on a Licence"""
 
-    if licence.case.case_type_id in CaseTypeEnum.OPEN_LICENCE_IDS:
-        # Quantity is not applicable for open licences
-        quantity = 0
-        good_on_licence = get_approved_goods_types(licence.case.baseapplication).get(id=validated_good_id)
-        good_description = good_on_licence.description
-    else:
-        good_on_licence = GoodOnLicence.objects.get(licence=licence, good_id=validated_good_id)
-        good_description = good_on_licence.good.good.name or good_on_licence.good.good.description
-        quantity = good_on_licence.quantity
+    good_on_licence = GoodOnLicence.objects.get(licence=licence, good_id=validated_good_id)
+    good_description = good_on_licence.good.good.name or good_on_licence.good.good.description
+    quantity = good_on_licence.quantity
 
     good_on_licence.usage = validated_usage
     good_on_licence.save()

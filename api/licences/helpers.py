@@ -6,20 +6,10 @@ from api.applications.models import GoodOnApplication
 from api.applications.serializers.good import GoodOnApplicationViewSerializer
 from api.cases.enums import CaseTypeSubTypeEnum
 from api.cases.models import GoodCountryDecision
-from api.core.exceptions import NotFoundError
 from api.licences.models import Licence
 from lite_content.lite_api import strings
 from api.staticdata.countries.models import Country
 from api.staticdata.statuses.enums import CaseStatusEnum
-
-
-def get_open_general_export_licence_case(pk):
-    from api.open_general_licences.models import OpenGeneralLicenceCase
-
-    try:
-        return OpenGeneralLicenceCase.objects.get(pk=pk)
-    except OpenGeneralLicenceCase.DoesNotExist:
-        raise NotFoundError({"open_general_licence_case": "Open general licence case not found - " + str(pk)})
 
 
 def get_approved_goods_types(application):

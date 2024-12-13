@@ -14,14 +14,11 @@ from reversion.models import Version
 
 from api.applications.tests.factories import StandardApplicationFactory
 from api.cases.enums import CaseTypeEnum, AdviceType
-from api.cases.models import CaseType
 from api.cases.tests.factories import FinalAdviceFactory
 from api.licences.enums import LicenceStatus
-from api.licences.models import Licence
 from api.licences.tests.factories import GoodOnLicenceFactory
 from api.licences.views.main import LicenceType
 from api.licences.tests.factories import StandardLicenceFactory
-from api.open_general_licences.tests.factories import OpenGeneralLicenceCaseFactory, OpenGeneralLicenceFactory
 from api.staticdata.control_list_entries.models import ControlListEntry
 from api.staticdata.countries.models import Country
 from api.staticdata.statuses.enums import CaseStatusEnum
@@ -117,21 +114,6 @@ class GetLicencesTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertTrue(str(draft_licence.id) not in [licence["id"] for licence in response_data])
-
-    def test_ogel_licences_are_not_included(self):
-        open_general_licence = OpenGeneralLicenceFactory(case_type=CaseType.objects.get(id=CaseTypeEnum.OGEL.id))
-        open_general_licence_case = OpenGeneralLicenceCaseFactory(
-            open_general_licence=open_general_licence,
-            site=self.organisation.primary_site,
-            organisation=self.organisation,
-        )
-        ogel_licence = Licence.objects.get(case=open_general_licence_case)
-
-        response = self.client.get(self.url, **self.exporter_headers)
-        response_data = response.json()["results"]
-
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertTrue(str(ogel_licence.id) not in [licence["id"] for licence in response_data])
 
 
 class GetLicencesFilterTests(DataTestClient):

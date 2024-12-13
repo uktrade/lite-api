@@ -89,7 +89,6 @@ urlpatterns = [
     path("<uuid:pk>/finalise/", views.FinaliseView.as_view(), name="finalise"),
     path("<uuid:pk>/licences/", licences.LicencesView.as_view(), name="licences"),
     path("<uuid:pk>/assigned-queues/", case_actions.AssignedQueues.as_view(), name="assigned_queues"),
-    path("<uuid:pk>/reissue-ogl/", case_actions.OpenGeneralLicenceReissue.as_view(), name="reissue_ogl"),
     path("<uuid:pk>/rerun-routing-rules/", case_actions.RerunRoutingRules.as_view(), name="rerun_routing_rules"),
     # Advice2.0
     path("<uuid:pk>/countersign-advice/", views.CountersignAdviceView.as_view(), name="countersign_advice"),
