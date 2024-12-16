@@ -75,7 +75,6 @@ class HMRCIntegrationLicenceSerializer(serializers.Serializer):
     end_date = serializers.DateField()
     organisation = HMRCIntegrationOrganisationSerializer(source="case.organisation")
     end_user = HMRCIntegrationEndUserSerializer(source="case.baseapplication.end_user.party")
-    countries = serializers.SerializerMethodField()
     goods = serializers.SerializerMethodField()
 
     def __init__(self, *args, **kwargs):
@@ -83,9 +82,6 @@ class HMRCIntegrationLicenceSerializer(serializers.Serializer):
 
         if not (hasattr(self.instance.case, "baseapplication") and self.instance.case.baseapplication.end_user):
             self.fields.pop("end_user")
-
-        if hasattr(self.instance.case, "baseapplication"):
-            self.fields.pop("countries")
 
         self.action = licence_status_to_hmrc_integration_action.get(self.instance.status)
         if self.action != HMRCIntegrationActionEnum.UPDATE:
@@ -101,14 +97,6 @@ class HMRCIntegrationLicenceSerializer(serializers.Serializer):
             .values_list("id", flat=True)
             .last()
         )
-
-    def get_countries(self, instance):
-        countries = get_approved_countries(instance.case.baseapplication)
-
-        return HMRCIntegrationCountrySerializer(
-            countries,
-            many=True,
-        ).data
 
     def get_goods(self, instance):
         if instance.goods.exists():
