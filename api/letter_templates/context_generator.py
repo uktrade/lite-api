@@ -276,7 +276,7 @@ class BaseApplicationSerializer(serializers.ModelSerializer):
 
 class TemporaryExportDetailsSerializer(serializers.Serializer):
     """
-    Serializes both OpenApplication and StandardApplication
+    Serializes StandardApplication
     """
 
     temp_export_details = serializers.CharField()

@@ -181,7 +181,7 @@ class Case(TimestampableModel):
         """
         For any child models, this method allows easy access to the parent Case.
 
-        Child cases [StandardApplication, OpenApplication, ...] share `id` with Case.
+        Child cases [StandardApplication, ...] share `id` with Case.
         """
         if type(self) == Case:  # noqa
             return self

@@ -127,11 +127,6 @@ class ApplicationLicenceSerializer(serializers.ModelSerializer):
     def get_destinations(self, instance):
         if instance.end_user:
             return [PartyLicenceListSerializer(instance.end_user.party).data]
-        elif hasattr(instance, "openapplication") and instance.openapplication.application_countries.exists():
-            return [
-                {"country": country}
-                for country in CountriesLicenceSerializer(get_approved_countries(instance), many=True).data
-            ]
         else:
             return None
 
@@ -360,11 +355,6 @@ class ApplicationLicenceListSerializer(serializers.ModelSerializer):
     def get_destinations(self, instance):
         if instance.end_user:
             return [PartyLicenceListSerializer(instance.end_user.party).data]
-        elif hasattr(instance, "openapplication") and instance.openapplication.application_countries.exists():
-            return [
-                {"country": country}
-                for country in CountriesLicenceSerializer(get_approved_countries(instance), many=True).data
-            ]
 
 
 class GoodOnLicenceLicenceListSerializer(serializers.ModelSerializer):
