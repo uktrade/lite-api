@@ -8,7 +8,7 @@
     <h1>Standard Individual Export Licence</h1>
     <img class="dbt-logo" src="{% static 'images/dbt.png' %}">
 
-    <table id="first-page-table" class="fixed-layout">
+    <table id="first-page-table">
       <!--
         Table is broken up into 12 evenly-spaced columns.
         Cell width is controlled by colspan attributes on cells.
@@ -282,7 +282,7 @@
                   <table border="0">
                     <tr id="row-{{ forloop.counter}}-description-name">
                         <td><strong>Name:</strong></td>
-                        <td>{% if good.name %}{{ good.name|split_good_name_across_lines }}{% else %}{{ good.description|split_good_name_across_lines }}{% endif %}
+                        <td>{% if good.name %}{{ good.name }}{% else %}{{ good.description }}{% endif %}
                         </td>
                     </tr>
                     <tr>
