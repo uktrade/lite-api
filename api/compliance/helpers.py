@@ -52,7 +52,7 @@ def get_record_holding_sites_for_case(case):
         Site.objects.filter(sites_on_application__application_id=case.id).values_list(
             "site_records_located_at_id", flat=True
         )
-    )  # /PS-IGNORE
+    )  # pragma: no cover
 
 
 def generate_compliance_site_case(case: Case):

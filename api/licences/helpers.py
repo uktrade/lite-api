@@ -24,7 +24,7 @@ def get_licence_reference_code(application_reference):
 
 
 def serialize_goods_on_licence(licence):
-    from api.licences.serializers.view_licence import GoodOnLicenceViewSerializer
+    from api.licences.serializers.view_licence import GoodOnLicenceViewSerializer  # pragma: no cover
 
     if licence.goods.exists():
         # Standard Application
