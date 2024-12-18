@@ -34,8 +34,6 @@ from test_helpers.clients import DataTestClient
 from api.users.enums import UserStatuses
 from api.users.models import GovUser
 from api.cases.tests import factories
-from api.cases.enums import AdviceType
-from api.staticdata.statuses.enums import CaseStatusEnum
 from api.teams.models import Team
 from api.cases.views.search.service import (
     get_case_status_list,
@@ -552,6 +550,57 @@ class FilterAndSortTests(DataTestClient):
 
         for case in response_data["cases"]:
             self.assertIn(flag_id, [item["id"] for item in case[flags_key]])
+
+    def test_filter_cases_exclude_flags_case_level(self):
+        # set required flags
+        application = self.application_cases[0]
+        case = Case.objects.get(id=application.id)
+        flag_id = FlagsEnum.GOODS_NOT_LISTED
+        flag = Flag.objects.get(id=flag_id)
+        case.flags.add(flag)
+
+        url = f"{self.url}?exclude_flags={flag_id}"
+
+        response = self.client.get(url, **self.gov_headers)
+        response_data = response.json()["results"]
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        for search_result_case in response_data["cases"]:
+            self.assertNotEqual(search_result_case["id"], str(case.id))
+
+    def test_filter_cases_exclude_flags_good_level(self):
+        # set required flags
+        application = self.application_cases[0]
+        good = application.goods.all()[0].good
+        flag_id = FlagsEnum.WASSENAAR
+        flag = Flag.objects.get(id=flag_id)
+        good.flags.add(flag)
+
+        url = f"{self.url}?exclude_flags={flag_id}"
+
+        response = self.client.get(url, **self.gov_headers)
+        response_data = response.json()["results"]
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        for search_result_case in response_data["cases"]:
+            self.assertNotEqual(search_result_case["id"], str(application.id))
+
+    def test_filter_cases_exclude_flags_destination_level(self):
+        # set required flags
+        application = self.application_cases[0]
+        destination = application.parties.all()[0].party
+        flag_id = FlagsEnum.MOD_DI_COUNTRY_OF_INTEREST
+        flag = Flag.objects.get(id=flag_id)
+        destination.flags.add(flag)
+
+        url = f"{self.url}?exclude_flags={flag_id}"
+
+        response = self.client.get(url, **self.gov_headers)
+        response_data = response.json()["results"]
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        for search_result_case in response_data["cases"]:
+            self.assertNotEqual(search_result_case["id"], str(application.id))
 
     @parameterized.expand(["permanent", "temporary"])
     def test_get_cases_filter_by_export_type(self, export_type):
