@@ -113,7 +113,7 @@ class HMRCIntegrationLicenceSerializer(serializers.Serializer):
 
     # TODO: This needs to be re-implemented for open licences
     def get_countries(self, instance):
-        return []
+        return []  #  pragma: no cover
 
     def get_goods(self, instance):
         if instance.goods.exists():
