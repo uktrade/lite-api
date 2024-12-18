@@ -26,7 +26,7 @@ def update_licencedecision_denial_reasons(apps, schema_editor):
         .only("denial_reasons__id", "case__licence_decisions__id")
         .values_list("denial_reasons__id", "case__licence_decisions__id")
         # The AdviceManager orders by `created_at` and this affects the distinct
-        # so we remove the ordering completely to ensure the distinct workds as
+        # so we remove the ordering completely to ensure the distinct works as
         # expected
         .order_by()
         .distinct()
