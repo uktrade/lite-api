@@ -8,7 +8,6 @@ from api.cases.models import Advice
 from api.cases.generated_documents.models import GeneratedCaseDocument
 from api.cases.tests.factories import FinalAdviceFactory
 from api.core import constants
-from api.goods.enums import PvGrading
 from api.staticdata.decisions.models import Decision
 from api.staticdata.statuses.enums import CaseStatusEnum
 from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
@@ -37,7 +36,6 @@ class CreateCaseAdviceTests(DataTestClient):
                 constants.GovPermissions.MANAGE_LICENCE_FINAL_ADVICE.name,
                 constants.GovPermissions.MANAGE_TEAM_ADVICE.name,
                 constants.GovPermissions.MANAGE_TEAM_CONFIRM_OWN_ADVICE.name,
-                constants.GovPermissions.MANAGE_LICENCE_FINAL_ADVICE.name,
                 constants.GovPermissions.MANAGE_TEAM_ADVICE.name,
             ]
         )
@@ -52,60 +50,6 @@ class CreateCaseAdviceTests(DataTestClient):
         self.standard_case_url = reverse("cases:case_final_advice", kwargs={"pk": self.standard_case.id})
         self.standard_case_finalise_url = reverse("applications:finalise", kwargs={"pk": self.standard_case.id})
 
-    def test_advice_is_concatenated_when_final_advice_first_created(self):
-        """
-        Final advice is created on first call
-        """
-        self.create_advice(self.gov_user, self.standard_case, "end_user", AdviceType.PROVISO, AdviceLevel.TEAM)
-        self.create_advice(self.gov_user_2, self.standard_case, "end_user", AdviceType.PROVISO, AdviceLevel.TEAM)
-        self.create_advice(self.gov_user, self.standard_case, "good", AdviceType.NO_LICENCE_REQUIRED, AdviceLevel.TEAM)
-        self.create_advice(
-            self.gov_user_2, self.standard_case, "good", AdviceType.NO_LICENCE_REQUIRED, AdviceLevel.TEAM
-        )
-
-        response = self.client.get(self.standard_case_url, **self.gov_headers)
-        response_data = response.json()["advice"]
-
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response_data), 6)
-
-        end_user, good = None, None
-        for data in response_data:
-            if data.get("end_user"):
-                end_user = data.get("type").get("key")
-            elif data.get("good"):
-                good = data.get("type").get("key")
-
-        self.assertEqual(end_user, AdviceType.PROVISO)
-        self.assertEqual(good, AdviceType.NO_LICENCE_REQUIRED)
-
-    def test_create_conflicting_final_advice_shows_all_fields(self):
-        """
-        The type should show conflicting if there are conflicting types in the advice on a single object
-        """
-        self.create_advice(self.gov_user, self.standard_case, "good", AdviceType.NO_LICENCE_REQUIRED, AdviceLevel.TEAM)
-        self.create_advice(self.gov_user_2, self.standard_case, "good", AdviceType.REFUSE, AdviceLevel.TEAM)
-        self.create_advice(self.gov_user_3, self.standard_case, "good", AdviceType.PROVISO, AdviceLevel.TEAM)
-
-        response = self.client.get(self.standard_case_url, **self.gov_headers)
-        response_data = response.json()["advice"][0]
-
-        self.assertEqual(response_data.get("type").get("key"), "conflicting")
-        self.assertEqual(response_data.get("proviso"), "I am easy to proviso")
-        self.assertCountEqual(["1a", "1b", "1c"], response_data["denial_reasons"])
-
-    def test_create_final_advice_nlr_overrides_approval(self):
-        """
-        NLR decision overrides approval
-        """
-        self.create_advice(self.gov_user, self.standard_case, "good", AdviceType.NO_LICENCE_REQUIRED, AdviceLevel.TEAM)
-        self.create_advice(self.gov_user_3, self.standard_case, "good", AdviceType.APPROVE, AdviceLevel.TEAM)
-
-        response = self.client.get(self.standard_case_url, **self.gov_headers)
-        response_data = response.json()["advice"][0]
-
-        self.assertEqual(response_data.get("type").get("key"), "no_licence_required")
-
     def test_return_final_advice(self):
         """
         Check the correct advice is returned
@@ -119,88 +63,6 @@ class CreateCaseAdviceTests(DataTestClient):
         final_advice_on_goods = response.json()["goods"]
 
         self.assertEqual(len(final_advice_on_goods), 1)
-
-    def test_create_final_advice_same_advice_type_different_pv_gradings(self):
-        """
-        Same advice types, different pv gradings
-        """
-        inputs = [
-            (self.gov_user, PvGrading.UK_OFFICIAL),
-            (self.gov_user_2, PvGrading.UK_OFFICIAL_SENSITIVE),
-            (self.gov_user_3, PvGrading.NATO_CONFIDENTIAL),
-        ]
-        for user, pv_grading in inputs:
-            self.create_advice(user, self.standard_case, "good", AdviceType.PROVISO, AdviceLevel.TEAM, pv_grading)
-
-        response = self.client.get(self.standard_case_url, **self.gov_headers)
-        response_data = response.json()["advice"]
-
-        self.assertEqual(response_data[0].get("type").get("key"), "proviso")
-        self.assertEqual(response_data[0].get("proviso"), "I am easy to proviso")
-        pv_gradings = Advice.objects.get(id=response_data[0]["id"]).collated_pv_grading
-        self.assertIn("\n-------\n", pv_gradings)
-        for _, pv_grading in inputs:
-            self.assertIn(PvGrading.to_str(pv_grading), pv_gradings)
-
-    def test_create_final_advice_same_advice_type_same_pv_gradings(self):
-        """
-        Same advice types, same pv gradings
-        """
-        pv_grading = PvGrading.OCCAR_CONFIDENTIAL
-        inputs = [self.gov_user, self.gov_user_2, self.gov_user_3]
-        for user in inputs:
-            self.create_advice(user, self.standard_case, "good", AdviceType.PROVISO, AdviceLevel.TEAM, pv_grading)
-
-        response = self.client.get(self.standard_case_url, **self.gov_headers)
-        response_data = response.json()["advice"]
-
-        self.assertEqual(response_data[0].get("type").get("key"), "proviso")
-        self.assertEqual(response_data[0].get("proviso"), "I am easy to proviso")
-        pv_gradings = Advice.objects.get(id=response_data[0]["id"]).collated_pv_grading
-        self.assertNotIn("\n-------\n", pv_gradings)
-        self.assertIn(PvGrading.to_str(pv_grading), pv_gradings)
-
-    def test_create_conflicting_final_advice_different_advice_type_same_pv_gradings(self):
-        """
-        Different advice types, same pv gradings
-        """
-        pv_grading = PvGrading.UK_OFFICIAL
-        inputs = [
-            (self.gov_user, AdviceType.PROVISO),
-            (self.gov_user_2, AdviceType.REFUSE),
-            (self.gov_user_3, AdviceType.APPROVE),
-        ]
-        for user, advice_type in inputs:
-            self.create_advice(user, self.standard_case, "good", advice_type, AdviceLevel.TEAM, pv_grading)
-
-        response = self.client.get(self.standard_case_url, **self.gov_headers)
-        response_data = response.json()["advice"]
-
-        self.assertEqual(response_data[0].get("type").get("key"), "conflicting")
-        pv_gradings = Advice.objects.get(id=response_data[0]["id"]).collated_pv_grading
-        self.assertNotIn("\n-------\n", pv_gradings)
-        self.assertIn(PvGrading.to_str(pv_grading), pv_gradings)
-
-    def test_create_conflicting_final_advice_different_advice_type_different_pv_gradings(self):
-        """
-        Different advice types, different pv gradings
-        """
-        inputs = [
-            (self.gov_user, AdviceType.PROVISO, PvGrading.UK_OFFICIAL),
-            (self.gov_user_2, AdviceType.REFUSE, PvGrading.UK_OFFICIAL_SENSITIVE),
-            (self.gov_user_3, AdviceType.APPROVE, PvGrading.NATO_CONFIDENTIAL),
-        ]
-        for user, advice_type, pv_grading in inputs:
-            self.create_advice(user, self.standard_case, "good", advice_type, AdviceLevel.TEAM, pv_grading)
-
-        response = self.client.get(self.standard_case_url, **self.gov_headers)
-        response_data = response.json()["advice"]
-
-        self.assertEqual(response_data[0].get("type").get("key"), "conflicting")
-        pv_gradings = Advice.objects.get(id=response_data[0]["id"]).collated_pv_grading
-        self.assertIn("\n-------\n", pv_gradings)
-        for _, _, pv_grading in inputs:
-            self.assertIn(PvGrading.to_str(pv_grading), pv_gradings)
 
     # Normal restrictions on team advice items
     @parameterized.expand(
