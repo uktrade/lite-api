@@ -25,8 +25,6 @@
 			<td class="govuk-table__cell">
 				{% if case_type.reference == "siel" %}
 					Standard Individual Export Licence
-				{% elif case_type.reference == "oiel"%}
-					Open Individual Export Licence
 				{% elif case_type.reference == "sitl"%}
 					Standard Individual Transhipment Licence
 				{% elif case_type.reference == "sicl"%}
@@ -50,8 +48,6 @@
 			<td class="govuk-table__cell">
 				{% if case_type.reference in "siel,sitl,sicl" %}
 					Standard Licence
-				{% elif case_type.reference == "oiel" or case_type.reference == "oicl"%}
-					Open Licence
 				{% elif case_type.reference == "gift"%}
 					MOD Gifting Clearance
 				{% elif case_type.sub_type == "f680_clearance"%}
@@ -63,16 +59,6 @@
 				{% endif %}
 			</td>
 		</tr>
-		{% if details.goodstype_category %}
-			<tr class="govuk-table__row">
-				<th scope="row" class="govuk-table__header">
-					Type of open licence
-				</th>
-				<td class="govuk-table__cell">
-					{{ details.goodstype_category }}
-				</td>
-			</tr>
-		{% endif %}
 		<tr class="govuk-table__row">
 			<th scope="row" class="govuk-table__header">
 				Reference name
@@ -228,280 +214,257 @@
 		{% for good_on_application in goods.all %}
 			<h2 class="govuk-heading-m"> {% lcs 'GoodsDetailSummary.HEADING' %} {{ forloop.counter }} </h2>
 			<dl class="govuk-summary-list" id="good-detail-summary{{ forloop.counter }}">
-{#	goods without an item_category are on open applications, and therefore goodstypes, which allows us to split that logic out #}
-				{% if not good_on_application.item_category%}
+				<div class="govuk-summary-list__row">
+					<dt class="govuk-summary-list__key">
+						{% lcs 'GoodsDetailSummary.SELECT_CATEGORY' %}
+					</dt>
+					<dd class="govuk-summary-list__value">
+						{{ good_on_application.item_category }}
+					</dd>
+				</div>
+				<div class="govuk-summary-list__row">
+					<dt class="govuk-summary-list__key">
+						{% lcs "GoodPage.Table.DESCRIPTION" %}
+					</dt>
+					<dd class="govuk-summary-list__value">
+						{{ good_on_application.description }}
+					</dd>
+				</div>
+
+				<div class="govuk-summary-list__row">
+					<dt class="govuk-summary-list__key">
+						{% lcs 'GoodsDetailSummary.PART_NUMBER' %}
+					</dt>
+					<dd class="govuk-summary-list__value">
+						{{ good_on_application.part_number|default_na }}
+					</dd>
+				</div>
+
+				<div class="govuk-summary-list__row">
+					<dt class="govuk-summary-list__key">
+						{% lcs 'GoodsDetailSummary.CONTROLLED' %}
+					</dt>
+					<dd class="govuk-summary-list__value">
+						{{ good_on_application.is_controlled }} - {{ good_on_application.control_list_entries|join:", "|default_na }}
+					</dd>
+				</div>
+
+				{% if good_on_application.software_or_technology_details %}
 					<div class="govuk-summary-list__row">
 						<dt class="govuk-summary-list__key">
-							{% lcs "GoodPage.Table.DESCRIPTION" %}
+							{% lcs "GoodsDetailSummary.PURPOSE_SOFTWARE_TECHNOLOGY" %}
 						</dt>
 						<dd class="govuk-summary-list__value">
-							{% if good_on_application.good.name %}{{ good_on_application.good.name }}{% endif %}
-							{% if good_on_application.good.description %}{{ good_on_application.good.description }}{% endif %}
+							{{ good_on_application.software_or_technology_details|default_na }}
 						</dd>
 					</div>
-					<div class="govuk-summary-list__row">
-						<dt class="govuk-summary-list__key">
-							{% lcs 'GoodsDetailSummary.CONTROLLED' %}
-						</dt>
-						<dd class="govuk-summary-list__value">
-							{{ good_on_application.good.is_controlled }} - {{ good_on_application.good.control_list_entries|join:", "|default_na }}
-						</dd>
-					</div>
-
-				{% else %}
-					<div class="govuk-summary-list__row">
-						<dt class="govuk-summary-list__key">
-							{% lcs 'GoodsDetailSummary.SELECT_CATEGORY' %}
-						</dt>
-						<dd class="govuk-summary-list__value">
-							{{ good_on_application.item_category }}
-						</dd>
-					</div>
-					<div class="govuk-summary-list__row">
-						<dt class="govuk-summary-list__key">
-							{% lcs "GoodPage.Table.DESCRIPTION" %}
-						</dt>
-						<dd class="govuk-summary-list__value">
-							{{ good_on_application.description }}
-						</dd>
-					</div>
-
-					<div class="govuk-summary-list__row">
-						<dt class="govuk-summary-list__key">
-							{% lcs 'GoodsDetailSummary.PART_NUMBER' %}
-						</dt>
-						<dd class="govuk-summary-list__value">
-							{{ good_on_application.part_number|default_na }}
-						</dd>
-					</div>
-
-					<div class="govuk-summary-list__row">
-						<dt class="govuk-summary-list__key">
-							{% lcs 'GoodsDetailSummary.CONTROLLED' %}
-						</dt>
-						<dd class="govuk-summary-list__value">
-							{{ good_on_application.is_controlled }} - {{ good_on_application.control_list_entries|join:", "|default_na }}
-						</dd>
-					</div>
-
-					{% if good_on_application.software_or_technology_details %}
-						<div class="govuk-summary-list__row">
-							<dt class="govuk-summary-list__key">
-								{% lcs "GoodsDetailSummary.PURPOSE_SOFTWARE_TECHNOLOGY" %}
-							</dt>
-							<dd class="govuk-summary-list__value">
-								{{ good_on_application.software_or_technology_details|default_na }}
-							</dd>
-						</div>
-					{% endif %}
-
-					{% if good_on_application.is_military_use %}
-						<div class="govuk-summary-list__row">
-							<dt class="govuk-summary-list__key">
-								{% lcs 'GoodsDetailSummary.MILITARY' %}
-							</dt>
-							<dd class="govuk-summary-list__value">
-								{{ good_on_application.is_military_use }}
-								{% if good_on_application.modified_military_use_details %}
-									<br>
-									<span class="govuk-hint"> {{ good_on_application.modified_military_use_details }} </span>
-								{% endif %}
-							</dd>
-						</div>
-					{% endif %}
-
-					{% if good_on_application.is_component %}
-						<div class="govuk-summary-list__row">
-							<dt class="govuk-summary-list__key">
-								{% lcs 'GoodsDetailSummary.COMPONENT' %}
-							</dt>
-							<dd class="govuk-summary-list__value">
-								{{ good_on_application.is_component|default_na }}
-								{% if good_on_application.component_details %}
-									<br>
-									<span class="govuk-hint"> {{ good_on_application.component_details }} </span>
-								{% endif %}
-							</dd>
-						</div>
-					{% endif %}
-
-					{% if good_on_application.uses_information_security %}
-						<div class="govuk-summary-list__row">
-							<dt class="govuk-summary-list__key">
-								{% lcs 'GoodsDetailSummary.DESIGNED_FOR_INFORMATION_SECURITY' %}
-							</dt>
-							<dd class="govuk-summary-list__value">
-								{{ good_on_application.uses_information_security }}
-								{% if good_on_application.information_security_details %}
-									<br>
-									<span class="govuk-hint"> {{ good_on_application.information_security_details }} </span>
-								{% endif %}
-							</dd>
-						</div>
-					{% endif %}
-
-					{% if good_on_application.firearm_type %}
-						<div class="govuk-summary-list__row">
-							<dt class="govuk-summary-list__key">
-								{% lcs "GoodsDetailSummary.FirearmDetails.PRODUCT_TYPE" %}
-							</dt>
-							<dd class="govuk-summary-list__value">
-								{{ good_on_application.firearm_type|default_na }}
-							</dd>
-						</div>
-
-						<div class="govuk-summary-list__row">
-							<dt class="govuk-summary-list__key">
-								{% lcs "GoodsDetailSummary.FirearmDetails.YEAR_OF_MANUFACTURE" %}
-							</dt>
-							<dd class="govuk-summary-list__value">
-								{{ good_on_application.year_of_manufacture|default_na }}
-							</dd>
-						</div>
-
-						<div class="govuk-summary-list__row">
-							<dt class="govuk-summary-list__key">
-								{% lcs "GoodsDetailSummary.FirearmDetails.CALIBRE" %}
-							</dt>
-							<dd class="govuk-summary-list__value">
-								{{ good_on_application.calibre|default_na }}
-							</dd>
-						</div>
-
-						{% if good_on_application.is_covered_by_firearm_act_section_one_two_or_five %}
-							<div class="govuk-summary-list__row">
-								<dt class="govuk-summary-list__key">
-									{% lcs "GoodsDetailSummary.FirearmDetails.COVERED_BY_THE_FIREARMS_ACT_1968" %}
-								</dt>
-								<dd class="govuk-summary-list__value">
-									{% if good_on_application.is_covered_by_firearm_act_section_one_two_or_five %}
-										{{ good_on_application.is_covered_by_firearm_act_section_one_two_or_five}}
-										{% if good_on_application.is_covered_by_firearm_act_section_one_two_or_five %}
-											- certificate number {{ good_on_application.section_certificate_number|default_na }} expires on
-											{{ good_on_application.section_certificate_date_of_expiry }}
-										{% endif %}
-									{% endif %}
-								</dd>
-							</div>
-						{% endif %}
-
-						{% if good_on_application.has_serial_numbers %}
-							<div class="govuk-summary-list__row">
-								<dt class="govuk-summary-list__key">
-									{% lcs "GoodsDetailSummary.FirearmDetails.IDENTIFICATION_MARKINGS" %}
-								</dt>
-								<dd class="govuk-summary-list__value">
-										{% if good_on_application.serial_numbers_available == "AVAILABLE" %}
-											Yes, I can add serial numbers now
-										{% elif good_on_application.serial_numbers_available == "LATER" %}
-											Yes, I can add serial numbers later
-										{% elif good_on_application.serial_numbers_available == "NOT_AVAILABLE" %}
-											No
-										{% endif %}
-										{% if not good_on_application.has_serial_numbers %}
-											<span class="govuk-hint">
-											<br>
-													{{ good_on_application.no_identification_markings_details|default_na }}
-											</span>
-										{% endif %}
-								</dd>
-							</div>
-						{% endif %}
-					{% endif %}
-
-					<div class="govuk-summary-list__row">
-						<dt class="govuk-summary-list__key">
-							{% lcs 'CreateGoodForm.IsGraded.TITLE' %}
-						</dt>
-						<dd class="govuk-summary-list__value">
-							{{ good_on_application.is_pv_graded }}
-						</dd>
-					</div>
-
-					{% if good_on_application.pv_grading.grading %}
-						<div class="govuk-summary-list__row">
-							<dt class="govuk-summary-list__key">
-								{% lcs 'GoodGradingForm.PREFIX' %}
-							</dt>
-							<dd class="govuk-summary-list__value">
-								{{ good_on_application.pv_grading.prefix|default_na }}
-							</dd>
-						</div>
-
-						<div class="govuk-summary-list__row">
-							<dt class="govuk-summary-list__key">
-								{% lcs 'GoodGradingForm.GRADING' %}
-							</dt>
-							<dd class="govuk-summary-list__value">
-								{{ good_on_application.pv_grading.grading }}
-							</dd>
-						</div>
-
-						<div class="govuk-summary-list__row">
-							<dt class="govuk-summary-list__key">
-								{% lcs 'GoodGradingForm.SUFFIX' %}
-							</dt>
-							<dd class="govuk-summary-list__value">
-								{{ good_on_application.pv_grading.suffix|default_na }}
-							</dd>
-						</div>
-
-						<div class="govuk-summary-list__row">
-							<dt class="govuk-summary-list__key">
-								{% lcs 'GoodGradingForm.ISSUING_AUTHORITY' %}
-							</dt>
-							<dd class="govuk-summary-list__value">
-								{{ good_on_application.pv_grading.issuing_authority }}
-							</dd>
-						</div>
-
-						<div class="govuk-summary-list__row">
-							<dt class="govuk-summary-list__key">
-								{% lcs 'GoodGradingForm.REFERENCE' %}
-							</dt>
-							<dd class="govuk-summary-list__value">
-								{{ good_on_application.pv_grading.reference }}
-							</dd>
-						</div>
-
-						<div class="govuk-summary-list__row">
-							<dt class="govuk-summary-list__key">
-								{% lcs 'GoodGradingForm.DATE_OF_ISSUE' %}
-							</dt>
-							<dd class="govuk-summary-list__value">
-								{{ good_on_application.pv_grading.date_of_issue }}
-							</dd>
-						</div>
-					{% endif %}
-
-					<div class="govuk-summary-list__row">
-						<dt class="govuk-summary-list__key">
-							{% lcs 'GoodsDetailSummary.INCORPORATED' %}
-						</dt>
-						<dd class="govuk-summary-list__value">
-							{{ good_on_application.is_incorporated|default_na }}
-						</dd>
-					</div>
-
-					<div class="govuk-summary-list__row">
-						<dt class="govuk-summary-list__key">
-							{% lcs 'AddGoodToApplicationForm.Quantity.TITLE' %}
-						</dt>
-						<dd class="govuk-summary-list__value">
-							{{ good_on_application.applied_for_quantity }}
-						</dd>
-					</div>
-
-					<div class="govuk-summary-list__row">
-						<dt class="govuk-summary-list__key">
-							{% lcs 'AddGoodToApplicationForm.Value.TITLE' %}
-						</dt>
-						<dd class="govuk-summary-list__value">
-							{{ good_on_application.applied_for_value|default_na }}
-						</dd>
-					</div>
-
 				{% endif %}
+
+				{% if good_on_application.is_military_use %}
+					<div class="govuk-summary-list__row">
+						<dt class="govuk-summary-list__key">
+							{% lcs 'GoodsDetailSummary.MILITARY' %}
+						</dt>
+						<dd class="govuk-summary-list__value">
+							{{ good_on_application.is_military_use }}
+							{% if good_on_application.modified_military_use_details %}
+								<br>
+								<span class="govuk-hint"> {{ good_on_application.modified_military_use_details }} </span>
+							{% endif %}
+						</dd>
+					</div>
+				{% endif %}
+
+				{% if good_on_application.is_component %}
+					<div class="govuk-summary-list__row">
+						<dt class="govuk-summary-list__key">
+							{% lcs 'GoodsDetailSummary.COMPONENT' %}
+						</dt>
+						<dd class="govuk-summary-list__value">
+							{{ good_on_application.is_component|default_na }}
+							{% if good_on_application.component_details %}
+								<br>
+								<span class="govuk-hint"> {{ good_on_application.component_details }} </span>
+							{% endif %}
+						</dd>
+					</div>
+				{% endif %}
+
+				{% if good_on_application.uses_information_security %}
+					<div class="govuk-summary-list__row">
+						<dt class="govuk-summary-list__key">
+							{% lcs 'GoodsDetailSummary.DESIGNED_FOR_INFORMATION_SECURITY' %}
+						</dt>
+						<dd class="govuk-summary-list__value">
+							{{ good_on_application.uses_information_security }}
+							{% if good_on_application.information_security_details %}
+								<br>
+								<span class="govuk-hint"> {{ good_on_application.information_security_details }} </span>
+							{% endif %}
+						</dd>
+					</div>
+				{% endif %}
+
+				{% if good_on_application.firearm_type %}
+					<div class="govuk-summary-list__row">
+						<dt class="govuk-summary-list__key">
+							{% lcs "GoodsDetailSummary.FirearmDetails.PRODUCT_TYPE" %}
+						</dt>
+						<dd class="govuk-summary-list__value">
+							{{ good_on_application.firearm_type|default_na }}
+						</dd>
+					</div>
+
+					<div class="govuk-summary-list__row">
+						<dt class="govuk-summary-list__key">
+							{% lcs "GoodsDetailSummary.FirearmDetails.YEAR_OF_MANUFACTURE" %}
+						</dt>
+						<dd class="govuk-summary-list__value">
+							{{ good_on_application.year_of_manufacture|default_na }}
+						</dd>
+					</div>
+
+					<div class="govuk-summary-list__row">
+						<dt class="govuk-summary-list__key">
+							{% lcs "GoodsDetailSummary.FirearmDetails.CALIBRE" %}
+						</dt>
+						<dd class="govuk-summary-list__value">
+							{{ good_on_application.calibre|default_na }}
+						</dd>
+					</div>
+
+					{% if good_on_application.is_covered_by_firearm_act_section_one_two_or_five %}
+						<div class="govuk-summary-list__row">
+							<dt class="govuk-summary-list__key">
+								{% lcs "GoodsDetailSummary.FirearmDetails.COVERED_BY_THE_FIREARMS_ACT_1968" %}
+							</dt>
+							<dd class="govuk-summary-list__value">
+								{% if good_on_application.is_covered_by_firearm_act_section_one_two_or_five %}
+									{{ good_on_application.is_covered_by_firearm_act_section_one_two_or_five}}
+									{% if good_on_application.is_covered_by_firearm_act_section_one_two_or_five %}
+										- certificate number {{ good_on_application.section_certificate_number|default_na }} expires on
+										{{ good_on_application.section_certificate_date_of_expiry }}
+									{% endif %}
+								{% endif %}
+							</dd>
+						</div>
+					{% endif %}
+
+					{% if good_on_application.has_serial_numbers %}
+						<div class="govuk-summary-list__row">
+							<dt class="govuk-summary-list__key">
+								{% lcs "GoodsDetailSummary.FirearmDetails.IDENTIFICATION_MARKINGS" %}
+							</dt>
+							<dd class="govuk-summary-list__value">
+									{% if good_on_application.serial_numbers_available == "AVAILABLE" %}
+										Yes, I can add serial numbers now
+									{% elif good_on_application.serial_numbers_available == "LATER" %}
+										Yes, I can add serial numbers later
+									{% elif good_on_application.serial_numbers_available == "NOT_AVAILABLE" %}
+										No
+									{% endif %}
+									{% if not good_on_application.has_serial_numbers %}
+										<span class="govuk-hint">
+										<br>
+												{{ good_on_application.no_identification_markings_details|default_na }}
+										</span>
+									{% endif %}
+							</dd>
+						</div>
+					{% endif %}
+				{% endif %}
+
+				<div class="govuk-summary-list__row">
+					<dt class="govuk-summary-list__key">
+						{% lcs 'CreateGoodForm.IsGraded.TITLE' %}
+					</dt>
+					<dd class="govuk-summary-list__value">
+						{{ good_on_application.is_pv_graded }}
+					</dd>
+				</div>
+
+				{% if good_on_application.pv_grading.grading %}
+					<div class="govuk-summary-list__row">
+						<dt class="govuk-summary-list__key">
+							{% lcs 'GoodGradingForm.PREFIX' %}
+						</dt>
+						<dd class="govuk-summary-list__value">
+							{{ good_on_application.pv_grading.prefix|default_na }}
+						</dd>
+					</div>
+
+					<div class="govuk-summary-list__row">
+						<dt class="govuk-summary-list__key">
+							{% lcs 'GoodGradingForm.GRADING' %}
+						</dt>
+						<dd class="govuk-summary-list__value">
+							{{ good_on_application.pv_grading.grading }}
+						</dd>
+					</div>
+
+					<div class="govuk-summary-list__row">
+						<dt class="govuk-summary-list__key">
+							{% lcs 'GoodGradingForm.SUFFIX' %}
+						</dt>
+						<dd class="govuk-summary-list__value">
+							{{ good_on_application.pv_grading.suffix|default_na }}
+						</dd>
+					</div>
+
+					<div class="govuk-summary-list__row">
+						<dt class="govuk-summary-list__key">
+							{% lcs 'GoodGradingForm.ISSUING_AUTHORITY' %}
+						</dt>
+						<dd class="govuk-summary-list__value">
+							{{ good_on_application.pv_grading.issuing_authority }}
+						</dd>
+					</div>
+
+					<div class="govuk-summary-list__row">
+						<dt class="govuk-summary-list__key">
+							{% lcs 'GoodGradingForm.REFERENCE' %}
+						</dt>
+						<dd class="govuk-summary-list__value">
+							{{ good_on_application.pv_grading.reference }}
+						</dd>
+					</div>
+
+					<div class="govuk-summary-list__row">
+						<dt class="govuk-summary-list__key">
+							{% lcs 'GoodGradingForm.DATE_OF_ISSUE' %}
+						</dt>
+						<dd class="govuk-summary-list__value">
+							{{ good_on_application.pv_grading.date_of_issue }}
+						</dd>
+					</div>
+				{% endif %}
+
+				<div class="govuk-summary-list__row">
+					<dt class="govuk-summary-list__key">
+						{% lcs 'GoodsDetailSummary.INCORPORATED' %}
+					</dt>
+					<dd class="govuk-summary-list__value">
+						{{ good_on_application.is_incorporated|default_na }}
+					</dd>
+				</div>
+
+				<div class="govuk-summary-list__row">
+					<dt class="govuk-summary-list__key">
+						{% lcs 'AddGoodToApplicationForm.Quantity.TITLE' %}
+					</dt>
+					<dd class="govuk-summary-list__value">
+						{{ good_on_application.applied_for_quantity }}
+					</dd>
+				</div>
+
+				<div class="govuk-summary-list__row">
+					<dt class="govuk-summary-list__key">
+						{% lcs 'AddGoodToApplicationForm.Value.TITLE' %}
+					</dt>
+					<dd class="govuk-summary-list__value">
+						{{ good_on_application.applied_for_value|default_na }}
+					</dd>
+				</div>
 			</dl>
 		{% endfor %}
 	{% endif %}

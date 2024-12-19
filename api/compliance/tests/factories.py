@@ -1,21 +1,11 @@
-from datetime import datetime
-
 import django
 import factory
 from django.utils import timezone
 
 from api.cases.enums import CaseTypeEnum
 from api.compliance.enums import ComplianceVisitTypes, ComplianceRiskValues
-from api.compliance.models import OpenLicenceReturns, ComplianceSiteCase, CompliancePerson, ComplianceVisitCase
+from api.compliance.models import ComplianceSiteCase, CompliancePerson, ComplianceVisitCase
 from api.organisations.tests.factories import OrganisationFactory, SiteFactory
-
-
-class OpenLicenceReturnsFactory(factory.django.DjangoModelFactory):
-    returns_data = "\na,b,c,d,e"
-    year = datetime.now().year
-
-    class Meta:
-        model = OpenLicenceReturns
 
 
 class ComplianceSiteCaseFactory(factory.django.DjangoModelFactory):

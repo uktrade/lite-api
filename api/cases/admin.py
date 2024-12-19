@@ -79,11 +79,6 @@ class EcjuQueryAdmin(admin.ModelAdmin):
     list_display = ("id",)
 
 
-@admin.register(models.GoodCountryDecision)
-class GoodCountryDecisionAdmin(admin.ModelAdmin):
-    list_display = ("id",)
-
-
 @admin.register(models.EnforcementCheckID)
 class EnforcementCheckIDAdmin(admin.ModelAdmin):
     list_display = (

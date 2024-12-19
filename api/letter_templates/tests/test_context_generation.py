@@ -209,11 +209,6 @@ class DocumentContextGenerationTests(DataTestClient):
         self.assertEqual(goods[0]["proviso_reason"], advice.proviso)
         self.assertEqual(len(goods[0]["denial_reasons"]), advice.denial_reasons.count())
 
-    def _assert_goods_type(self, context, goods_type):
-        self.assertEqual(goods_type.description, context["description"])
-        self.assertEqual([clc.rating for clc in goods_type.control_list_entries.all()], context["control_list_entries"])
-        self.assertEqual(friendly_boolean(goods_type.is_good_controlled), context["is_controlled"])
-
     def _assert_ecju_query(self, context, ecju_query):
         self.assertEqual(context["question"]["text"], ecju_query.question)
         self.assertEqual(

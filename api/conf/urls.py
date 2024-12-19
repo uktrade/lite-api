@@ -17,7 +17,6 @@ urlpatterns = [
     path("cases/", include("api.cases.urls")),
     path("compliance/", include("api.compliance.urls")),
     path("goods/", include("api.goods.urls")),
-    path("goods-types/", include("api.goodstype.urls")),
     path("letter-templates/", include("api.letter_templates.urls")),
     path("organisations/", include("api.organisations.urls")),
     path("queues/", include("api.queues.urls")),
@@ -31,7 +30,6 @@ urlpatterns = [
     path("queries/", include("api.queries.urls")),
     path("routing-rules/", include("api.workflow.routing_rules.urls")),
     path("licences/", include("api.licences.urls")),
-    path("open-general-licences/", include("api.open_general_licences.urls")),
     path(
         "data-workspace/", include("api.data_workspace.urls")
     ),  # when changing this value please update schema_generator_urls.py

@@ -1,9 +1,7 @@
 import uuid
 
-from django.db import models, transaction
-from django.utils import timezone
+from django.db import models
 from phonenumber_field.modelfields import PhoneNumberField
-from rest_framework.exceptions import ValidationError
 
 from api.addresses.models import Address
 
@@ -14,11 +12,8 @@ from api.core.constants import ExporterPermissions
 from api.core.exceptions import NotFoundError
 from api.core.helpers import get_exporter_frontend_url
 from api.flags.models import Flag
-from api.open_general_licences.enums import OpenGeneralLicenceStatus
 from api.organisations.enums import LocationType, OrganisationDocumentType, OrganisationStatus, OrganisationType
 from api.staticdata.countries.models import Country
-from api.staticdata.statuses.enums import CaseStatusEnum
-from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
 
 from api.users.notify import notify_exporter_user_added
 from api.users.libraries.get_user import get_user_organisation_relationship
@@ -71,40 +66,6 @@ class Organisation(TimestampableModel):
 
     def is_active(self):
         return self.status == OrganisationStatus.ACTIVE
-
-    def register_open_general_licence(self, open_general_licence, user):
-        from api.open_general_licences.models import OpenGeneralLicenceCase
-        from api.compliance.helpers import generate_compliance_site_case
-
-        if open_general_licence.status == OpenGeneralLicenceStatus.DEACTIVATED:
-            raise ValidationError(
-                {"open_general_licence": ["This open general licence is deactivated and cannot be registered"]}
-            )
-
-        if not open_general_licence.registration_required:
-            raise ValidationError({"open_general_licence": ["This open general licence does not require registration"]})
-
-        # Only register open general licences for sites in the UK which don't already have that licence registered
-        registrations = []
-        with transaction.atomic():
-            for site in (
-                Site.objects.get_by_user_and_organisation(user, self)
-                .filter(address__country_id="GB")
-                .exclude(open_general_licence_cases__open_general_licence=open_general_licence)
-            ):
-                case = OpenGeneralLicenceCase.objects.create(
-                    open_general_licence=open_general_licence,
-                    site=site,
-                    case_type=open_general_licence.case_type,
-                    organisation=self,
-                    status=get_case_status_by_status(CaseStatusEnum.FINALISED),
-                    submitted_at=timezone.now(),
-                    submitted_by=user,
-                )
-                generate_compliance_site_case(case)
-                registrations.append(case.id)
-
-        return open_general_licence.id, registrations
 
     def save(self, **kwargs):
         super().save(**kwargs)

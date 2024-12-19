@@ -17,7 +17,7 @@ class LetterTemplateEditTests(DataTestClient):
         self.gov_user.role.permissions.set([constants.GovPermissions.CONFIGURE_TEMPLATES.name])
         self.letter_template = self.create_letter_template(
             name="SIEL",
-            case_types=[CaseTypeEnum.SIEL.id, CaseTypeEnum.OIEL.id],
+            case_types=[CaseTypeEnum.SIEL.id],
             decisions=[Decision.objects.get(name="refuse"), Decision.objects.get(name="no_licence_required")],
         )
         self.url = reverse("letter_templates:letter_template", kwargs={"pk": self.letter_template.id})
