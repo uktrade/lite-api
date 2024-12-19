@@ -60,7 +60,7 @@ def update_licencedecision_denial_reasons(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("cases", "0073_licencedecision_denial_reasons"),
+        ("cases", "0074_remove_advice_goods_type_delete_goodcountrydecision"),
     ]
 
     operations = [

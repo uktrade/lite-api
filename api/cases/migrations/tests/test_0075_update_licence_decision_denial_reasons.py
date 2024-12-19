@@ -21,7 +21,7 @@ from api.users.tests.factories import (
 
 @pytest.mark.django_db()
 def test_attach_licence_to_licence_decisions(migrator):
-    migrator.apply_initial_migration(("cases", "0073_licencedecision_denial_reasons"))
+    migrator.apply_initial_migration(("cases", "0074_remove_advice_goods_type_delete_goodcountrydecision"))
 
     LICENSING_UNIT_ID = "58e77e47-42c8-499f-a58d-94f94541f8c6"
     FCDO_ID = "67b9a4a3-6f3d-4511-8a19-23ccff221a74"
@@ -72,14 +72,14 @@ def test_attach_licence_to_licence_decisions(migrator):
     )
     assert list(refused_licence_decision.denial_reasons.values_list("id", flat=True)) == []
 
-    migrator.apply_tested_migration(("cases", "0074_update_licence_decision_denial_reasons"))
+    migrator.apply_tested_migration(("cases", "0075_update_licence_decision_denial_reasons"))
     refused_licence_decision.refresh_from_db()
     assert list(refused_licence_decision.denial_reasons.values_list("id", flat=True)) == ["5"]
 
 
 @pytest.mark.django_db()
 def test_attach_licence_to_licence_decisions_without_denial_reasons_on_advice(migrator):
-    old_state = migrator.apply_initial_migration(("cases", "0073_licencedecision_denial_reasons"))
+    old_state = migrator.apply_initial_migration(("cases", "0074_remove_advice_goods_type_delete_goodcountrydecision"))
 
     refused_application = StandardApplicationFactory()
     refused_licence_decision = LicenceDecisionFactory(
@@ -102,6 +102,6 @@ def test_attach_licence_to_licence_decisions_without_denial_reasons_on_advice(mi
         verb=AuditType.CREATE_REFUSAL_CRITERIA,
     )
 
-    migrator.apply_tested_migration(("cases", "0074_update_licence_decision_denial_reasons"))
+    migrator.apply_tested_migration(("cases", "0075_update_licence_decision_denial_reasons"))
     refused_licence_decision.refresh_from_db()
     assert list(refused_licence_decision.denial_reasons.values_list("id", flat=True)) == ["1", "5", "7"]
