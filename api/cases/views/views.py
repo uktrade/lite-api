@@ -59,11 +59,9 @@ from api.cases.serializers import (
     EcjuQueryDocumentCreateSerializer,
     EcjuQueryDocumentViewSerializer,
 )
-from api.core import constants
 from api.core.authentication import GovAuthentication, SharedAuthentication, ExporterAuthentication
-from api.core.constants import GovPermissions
 from api.core.exceptions import NotFoundError
-from api.core.permissions import assert_user_has_permission
+from api.core.permissions import CanCaseworkersIssueLicence
 from api.documents.libraries.delete_documents_on_bad_request import delete_documents_on_bad_request
 from api.documents.libraries.s3_operations import document_download_stream
 from api.documents.models import Document
@@ -446,52 +444,37 @@ class FinalAdviceDocuments(APIView):
 
 class FinalAdvice(APIView):
     authentication_classes = (GovAuthentication,)
+    permission_classes = [CanCaseworkersIssueLicence]
 
     case = None
-    team_advice = None
     final_advice = None
 
     def dispatch(self, request, *args, **kwargs):
         self.case = get_case(kwargs["pk"])
-        self.team_advice = Advice.objects.get_team_advice(case=self.case)
         self.final_advice = Advice.objects.get_final_advice(case=self.case).order_by("created_at")
 
         return super(FinalAdvice, self).dispatch(request, *args, **kwargs)
 
     def get(self, request, pk):
-        """
-        Concatenates all advice for a case and returns it or just returns if final advice already exists
-        """
-        if len(self.final_advice) == 0:
-            assert_user_has_permission(request.user.govuser, constants.GovPermissions.MANAGE_LICENCE_FINAL_ADVICE)
-
-            group_advice(self.case, self.team_advice, request.user, AdviceLevel.FINAL)
-            final_advice = Advice.objects.filter(case=self.case).order_by("-created_at")
-        else:
-            final_advice = self.final_advice
-
-        serializer = AdviceViewSerializer(final_advice, many=True)
+        serializer = AdviceViewSerializer(self.final_advice, many=True)
         return JsonResponse(data={"advice": serializer.data}, status=status.HTTP_200_OK)
 
     def post(self, request, pk):
         """
         Creates advice for a case
         """
-        assert_user_has_permission(request.user.govuser, constants.GovPermissions.MANAGE_LICENCE_FINAL_ADVICE)
         return post_advice(request, self.case, AdviceLevel.FINAL, team=True)
 
     def put(self, request, pk):
         """
         Updates advice for a case
         """
-        assert_user_has_permission(request.user.govuser, constants.GovPermissions.MANAGE_LICENCE_FINAL_ADVICE)
         return update_advice(request, self.case, AdviceLevel.FINAL)
 
     def delete(self, request, pk):
         """
         Clears team level advice and reopens the advice for user level for that team
         """
-        assert_user_has_permission(request.user.govuser, constants.GovPermissions.MANAGE_LICENCE_FINAL_ADVICE)
         self.final_advice.delete()
         audit_trail_service.create(
             actor=request.user,
@@ -800,6 +783,7 @@ class CasesUpdateCaseOfficer(APIView):
 
 class FinaliseView(UpdateAPIView):
     authentication_classes = (GovAuthentication,)
+    permission_classes = [CanCaseworkersIssueLicence]
 
     @transaction.atomic
     def put(self, request, pk):
@@ -807,8 +791,6 @@ class FinaliseView(UpdateAPIView):
         Finalise & grant a Licence
         """
         case = get_case(pk)
-
-        assert_user_has_permission(request.user.govuser, GovPermissions.MANAGE_LICENCE_FINAL_ADVICE)
 
         required_decisions = get_required_decision_document_types(case)
 
