@@ -18,7 +18,6 @@ from api.cases.enums import AdviceLevel, AdviceType, CaseTypeEnum
 from api.cases.models import Advice
 from api.external_data.models import Denial, DenialEntity, SanctionMatch
 from api.documents.tests.factories import DocumentFactory
-from api.staticdata.statuses.models import CaseStatus
 from api.goods.tests.factories import GoodFactory
 from api.organisations.tests.factories import OrganisationFactory, SiteFactory, ExternalLocationFactory
 from api.parties.tests.factories import ConsigneeFactory, EndUserFactory, PartyFactory, ThirdPartyFactory
@@ -61,9 +60,8 @@ class StandardApplicationFactory(factory.django.DjangoModelFactory):
     @classmethod
     def _create(cls, model_class, *args, **kwargs):
         obj = model_class(*args, **kwargs)
-        obj.status = get_case_status_by_status(CaseStatusEnum.SUBMITTED)
-        if "status" in kwargs and isinstance(kwargs["status"], CaseStatus):
-            obj.status = kwargs["status"]
+        if "status" not in kwargs:
+            obj.status = get_case_status_by_status(CaseStatusEnum.SUBMITTED)
         obj.save()
         return obj
 
