@@ -25,7 +25,6 @@ from api.cases.models import (
     EcjuQuery,
     EcjuQueryDocument,
     Advice,
-    GoodCountryDecision,
     CaseType,
 )
 from api.cases.service import retrieve_latest_activity
@@ -34,16 +33,13 @@ from api.compliance.serializers.ComplianceSiteCaseSerializers import ComplianceS
 from api.compliance.serializers.ComplianceVisitCaseSerializers import ComplianceVisitSerializer
 from api.core.serializers import KeyValueChoiceField, PrimaryKeyRelatedSerializerField
 from api.documents.libraries.process_document import process_document
-from api.goodstype.models import GoodsType
 from api.gov_users.serializers import GovUserSimpleSerializer
-from api.licences.helpers import get_open_general_export_licence_case
 from api.organisations.models import Organisation
 from api.organisations.serializers import TinyOrganisationViewSerializer
 from api.queries.serializers import QueryViewSerializer
 from api.queues.constants import ALL_CASES_QUEUE_ID
 from api.queues.models import Queue
 from api.queues.serializers import QueueListSerializer
-from api.staticdata.countries.models import Country
 from api.staticdata.statuses.enums import CaseStatusEnum
 from api.teams.serializers import TeamSerializer
 from api.users.enums import UserStatuses
@@ -308,12 +304,9 @@ class CaseDetailSerializer(serializers.ModelSerializer):
         super().__init__(*args, **kwargs)
 
     def get_data(self, instance):
-        from api.licences.serializers.open_general_licences import OpenGeneralLicenceCaseSerializer
         from api.applications.helpers import get_application_view_serializer
 
-        if instance.case_type.type == CaseTypeTypeEnum.REGISTRATION:
-            return OpenGeneralLicenceCaseSerializer(get_open_general_export_licence_case(instance.id)).data
-        elif instance.case_type.type == CaseTypeTypeEnum.APPLICATION:
+        if instance.case_type.type == CaseTypeTypeEnum.APPLICATION:
             application = get_application(instance.id)
             serializer = get_application_view_serializer(application)
             return serializer(application).data
@@ -710,17 +703,6 @@ class SimpleEcjuQueryDocumentViewSerializer(serializers.ModelSerializer):
             "size",
             "safe",
         )
-
-
-class GoodCountryDecisionSerializer(serializers.ModelSerializer):
-    case = serializers.PrimaryKeyRelatedField(queryset=Case.objects.all())
-    good = serializers.PrimaryKeyRelatedField(queryset=GoodsType.objects.all())
-    country = serializers.PrimaryKeyRelatedField(queryset=Country.objects.all())
-    decision = KeyValueChoiceField(choices=AdviceType.choices)
-
-    class Meta:
-        model = GoodCountryDecision
-        fields = "__all__"
 
 
 class CaseOfficerUpdateSerializer(serializers.ModelSerializer):

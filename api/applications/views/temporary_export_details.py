@@ -21,7 +21,7 @@ class TemporaryExportDetails(UpdateAPIView):
     authentication_classes = (ExporterAuthentication,)
 
     @authorised_to_view_application(ExporterUser)
-    @allowed_application_types([CaseTypeSubTypeEnum.OPEN, CaseTypeSubTypeEnum.STANDARD])
+    @allowed_application_types([CaseTypeSubTypeEnum.STANDARD])
     @application_is_major_editable
     def put(self, request, pk):
         application = get_application(pk)

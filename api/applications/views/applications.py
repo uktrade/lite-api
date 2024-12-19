@@ -82,7 +82,6 @@ from api.applications.views.helpers.advice import ensure_lu_countersign_complete
 from api.flags.enums import FlagStatuses, SystemFlags
 from api.goods.serializers import GoodCreateSerializer
 from api.goods.models import FirearmGoodDetails
-from api.goodstype.models import GoodsType
 from api.licences.enums import LicenceStatus
 from api.licences.helpers import get_licence_reference_code
 from api.licences.models import Licence
@@ -316,7 +315,6 @@ class ApplicationSubmission(APIView):
 
         elif application.case_type.sub_type in [
             CaseTypeSubTypeEnum.STANDARD,
-            CaseTypeSubTypeEnum.OPEN,
             CaseTypeSubTypeEnum.F680,
             CaseTypeSubTypeEnum.GIFTING,
             CaseTypeSubTypeEnum.EXHIBITION,
@@ -354,13 +352,12 @@ class ApplicationSubmission(APIView):
 
         if application.case_type.sub_type in [
             CaseTypeSubTypeEnum.STANDARD,
-            CaseTypeSubTypeEnum.OPEN,
             CaseTypeSubTypeEnum.HMRC,
         ]:
             if UUID(SystemFlags.ENFORCEMENT_CHECK_REQUIRED) not in application.flags.values_list("id", flat=True):
                 application.flags.add(SystemFlags.ENFORCEMENT_CHECK_REQUIRED)
 
-        if application.case_type.sub_type in [CaseTypeSubTypeEnum.STANDARD, CaseTypeSubTypeEnum.OPEN]:
+        if application.case_type.sub_type in [CaseTypeSubTypeEnum.STANDARD]:
             auto_match_sanctions(application)
 
         # Serialize for the response message
@@ -638,13 +635,9 @@ class ApplicationCopy(APIView):
 
         # Create new foreign key connection using data from old application (this is for tables pointing to the case)
         self.create_foreign_relations_for_new_application()
-        self.duplicate_goodstypes_for_new_application()
 
         # Get all parties connected to the application and produce a copy (and replace reference for each one)
         self.duplicate_parties_on_new_application()
-
-        # Remove usage & licenced quantity/ value
-        self.new_application.goods_type.update(usage=0)
 
         # Save
         self.new_application.created_at = now()
@@ -743,32 +736,13 @@ class ApplicationCopy(APIView):
                     result.created_at = now()
                 result.save()
 
-    def duplicate_goodstypes_for_new_application(self):
-        """
-        Creates a duplicate GoodsType and attaches it to the new application if applicable.
-        """
-        # GoodsType has more logic than in "create_foreign_relations_for_new_application",
-        # such as listing the countries on the goodstype, and flags as such it is seperated.
-        for good in GoodsType.objects.filter(application_id=self.old_application_id).all():
-            old_good_countries = list(good.countries.all())
-            old_good_flags = list(good.flags.all())
-            old_good_control_list_entries = list(good.control_list_entries.all())
-            good.pk = None
-            good.id = None
-            good.application = self.new_application
-            good.created_at = now()
-            good.save()
-            good.countries.set(old_good_countries)
-            good.flags.set(old_good_flags)
-            good.control_list_entries.set(old_good_control_list_entries)
-
 
 class ApplicationRouteOfGoods(UpdateAPIView):
     authentication_classes = (ExporterAuthentication,)
 
     @authorised_to_view_application(ExporterUser)
     @application_is_major_editable
-    @allowed_application_types([CaseTypeSubTypeEnum.OPEN, CaseTypeSubTypeEnum.STANDARD])
+    @allowed_application_types([CaseTypeSubTypeEnum.STANDARD])
     def put(self, request, pk):
         """Update an application instance with route of goods data."""
 

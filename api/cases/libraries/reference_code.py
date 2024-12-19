@@ -26,7 +26,7 @@ def generate_reference_code(case):
     reference_code += str(value.reference_number).zfill(7)
 
     # Licence Applications
-    if case.case_type.sub_type in [CaseTypeSubTypeEnum.STANDARD, CaseTypeSubTypeEnum.OPEN]:
+    if case.case_type.sub_type in [CaseTypeSubTypeEnum.STANDARD]:
         reference_code = LICENCE_APPLICATION_PREFIX + reference_code
 
         # Export type

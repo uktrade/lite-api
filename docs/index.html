@@ -225,14 +225,6 @@ font-style: italic;
   <li><a href="#applicationsGoodOnApplicationDelete"><code><span class="http-method">delete</span> /applications/good-on-application/{obj_pk}/</code></a></li>
   <li><a href="#applicationsGoodsCreate"><code><span class="http-method">post</span> /applications/{id}/goods/</code></a></li>
   <li><a href="#applicationsGoodsList"><code><span class="http-method">get</span> /applications/{id}/goods/</code></a></li>
-  <li><a href="#applicationsGoodstypeAssignCountriesUpdate"><code><span class="http-method">put</span> /applications/{id}/goodstype/{goodstype_pk}/assign-countries/</code></a></li>
-  <li><a href="#applicationsGoodstypeDelete"><code><span class="http-method">delete</span> /applications/{id}/goodstype/{goodstype_pk}/</code></a></li>
-  <li><a href="#applicationsGoodstypeDocumentCreate"><code><span class="http-method">post</span> /applications/{id}/goodstype/{goods_type_pk}/document/</code></a></li>
-  <li><a href="#applicationsGoodstypeDocumentDelete"><code><span class="http-method">delete</span> /applications/{id}/goodstype/{goods_type_pk}/document/</code></a></li>
-  <li><a href="#applicationsGoodstypeDocumentList"><code><span class="http-method">get</span> /applications/{id}/goodstype/{goods_type_pk}/document/</code></a></li>
-  <li><a href="#applicationsGoodstypeRead"><code><span class="http-method">get</span> /applications/{id}/goodstype/{goodstype_pk}/</code></a></li>
-  <li><a href="#applicationsGoodstypesCreate"><code><span class="http-method">post</span> /applications/{id}/goodstypes/</code></a></li>
-  <li><a href="#applicationsGoodstypesList"><code><span class="http-method">get</span> /applications/{id}/goodstypes/</code></a></li>
   <li><a href="#applicationsList"><code><span class="http-method">get</span> /applications/</code></a></li>
   <li><a href="#applicationsPartialUpdate"><code><span class="http-method">patch</span> /applications/{id}/</code></a></li>
   <li><a href="#applicationsRead"><code><span class="http-method">get</span> /applications/{id}/</code></a></li>
@@ -309,11 +301,6 @@ font-style: italic;
   <li><a href="#goodsList"><code><span class="http-method">get</span> /goods/</code></a></li>
   <li><a href="#goodsRead"><code><span class="http-method">get</span> /goods/{id}/</code></a></li>
   <li><a href="#goodsUpdate"><code><span class="http-method">put</span> /goods/{id}/</code></a></li>
-  </ul>
-  <h4><a href="#Goodstype">Goodstype</a></h4>
-  <ul>
-  <li><a href="#goodstypeList"><code><span class="http-method">get</span> /goodstype/</code></a></li>
-  <li><a href="#goodstypeRead"><code><span class="http-method">get</span> /goodstype/{id}/</code></a></li>
   </ul>
   <h4><a href="#GovUsers">GovUsers</a></h4>
   <ul>
@@ -746,7 +733,7 @@ font-style: italic;
     <pre class="post"><code class="huge"><span class="http-method">post</span> /applications/</code></pre></div>
     <div class="method-summary"> (<span class="nickname">applicationsCreate</span>)</div>
     <div class="method-notes">Create a new application
-Types include StandardApplication, OpenApplication and HmrcQuery</div>
+Types include StandardApplication and HmrcQuery</div>
 
 
     <h3 class="field-label">Consumes</h3>
@@ -1598,381 +1585,6 @@ Types include StandardApplication, OpenApplication and HmrcQuery</div>
     <pre class="get"><code class="huge"><span class="http-method">get</span> /applications/{id}/goods/</code></pre></div>
     <div class="method-summary"> (<span class="nickname">applicationsGoodsList</span>)</div>
     <div class="method-notes">Goods belonging to a standard application</div>
-
-    <h3 class="field-label">Path parameters</h3>
-    <div class="field-items">
-      <div class="param">id (required)</div>
-
-      <div class="param-desc"><span class="param-type">Path Parameter</span> &mdash;  </div>
-    </div>  <!-- field-items -->
-
-    <h3 class="field-label">Consumes</h3>
-    This API call consumes the following media types via the <span class="header">Content-Type</span> request header:
-    <ul>
-      <li><code>application/json</code></li>
-    </ul>
-
-
-
-
-
-
-    <!--Todo: process Response Object and its headers, schema, examples -->
-
-
-    <h3 class="field-label">Produces</h3>
-    This API call produces the following media types according to the <span class="header">Accept</span> request header;
-    the media type will be conveyed by the <span class="header">Content-Type</span> response header.
-    <ul>
-      <li><code>application/json</code></li>
-    </ul>
-
-    <h3 class="field-label">Responses</h3>
-    <h4 class="field-label">200</h4>
-
-        <a href="#"></a>
-  </div> <!-- method -->
-  <hr/>
-  <div class="method"><a name="applicationsGoodstypeAssignCountriesUpdate"/>
-    <div class="method-path">
-    <a class="up" href="#__Methods">Up</a>
-    <pre class="put"><code class="huge"><span class="http-method">put</span> /applications/{id}/goodstype/{goodstype_pk}/assign-countries/</code></pre></div>
-    <div class="method-summary"> (<span class="nickname">applicationsGoodstypeAssignCountriesUpdate</span>)</div>
-    <div class="method-notes">Sets countries on goodstype</div>
-
-    <h3 class="field-label">Path parameters</h3>
-    <div class="field-items">
-      <div class="param">goodstype_pk (required)</div>
-
-      <div class="param-desc"><span class="param-type">Path Parameter</span> &mdash;  </div><div class="param">id (required)</div>
-
-      <div class="param-desc"><span class="param-type">Path Parameter</span> &mdash;  </div>
-    </div>  <!-- field-items -->
-
-    <h3 class="field-label">Consumes</h3>
-    This API call consumes the following media types via the <span class="header">Content-Type</span> request header:
-    <ul>
-      <li><code>application/json</code></li>
-    </ul>
-
-
-
-
-
-
-    <!--Todo: process Response Object and its headers, schema, examples -->
-
-
-    <h3 class="field-label">Produces</h3>
-    This API call produces the following media types according to the <span class="header">Accept</span> request header;
-    the media type will be conveyed by the <span class="header">Content-Type</span> response header.
-    <ul>
-      <li><code>application/json</code></li>
-    </ul>
-
-    <h3 class="field-label">Responses</h3>
-    <h4 class="field-label">200</h4>
-
-        <a href="#"></a>
-  </div> <!-- method -->
-  <hr/>
-  <div class="method"><a name="applicationsGoodstypeDelete"/>
-    <div class="method-path">
-    <a class="up" href="#__Methods">Up</a>
-    <pre class="delete"><code class="huge"><span class="http-method">delete</span> /applications/{id}/goodstype/{goodstype_pk}/</code></pre></div>
-    <div class="method-summary"> (<span class="nickname">applicationsGoodstypeDelete</span>)</div>
-    <div class="method-notes">Deletes a goodstype</div>
-
-    <h3 class="field-label">Path parameters</h3>
-    <div class="field-items">
-      <div class="param">goodstype_pk (required)</div>
-
-      <div class="param-desc"><span class="param-type">Path Parameter</span> &mdash;  </div><div class="param">id (required)</div>
-
-      <div class="param-desc"><span class="param-type">Path Parameter</span> &mdash;  </div>
-    </div>  <!-- field-items -->
-
-    <h3 class="field-label">Consumes</h3>
-    This API call consumes the following media types via the <span class="header">Content-Type</span> request header:
-    <ul>
-      <li><code>application/json</code></li>
-    </ul>
-
-
-
-
-
-
-    <!--Todo: process Response Object and its headers, schema, examples -->
-
-
-    <h3 class="field-label">Produces</h3>
-    This API call produces the following media types according to the <span class="header">Accept</span> request header;
-    the media type will be conveyed by the <span class="header">Content-Type</span> response header.
-    <ul>
-      <li><code>application/json</code></li>
-    </ul>
-
-    <h3 class="field-label">Responses</h3>
-    <h4 class="field-label">204</h4>
-
-        <a href="#"></a>
-  </div> <!-- method -->
-  <hr/>
-  <div class="method"><a name="applicationsGoodstypeDocumentCreate"/>
-    <div class="method-path">
-    <a class="up" href="#__Methods">Up</a>
-    <pre class="post"><code class="huge"><span class="http-method">post</span> /applications/{id}/goodstype/{goods_type_pk}/document/</code></pre></div>
-    <div class="method-summary"> (<span class="nickname">applicationsGoodstypeDocumentCreate</span>)</div>
-    <div class="method-notes">Retrieve, add or delete a third party document from an application</div>
-
-    <h3 class="field-label">Path parameters</h3>
-    <div class="field-items">
-      <div class="param">goods_type_pk (required)</div>
-
-      <div class="param-desc"><span class="param-type">Path Parameter</span> &mdash;  </div><div class="param">id (required)</div>
-
-      <div class="param-desc"><span class="param-type">Path Parameter</span> &mdash;  </div>
-    </div>  <!-- field-items -->
-
-    <h3 class="field-label">Consumes</h3>
-    This API call consumes the following media types via the <span class="header">Content-Type</span> request header:
-    <ul>
-      <li><code>application/json</code></li>
-    </ul>
-
-    <h3 class="field-label">Request body</h3>
-    <div class="field-items">
-      <div class="param">data <a href="#GoodsTypeDocument">GoodsTypeDocument</a> (required)</div>
-
-      <div class="param-desc"><span class="param-type">Body Parameter</span> &mdash;  </div>
-
-    </div>  <!-- field-items -->
-
-
-
-
-    <h3 class="field-label">Return type</h3>
-    <div class="return-type">
-      <a href="#GoodsTypeDocument">GoodsTypeDocument</a>
-
-    </div>
-
-    <!--Todo: process Response Object and its headers, schema, examples -->
-
-    <h3 class="field-label">Example data</h3>
-    <div class="example-data-content-type">Content-Type: application/json</div>
-    <pre class="example"><code>{
-  "size" : -1803530559,
-  "name" : "name",
-  "s3_key" : "s3_key",
-  "safe" : true,
-  "id" : "046b6c7f-0b8a-43b9-b35d-6489e6daee91",
-  "goods_type" : "046b6c7f-0b8a-43b9-b35d-6489e6daee91"
-}</code></pre>
-
-    <h3 class="field-label">Produces</h3>
-    This API call produces the following media types according to the <span class="header">Accept</span> request header;
-    the media type will be conveyed by the <span class="header">Content-Type</span> response header.
-    <ul>
-      <li><code>application/json</code></li>
-    </ul>
-
-    <h3 class="field-label">Responses</h3>
-    <h4 class="field-label">201</h4>
-
-        <a href="#GoodsTypeDocument">GoodsTypeDocument</a>
-    <h4 class="field-label">400</h4>
-    JSON parse error
-        <a href="#"></a>
-  </div> <!-- method -->
-  <hr/>
-  <div class="method"><a name="applicationsGoodstypeDocumentDelete"/>
-    <div class="method-path">
-    <a class="up" href="#__Methods">Up</a>
-    <pre class="delete"><code class="huge"><span class="http-method">delete</span> /applications/{id}/goodstype/{goods_type_pk}/document/</code></pre></div>
-    <div class="method-summary"> (<span class="nickname">applicationsGoodstypeDocumentDelete</span>)</div>
-    <div class="method-notes">Retrieve, add or delete a third party document from an application</div>
-
-    <h3 class="field-label">Path parameters</h3>
-    <div class="field-items">
-      <div class="param">goods_type_pk (required)</div>
-
-      <div class="param-desc"><span class="param-type">Path Parameter</span> &mdash;  </div><div class="param">id (required)</div>
-
-      <div class="param-desc"><span class="param-type">Path Parameter</span> &mdash;  </div>
-    </div>  <!-- field-items -->
-
-    <h3 class="field-label">Consumes</h3>
-    This API call consumes the following media types via the <span class="header">Content-Type</span> request header:
-    <ul>
-      <li><code>application/json</code></li>
-    </ul>
-
-    <h3 class="field-label">Request body</h3>
-    <div class="field-items">
-      <div class="param">data <a href="#GoodsTypeDocument">GoodsTypeDocument</a> (required)</div>
-
-      <div class="param-desc"><span class="param-type">Body Parameter</span> &mdash;  </div>
-
-    </div>  <!-- field-items -->
-
-
-
-
-
-    <!--Todo: process Response Object and its headers, schema, examples -->
-
-
-    <h3 class="field-label">Produces</h3>
-    This API call produces the following media types according to the <span class="header">Accept</span> request header;
-    the media type will be conveyed by the <span class="header">Content-Type</span> response header.
-    <ul>
-      <li><code>application/json</code></li>
-    </ul>
-
-    <h3 class="field-label">Responses</h3>
-    <h4 class="field-label">204</h4>
-
-        <a href="#"></a>
-    <h4 class="field-label">400</h4>
-    JSON parse error
-        <a href="#"></a>
-  </div> <!-- method -->
-  <hr/>
-  <div class="method"><a name="applicationsGoodstypeDocumentList"/>
-    <div class="method-path">
-    <a class="up" href="#__Methods">Up</a>
-    <pre class="get"><code class="huge"><span class="http-method">get</span> /applications/{id}/goodstype/{goods_type_pk}/document/</code></pre></div>
-    <div class="method-summary"> (<span class="nickname">applicationsGoodstypeDocumentList</span>)</div>
-    <div class="method-notes">Retrieve, add or delete a third party document from an application</div>
-
-    <h3 class="field-label">Path parameters</h3>
-    <div class="field-items">
-      <div class="param">goods_type_pk (required)</div>
-
-      <div class="param-desc"><span class="param-type">Path Parameter</span> &mdash;  </div><div class="param">id (required)</div>
-
-      <div class="param-desc"><span class="param-type">Path Parameter</span> &mdash;  </div>
-    </div>  <!-- field-items -->
-
-    <h3 class="field-label">Consumes</h3>
-    This API call consumes the following media types via the <span class="header">Content-Type</span> request header:
-    <ul>
-      <li><code>application/json</code></li>
-    </ul>
-
-
-
-
-
-
-    <!--Todo: process Response Object and its headers, schema, examples -->
-
-
-    <h3 class="field-label">Produces</h3>
-    This API call produces the following media types according to the <span class="header">Accept</span> request header;
-    the media type will be conveyed by the <span class="header">Content-Type</span> response header.
-    <ul>
-      <li><code>application/json</code></li>
-    </ul>
-
-    <h3 class="field-label">Responses</h3>
-    <h4 class="field-label">200</h4>
-
-        <a href="#"></a>
-  </div> <!-- method -->
-  <hr/>
-  <div class="method"><a name="applicationsGoodstypeRead"/>
-    <div class="method-path">
-    <a class="up" href="#__Methods">Up</a>
-    <pre class="get"><code class="huge"><span class="http-method">get</span> /applications/{id}/goodstype/{goodstype_pk}/</code></pre></div>
-    <div class="method-summary"> (<span class="nickname">applicationsGoodstypeRead</span>)</div>
-    <div class="method-notes">Gets a goodstype</div>
-
-    <h3 class="field-label">Path parameters</h3>
-    <div class="field-items">
-      <div class="param">goodstype_pk (required)</div>
-
-      <div class="param-desc"><span class="param-type">Path Parameter</span> &mdash;  </div><div class="param">id (required)</div>
-
-      <div class="param-desc"><span class="param-type">Path Parameter</span> &mdash;  </div>
-    </div>  <!-- field-items -->
-
-    <h3 class="field-label">Consumes</h3>
-    This API call consumes the following media types via the <span class="header">Content-Type</span> request header:
-    <ul>
-      <li><code>application/json</code></li>
-    </ul>
-
-
-
-
-
-
-    <!--Todo: process Response Object and its headers, schema, examples -->
-
-
-    <h3 class="field-label">Produces</h3>
-    This API call produces the following media types according to the <span class="header">Accept</span> request header;
-    the media type will be conveyed by the <span class="header">Content-Type</span> response header.
-    <ul>
-      <li><code>application/json</code></li>
-    </ul>
-
-    <h3 class="field-label">Responses</h3>
-    <h4 class="field-label">200</h4>
-
-        <a href="#"></a>
-  </div> <!-- method -->
-  <hr/>
-  <div class="method"><a name="applicationsGoodstypesCreate"/>
-    <div class="method-path">
-    <a class="up" href="#__Methods">Up</a>
-    <pre class="post"><code class="huge"><span class="http-method">post</span> /applications/{id}/goodstypes/</code></pre></div>
-    <div class="method-summary"> (<span class="nickname">applicationsGoodstypesCreate</span>)</div>
-    <div class="method-notes">Post a goodstype</div>
-
-    <h3 class="field-label">Path parameters</h3>
-    <div class="field-items">
-      <div class="param">id (required)</div>
-
-      <div class="param-desc"><span class="param-type">Path Parameter</span> &mdash;  </div>
-    </div>  <!-- field-items -->
-
-    <h3 class="field-label">Consumes</h3>
-    This API call consumes the following media types via the <span class="header">Content-Type</span> request header:
-    <ul>
-      <li><code>application/json</code></li>
-    </ul>
-
-
-
-
-
-
-    <!--Todo: process Response Object and its headers, schema, examples -->
-
-
-    <h3 class="field-label">Produces</h3>
-    This API call produces the following media types according to the <span class="header">Accept</span> request header;
-    the media type will be conveyed by the <span class="header">Content-Type</span> response header.
-    <ul>
-      <li><code>application/json</code></li>
-    </ul>
-
-    <h3 class="field-label">Responses</h3>
-    <h4 class="field-label">201</h4>
-
-        <a href="#"></a>
-  </div> <!-- method -->
-  <hr/>
-  <div class="method"><a name="applicationsGoodstypesList"/>
-    <div class="method-path">
-    <a class="up" href="#__Methods">Up</a>
-    <pre class="get"><code class="huge"><span class="http-method">get</span> /applications/{id}/goodstypes/</code></pre></div>
-    <div class="method-summary"> (<span class="nickname">applicationsGoodstypesList</span>)</div>
-    <div class="method-notes">Goodstypes belonging to an open application.</div>
 
     <h3 class="field-label">Path parameters</h3>
     <div class="field-items">
@@ -3469,7 +3081,6 @@ If validate only, this will return if the data is acceptable or not.</div>
   "end_user" : "end_user",
   "id" : "046b6c7f-0b8a-43b9-b35d-6489e6daee91",
   "text" : "text",
-  "goods_type" : "046b6c7f-0b8a-43b9-b35d-6489e6daee91",
   "third_party" : "third_party",
   "user" : "user",
   "case" : "046b6c7f-0b8a-43b9-b35d-6489e6daee91",
@@ -3926,7 +3537,6 @@ If validate only, this will return if the data is acceptable or not.</div>
   "end_user" : "end_user",
   "id" : "046b6c7f-0b8a-43b9-b35d-6489e6daee91",
   "text" : "text",
-  "goods_type" : "046b6c7f-0b8a-43b9-b35d-6489e6daee91",
   "third_party" : "third_party",
   "user" : "user",
   "case" : "046b6c7f-0b8a-43b9-b35d-6489e6daee91",
@@ -4127,7 +3737,6 @@ If validate only, this will return if the data is acceptable or not.</div>
   "denial_reasons" : [ "denial_reasons", "denial_reasons" ],
   "end_user" : "end_user",
   "text" : "text",
-  "goods_type" : "046b6c7f-0b8a-43b9-b35d-6489e6daee91",
   "third_party" : "third_party",
   "user" : "user",
   "case" : "046b6c7f-0b8a-43b9-b35d-6489e6daee91",
@@ -4899,83 +4508,6 @@ If validate only, this will return if the data is acceptable or not.</div>
     <pre class="put"><code class="huge"><span class="http-method">put</span> /goods/{id}/</code></pre></div>
     <div class="method-summary"> (<span class="nickname">goodsUpdate</span>)</div>
     <div class="method-notes"></div>
-
-    <h3 class="field-label">Path parameters</h3>
-    <div class="field-items">
-      <div class="param">id (required)</div>
-
-      <div class="param-desc"><span class="param-type">Path Parameter</span> &mdash;  </div>
-    </div>  <!-- field-items -->
-
-    <h3 class="field-label">Consumes</h3>
-    This API call consumes the following media types via the <span class="header">Content-Type</span> request header:
-    <ul>
-      <li><code>application/json</code></li>
-    </ul>
-
-
-
-
-
-
-    <!--Todo: process Response Object and its headers, schema, examples -->
-
-
-    <h3 class="field-label">Produces</h3>
-    This API call produces the following media types according to the <span class="header">Accept</span> request header;
-    the media type will be conveyed by the <span class="header">Content-Type</span> response header.
-    <ul>
-      <li><code>application/json</code></li>
-    </ul>
-
-    <h3 class="field-label">Responses</h3>
-    <h4 class="field-label">200</h4>
-
-        <a href="#"></a>
-  </div> <!-- method -->
-  <hr/>
-  <h1><a name="Goodstype">Goodstype</a></h1>
-  <div class="method"><a name="goodstypeList"/>
-    <div class="method-path">
-    <a class="up" href="#__Methods">Up</a>
-    <pre class="get"><code class="huge"><span class="http-method">get</span> /goodstype/</code></pre></div>
-    <div class="method-summary"> (<span class="nickname">goodstypeList</span>)</div>
-    <div class="method-notes">Gets list of all Goods Types</div>
-
-
-    <h3 class="field-label">Consumes</h3>
-    This API call consumes the following media types via the <span class="header">Content-Type</span> request header:
-    <ul>
-      <li><code>application/json</code></li>
-    </ul>
-
-
-
-
-
-
-    <!--Todo: process Response Object and its headers, schema, examples -->
-
-
-    <h3 class="field-label">Produces</h3>
-    This API call produces the following media types according to the <span class="header">Accept</span> request header;
-    the media type will be conveyed by the <span class="header">Content-Type</span> response header.
-    <ul>
-      <li><code>application/json</code></li>
-    </ul>
-
-    <h3 class="field-label">Responses</h3>
-    <h4 class="field-label">200</h4>
-
-        <a href="#"></a>
-  </div> <!-- method -->
-  <hr/>
-  <div class="method"><a name="goodstypeRead"/>
-    <div class="method-path">
-    <a class="up" href="#__Methods">Up</a>
-    <pre class="get"><code class="huge"><span class="http-method">get</span> /goodstype/{id}/</code></pre></div>
-    <div class="method-summary"> (<span class="nickname">goodstypeRead</span>)</div>
-    <div class="method-notes">Gets a single Goods Type</div>
 
     <h3 class="field-label">Path parameters</h3>
     <div class="field-items">
@@ -8522,7 +8054,6 @@ Returns a token which is just our ID for the user</div>
     <li><a href="#GeneratedCaseDocumentGov"><code>GeneratedCaseDocumentGov</code> - </a></li>
     <li><a href="#GenericApplicationList"><code>GenericApplicationList</code> - </a></li>
     <li><a href="#GoodDocumentCreate"><code>GoodDocumentCreate</code> - </a></li>
-    <li><a href="#GoodsTypeDocument"><code>GoodsTypeDocument</code> - </a></li>
     <li><a href="#GovUserCreate"><code>GovUserCreate</code> - </a></li>
     <li><a href="#GovUserSimple"><code>GovUserSimple</code> - </a></li>
     <li><a href="#LetterLayout"><code>LetterLayout</code> - </a></li>
@@ -8594,7 +8125,6 @@ Returns a token which is just our ID for the user</div>
 <div class="param">proviso (optional)</div><div class="param-desc"><span class="param-type"><a href="#string">String</a></span>  </div>
 <div class="param">denial_reasons (optional)</div><div class="param-desc"><span class="param-type"><a href="#string">array[String]</a></span>  </div>
 <div class="param">good (optional)</div><div class="param-desc"><span class="param-type"><a href="#UUID">UUID</a></span>  format: uuid</div>
-<div class="param">goods_type (optional)</div><div class="param-desc"><span class="param-type"><a href="#UUID">UUID</a></span>  format: uuid</div>
 <div class="param">country (optional)</div><div class="param-desc"><span class="param-type"><a href="#string">String</a></span>  </div>
 <div class="param">end_user (optional)</div><div class="param-desc"><span class="param-type"><a href="#string">String</a></span>  </div>
 <div class="param">ultimate_end_user (optional)</div><div class="param-desc"><span class="param-type"><a href="#string">String</a></span>  </div>
@@ -8636,7 +8166,6 @@ Returns a token which is just our ID for the user</div>
 <div class="param">type </div><div class="param-desc"><span class="param-type"><a href="#string">String</a></span>  </div>
 <div class="param">denial_reasons (optional)</div><div class="param-desc"><span class="param-type"><a href="#string">array[String]</a></span>  </div>
 <div class="param">good (optional)</div><div class="param-desc"><span class="param-type"><a href="#UUID">UUID</a></span>  format: uuid</div>
-<div class="param">goods_type (optional)</div><div class="param-desc"><span class="param-type"><a href="#UUID">UUID</a></span>  format: uuid</div>
 <div class="param">country (optional)</div><div class="param-desc"><span class="param-type"><a href="#string">String</a></span>  </div>
 <div class="param">end_user (optional)</div><div class="param-desc"><span class="param-type"><a href="#string">String</a></span>  </div>
 <div class="param">ultimate_end_user (optional)</div><div class="param-desc"><span class="param-type"><a href="#string">String</a></span>  </div>
@@ -8658,7 +8187,6 @@ Returns a token which is just our ID for the user</div>
 <div class="param">type </div><div class="param-desc"><span class="param-type"><a href="#string">String</a></span>  </div>
 <div class="param">denial_reasons (optional)</div><div class="param-desc"><span class="param-type"><a href="#string">array[String]</a></span>  </div>
 <div class="param">good (optional)</div><div class="param-desc"><span class="param-type"><a href="#UUID">UUID</a></span>  format: uuid</div>
-<div class="param">goods_type (optional)</div><div class="param-desc"><span class="param-type"><a href="#UUID">UUID</a></span>  format: uuid</div>
 <div class="param">country (optional)</div><div class="param-desc"><span class="param-type"><a href="#string">String</a></span>  </div>
 <div class="param">end_user (optional)</div><div class="param-desc"><span class="param-type"><a href="#string">String</a></span>  </div>
 <div class="param">ultimate_end_user (optional)</div><div class="param-desc"><span class="param-type"><a href="#string">String</a></span>  </div>
@@ -8715,15 +8243,9 @@ Returns a token which is just our ID for the user</div>
 <div class="param">description (optional)</div><div class="param-desc"><span class="param-type"><a href="#string">String</a></span>  </div>
     </div>  <!-- field-items -->
   </div>
-  <div class="model">
-    <h3><a name="GoodsTypeDocument"><code>GoodsTypeDocument</code> - </a> <a class="up" href="#__Models">Up</a></h3>
-    <div class='model-description'></div>
-    <div class="field-items">
-      <div class="param">id (optional)</div><div class="param-desc"><span class="param-type"><a href="#UUID">UUID</a></span>  format: uuid</div>
 <div class="param">name </div><div class="param-desc"><span class="param-type"><a href="#string">String</a></span>  </div>
 <div class="param">s3_key (optional)</div><div class="param-desc"><span class="param-type"><a href="#string">String</a></span>  </div>
 <div class="param">size (optional)</div><div class="param-desc"><span class="param-type"><a href="#integer">Integer</a></span>  </div>
-<div class="param">goods_type </div><div class="param-desc"><span class="param-type"><a href="#UUID">UUID</a></span>  format: uuid</div>
 <div class="param">safe (optional)</div><div class="param-desc"><span class="param-type"><a href="#boolean">Boolean</a></span>  </div>
     </div>  <!-- field-items -->
   </div>

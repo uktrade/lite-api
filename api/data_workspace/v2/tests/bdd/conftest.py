@@ -9,6 +9,7 @@ from django.conf import settings
 from django.urls import reverse
 from freezegun import freeze_time
 from moto import mock_aws
+from operator import itemgetter
 from pytest_bdd import (
     given,
     parsers,
@@ -522,8 +523,8 @@ def check_rows(client, parse_table, unpage_data, table_name, rows):
     for row in parsed_rows[1:]:
         expected_data.append({key: value for key, value in zip(keys, row)})
     expected_data = cast_to_types(expected_data, table_metadata["fields"])
-    actual_data = sorted(actual_data, key=lambda item, keys=keys: item[keys[0]])
-    expected_data = sorted(expected_data, key=lambda item, keys=keys: item[keys[0]])
+    actual_data = sorted(actual_data, key=itemgetter(*keys))
+    expected_data = sorted(expected_data, key=itemgetter(*keys))
     assert actual_data == expected_data
 
 

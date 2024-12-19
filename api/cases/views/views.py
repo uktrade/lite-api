@@ -28,11 +28,6 @@ from api.cases.libraries.finalise import get_required_decision_document_types
 from api.cases.libraries.get_case import get_case, get_case_document
 from api.cases.libraries.get_destination import get_destination
 from api.cases.libraries.get_ecju_queries import get_ecju_query
-from api.cases.libraries.get_goods_type_countries_decisions import (
-    good_type_to_country_decisions,
-    get_required_good_type_to_country_combinations,
-    get_existing_good_type_to_country_decisions,
-)
 from api.cases.libraries.post_advice import (
     post_advice,
     update_advice,
@@ -46,7 +41,6 @@ from api.cases.models import (
     EcjuQuery,
     EcjuQueryDocument,
     Advice,
-    GoodCountryDecision,
     CaseAssignment,
 )
 from api.cases.models import CountersignAdvice
@@ -499,8 +493,6 @@ class FinalAdvice(APIView):
         """
         assert_user_has_permission(request.user.govuser, constants.GovPermissions.MANAGE_LICENCE_FINAL_ADVICE)
         self.final_advice.delete()
-        # Delete GoodCountryDecisions as final advice is no longer applicable
-        GoodCountryDecision.objects.filter(case_id=pk).delete()
         audit_trail_service.create(
             actor=request.user,
             verb=AuditType.CLEARED_FINAL_ADVICE,
@@ -693,60 +685,6 @@ class EcjuQueryDocumentDetail(APIView):
         document.delete_s3()
         document.delete()
         return JsonResponse({"document": "deleted success"})
-
-
-class GoodsCountriesDecisions(APIView):
-    authentication_classes = (GovAuthentication,)
-
-    def get(self, request, pk):
-        assert_user_has_permission(request.user.govuser, constants.GovPermissions.MANAGE_LICENCE_FINAL_ADVICE)
-        approved, refused = good_type_to_country_decisions(pk)
-        return JsonResponse({"approved": list(approved.values()), "refused": list(refused.values())})
-
-    @transaction.atomic
-    def post(self, request, pk):
-        assert_user_has_permission(request.user.govuser, constants.GovPermissions.MANAGE_LICENCE_FINAL_ADVICE)
-
-        data = {k: v for k, v in request.data.items() if v is not None}
-
-        # Get list of all required item id's
-        required_decisions = get_required_good_type_to_country_combinations(pk)
-        required_decision_ids = set()
-        for goods_type, country_list in required_decisions.items():
-            for country in country_list:
-                required_decision_ids.add(f"{goods_type}.{country}")
-
-        if not required_decision_ids.issubset(data):
-            missing_ids = required_decision_ids.difference(request.data)
-            raise ParseError({missing_id: [Cases.GoodCountryMatrix.MISSING_ITEM] for missing_id in missing_ids})
-
-        # Delete existing decision documents if decision changes
-        existing_decisions = get_existing_good_type_to_country_decisions(pk)
-        for decision_id in required_decision_ids:
-            if (data.get(decision_id) != AdviceType.REFUSE) != existing_decisions.get(decision_id):
-                # Proviso N/A as there is no proviso document type
-                GeneratedCaseDocument.objects.filter(
-                    case_id=pk, advice_type__in=[AdviceType.APPROVE, AdviceType.REFUSE], visible_to_exporter=False
-                ).delete()
-                break
-
-        # Update or create GoodCountryDecisions
-        for id in required_decision_ids:
-            goods_type_id, country_id = id.split(".")
-            value = data[id] == AdviceType.APPROVE
-            GoodCountryDecision.objects.update_or_create(
-                case_id=pk, goods_type_id=goods_type_id, country_id=country_id, defaults={"approve": value}
-            )
-
-        audit_trail_service.create(
-            actor=request.user,
-            verb=AuditType.UPDATED_GOOD_ON_DESTINATION_MATRIX,
-            target=get_case(pk),
-        )
-
-        return JsonResponse(
-            data={"good_country_decisions": list(required_decision_ids)}, status=status.HTTP_201_CREATED
-        )
 
 
 class Destination(APIView):

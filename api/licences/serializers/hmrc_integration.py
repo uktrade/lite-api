@@ -1,7 +1,6 @@
 from rest_framework import serializers
 
 from api.licences.enums import LicenceStatus, licence_status_to_hmrc_integration_action, HMRCIntegrationActionEnum
-from api.licences.helpers import get_approved_goods_types, get_approved_countries
 from api.licences.models import Licence
 
 
@@ -66,12 +65,6 @@ class HMRCIntegrationGoodOnLicenceSerializer(serializers.Serializer):
     value = serializers.FloatField()
 
 
-class HMRCIntegrationGoodsTypeSerializer(serializers.Serializer):
-    id = serializers.UUIDField()
-    description = serializers.CharField()
-    usage = serializers.IntegerField()
-
-
 class HMRCIntegrationLicenceSerializer(serializers.Serializer):
     id = serializers.UUIDField()
     reference = serializers.CharField(source="reference_code")
@@ -91,6 +84,8 @@ class HMRCIntegrationLicenceSerializer(serializers.Serializer):
         if not (hasattr(self.instance.case, "baseapplication") and self.instance.case.baseapplication.end_user):
             self.fields.pop("end_user")
 
+        # Currently open applications are not supported so this predicate
+        # will always evaluate to True and countries will be removed
         if (
             hasattr(self.instance.case, "baseapplication")
             and not (
@@ -116,16 +111,9 @@ class HMRCIntegrationLicenceSerializer(serializers.Serializer):
             .last()
         )
 
+    # TODO: This needs to be re-implemented for open licences
     def get_countries(self, instance):
-        if hasattr(instance.case, "baseapplication") and hasattr(instance.case.baseapplication, "openapplication"):
-            countries = get_approved_countries(instance.case.baseapplication)
-        else:
-            countries = instance.case.opengenerallicencecase.open_general_licence.countries.order_by("name")
-
-        return HMRCIntegrationCountrySerializer(
-            countries,
-            many=True,
-        ).data
+        return []  #  pragma: no cover
 
     def get_goods(self, instance):
         if instance.goods.exists():
@@ -134,9 +122,6 @@ class HMRCIntegrationLicenceSerializer(serializers.Serializer):
             We also list the products in the same order in licence pdf which is used by exporters
             when declaring goods at the customs check"""
             return HMRCIntegrationGoodOnLicenceSerializer(instance.goods.order_by("created_at"), many=True).data
-        elif hasattr(instance.case, "baseapplication") and instance.case.baseapplication.goods_type.exists():
-            approved_goods_types = get_approved_goods_types(instance.case.baseapplication)
-            return HMRCIntegrationGoodsTypeSerializer(approved_goods_types, many=True).data
         else:
             return []
 

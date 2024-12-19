@@ -1,15 +1,12 @@
 import uuid
 
 from django.db import models
-from django.db.models import deletion
 from django.utils import timezone
 
 from api.cases.enums import CaseTypeEnum
 from api.cases.models import Case
-from api.common.models import CreatedAt, TimestampableModel
+from api.common.models import TimestampableModel
 from api.compliance.enums import ComplianceVisitTypes, ComplianceRiskValues
-from api.licences.models import Licence
-from api.organisations.models import Organisation
 from api.staticdata.statuses.enums import CaseStatusEnum
 from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
 
@@ -75,14 +72,6 @@ class ComplianceVisitCase(Case):
     # knowledge of controlled items of business' products
     products_overview = models.TextField(default=None, null=True)
     products_risk_value = models.CharField(choices=ComplianceRiskValues.choices, max_length=10, null=True, default=None)
-
-
-class OpenLicenceReturns(CreatedAt):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    organisation = models.ForeignKey(Organisation, on_delete=deletion.CASCADE)
-    returns_data = models.TextField()
-    year = models.PositiveSmallIntegerField()
-    licences = models.ManyToManyField(Licence, related_name="open_licence_returns")
 
 
 class CompliancePerson(TimestampableModel):
