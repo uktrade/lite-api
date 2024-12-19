@@ -12,7 +12,6 @@ from api.core.serializers import PrimaryKeyRelatedSerializerField, KeyValueChoic
 from api.flags.enums import FlagStatuses
 from api.goods.models import Good
 from api.applications.models import GoodOnApplication
-from api.goodstype.models import GoodsType
 from api.gov_users.serializers import (
     GovUserListSerializer,
     GovUserSimpleSerializer,
@@ -59,7 +58,6 @@ class AdviceViewSerializer(serializers.Serializer):
     team = TeamReadOnlySerializer()
 
     good = GoodField()
-    goods_type = serializers.UUIDField(source="goods_type_id")
     country = serializers.UUIDField(source="country_id")
     end_user = serializers.UUIDField(source="end_user_id")
     ultimate_end_user = serializers.UUIDField(source="ultimate_end_user_id")
@@ -111,7 +109,6 @@ class AdviceCreateSerializer(serializers.ModelSerializer):
     )
 
     good = GoodField(required=False)
-    goods_type = serializers.PrimaryKeyRelatedField(queryset=GoodsType.objects.all(), required=False)
     country = serializers.PrimaryKeyRelatedField(queryset=Country.objects.all(), required=False)
     end_user = serializers.PrimaryKeyRelatedField(
         queryset=Party.objects.filter(type=PartyType.END_USER), required=False

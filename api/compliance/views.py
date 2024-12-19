@@ -1,10 +1,6 @@
-from uuid import UUID
-
 from django.db import transaction
 from django.http import JsonResponse
-from django.utils import timezone
 from rest_framework import status
-from rest_framework.exceptions import ValidationError
 from rest_framework.generics import (
     ListAPIView,
     RetrieveAPIView,
@@ -24,8 +20,7 @@ from api.compliance.helpers import (
     get_compliance_site_case,
     get_exporter_visible_compliance_site_cases,
 )
-from api.compliance.helpers import read_and_validate_csv, fetch_and_validate_licences
-from api.compliance.models import OpenLicenceReturns, ComplianceVisitCase, CompliancePerson
+from api.compliance.models import ComplianceVisitCase, CompliancePerson
 from api.compliance.serializers.ComplianceSiteCaseSerializers import (
     ComplianceLicenceListSerializer,
     ExporterComplianceVisitListSerializer,
@@ -37,12 +32,7 @@ from api.compliance.serializers.ComplianceVisitCaseSerializers import (
     ComplianceVisitSerializer,
     CompliancePersonSerializer,
 )
-from api.compliance.serializers.OpenLicenceReturns import (
-    OpenLicenceReturnsCreateSerializer,
-    OpenLicenceReturnsListSerializer,
-    OpenLicenceReturnsViewSerializer,
-)
-from api.core.authentication import GovAuthentication, ExporterAuthentication, SharedAuthentication
+from api.core.authentication import GovAuthentication, ExporterAuthentication
 from lite_content.lite_api.strings import Compliance
 from api.organisations.libraries.get_organisation import get_request_user_organisation_id, get_request_user_organisation
 from api.users.libraries.notifications import get_compliance_site_case_notifications
@@ -121,25 +111,6 @@ class LicenceList(ListAPIView):
             cases = cases.filter(reference_code__contains=reference_code)
 
         return cases
-
-    def get_paginated_response(self, data):
-        current_date = timezone.now().date()
-
-        # We take an OLR as outstanding if it hasn't been added by the end of January, meaning if the
-        # month is currently January we only go back 1 year
-        olr_year = current_date.year - 2 if current_date.month == 1 else current_date.year - 1
-
-        org_id = get_case(self.kwargs["pk"]).organisation_id
-        licences_with_olr = set(
-            OpenLicenceReturns.objects.filter(year=olr_year, organisation_id=org_id).values_list(
-                "licences__case", flat=True
-            )
-        )
-
-        for licence in data:
-            licence["has_open_licence_returns"] = UUID(licence["id"]) in licences_with_olr
-
-        return super().get_paginated_response(data)
 
 
 class ComplianceSiteVisits(ListCreateAPIView):
@@ -249,42 +220,6 @@ class ComplianceCaseId(APIView):
         return JsonResponse(
             data={"ids": list(existing_compliance_cases.values_list("id", flat=True))}, status=status.HTTP_200_OK
         )
-
-
-class OpenLicenceReturnsView(ListAPIView):
-    authentication_classes = (ExporterAuthentication,)
-    serializer_class = OpenLicenceReturnsListSerializer
-
-    def get_queryset(self):
-        organisation_id = get_request_user_organisation_id(self.request)
-        return OpenLicenceReturns.objects.filter(organisation_id=organisation_id).order_by("-year", "-created_at")
-
-    def post(self, request):
-        file = request.data.get("file")
-        if not file:
-            raise ValidationError({"file": [Compliance.OpenLicenceReturns.FILE_ERROR]})
-
-        organisation_id = get_request_user_organisation_id(request)
-        references, cleaned_text = read_and_validate_csv(file)
-        licence_ids = fetch_and_validate_licences(references, organisation_id)
-
-        data = request.data
-        data["returns_data"] = cleaned_text
-        data["licences"] = licence_ids
-        data["organisation"] = organisation_id
-        serializer = OpenLicenceReturnsCreateSerializer(data=data)
-
-        if not serializer.is_valid():
-            return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
-
-        serializer.save()
-        return JsonResponse(data={"open_licence_returns": serializer.data["id"]}, status=status.HTTP_201_CREATED)
-
-
-class OpenLicenceReturnDownloadView(RetrieveAPIView):
-    authentication_classes = (SharedAuthentication,)
-    queryset = OpenLicenceReturns.objects.all()
-    serializer_class = OpenLicenceReturnsViewSerializer
 
 
 class ComplianceVisitPeoplePresentView(ListCreateAPIView):

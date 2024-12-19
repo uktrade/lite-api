@@ -546,10 +546,9 @@ class CaseManager(QueryablePropertiesManager):
                 ],
                 baseapplication__application_sites__site__site_records_located_at__compliance__id=compliance_case_id,
             )
-            | Q(opengenerallicencecase__site__site_records_located_at__compliance__id=compliance_case_id)
         )
 
-        # We filter for OIEL, OICL, OGLs, and specific SIELs (dependant on CLC codes present) as these are the only case
+        # We filter for specific SIELs (dependant on CLC codes present) as these are the only case
         #   types relevant for compliance cases
         GoodOnLicence = apps.get_model("licences", "GoodOnLicence")
         approved_goods_on_licence = GoodOnLicence.objects.filter(
@@ -557,8 +556,6 @@ class CaseManager(QueryablePropertiesManager):
         ).values_list("good", flat=True)
 
         queryset = queryset.filter(
-            case_type__id__in=[CaseTypeEnum.OICL.id, CaseTypeEnum.OIEL.id, *CaseTypeEnum.OPEN_GENERAL_LICENCE_IDS]
-        ) | queryset.filter(
             baseapplication__goods__id__in=approved_goods_on_licence,
         )
 

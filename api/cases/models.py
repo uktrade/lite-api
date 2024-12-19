@@ -34,7 +34,6 @@ from api.flags.models import Flag
 from api.goods.enums import PvGrading
 from api.organisations.models import Organisation
 from api.queues.models import Queue
-from api.staticdata.countries.models import Country
 from api.staticdata.decisions.models import Decision
 from api.staticdata.denial_reasons.models import DenialReason
 from api.staticdata.statuses.enums import CaseStatusEnum, CaseSubStatusIdEnum
@@ -182,7 +181,7 @@ class Case(TimestampableModel):
         """
         For any child models, this method allows easy access to the parent Case.
 
-        Child cases [StandardApplication, OpenApplication, ...] share `id` with Case.
+        Child cases [StandardApplication, ...] share `id` with Case.
         """
         if type(self) == Case:  # noqa
             return self
@@ -254,7 +253,6 @@ class Case(TimestampableModel):
         """
         from api.applications.models import PartyOnApplication
         from api.applications.models import GoodOnApplication
-        from api.goodstype.models import GoodsType
 
         parameter_set = set(self.flags.all()) | {self.case_type} | set(self.organisation.flags.all())
 
@@ -265,9 +263,6 @@ class Case(TimestampableModel):
 
         for goa in GoodOnApplication.objects.filter(application=self.id):
             parameter_set = parameter_set | set(goa.good.flags.all())
-
-        for goods_type in GoodsType.objects.filter(application=self.id):
-            parameter_set = parameter_set | set(goods_type.flags.all())
 
         return parameter_set
 
@@ -608,7 +603,7 @@ class Advice(TimestampableModel):
     Advice for goods and destinations on cases
     """
 
-    ENTITY_FIELDS = ["good", "goods_type", "country", "end_user", "consignee", "ultimate_end_user", "third_party"]
+    ENTITY_FIELDS = ["good", "country", "end_user", "consignee", "ultimate_end_user", "third_party"]
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     case = models.ForeignKey(Case, related_name="advice", on_delete=models.CASCADE)
@@ -626,7 +621,6 @@ class Advice(TimestampableModel):
 
     # Optional goods/destinations
     good = models.ForeignKey("goods.Good", related_name="advice", on_delete=models.CASCADE, null=True)
-    goods_type = models.ForeignKey("goodstype.GoodsType", related_name="advice", on_delete=models.CASCADE, null=True)
     country = models.ForeignKey("countries.Country", related_name="advice", on_delete=models.CASCADE, null=True)
     end_user = models.ForeignKey("parties.Party", on_delete=models.CASCADE, null=True)
     ultimate_end_user = models.ForeignKey(
@@ -675,7 +669,6 @@ class Advice(TimestampableModel):
                     team=self.team,
                     level=AdviceLevel.TEAM,
                     good=self.good,
-                    goods_type=self.goods_type,
                     country=self.country,
                     end_user=self.end_user,
                     ultimate_end_user=self.ultimate_end_user,
@@ -691,7 +684,6 @@ class Advice(TimestampableModel):
                     user=self.user,
                     team=self.user.team,
                     level=AdviceLevel.USER,
-                    goods_type=self.goods_type,
                     country=self.country,
                     end_user=self.end_user,
                     ultimate_end_user=self.ultimate_end_user,
@@ -826,17 +818,6 @@ class EcjuQueryDocument(Document):
     query = models.ForeignKey(EcjuQuery, on_delete=models.CASCADE, related_name="ecjuquery_document")
     user = models.ForeignKey(ExporterUser, on_delete=models.DO_NOTHING, related_name="ecjuquery_document")
     description = models.TextField(default="", blank=True)
-
-
-class GoodCountryDecision(TimestampableModel):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    case = models.ForeignKey(Case, on_delete=models.CASCADE)
-    goods_type = models.ForeignKey("goodstype.GoodsType", on_delete=models.CASCADE)
-    country = models.ForeignKey(Country, on_delete=models.CASCADE)
-    approve = models.BooleanField(blank=False, null=False)
-
-    class Meta:
-        unique_together = [["case", "goods_type", "country"]]
 
 
 class EnforcementCheckID(models.Model):

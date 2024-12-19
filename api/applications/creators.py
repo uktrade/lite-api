@@ -1,6 +1,6 @@
 from django.db.models import Q
 
-from api.applications.enums import ApplicationExportType, GoodsTypeCategory
+from api.applications.enums import ApplicationExportType
 from api.applications.models import (
     ApplicationDocument,
     GoodOnApplication,
@@ -21,7 +21,6 @@ def _validate_siel_locations(application, errors):
         not SiteOnApplication.objects.filter(application=application).exists()
         and not ExternalLocationOnApplication.objects.filter(application=application).exists()
         and not getattr(application, "have_goods_departed", False)
-        and not getattr(application, "goodstype_category", None) == GoodsTypeCategory.CRYPTOGRAPHIC
     )
 
     new_locations_invalid = (
@@ -175,13 +174,13 @@ def _validate_ultimate_end_users(draft, errors, is_mandatory):
 
 
 def _validate_end_use_details(draft, errors, application_type):
-    if application_type in [CaseTypeSubTypeEnum.STANDARD, CaseTypeSubTypeEnum.OPEN]:
+    if application_type in [CaseTypeSubTypeEnum.STANDARD]:
         if (
             draft.is_military_end_use_controls is None
             or draft.is_informed_wmd is None
             or draft.is_suspected_wmd is None
             or not draft.intended_end_use
-        ) and not getattr(draft, "goodstype_category", None) == GoodsTypeCategory.CRYPTOGRAPHIC:
+        ):
             errors["end_use_details"] = [strings.Applications.Generic.NO_END_USE_DETAILS]
 
         if application_type == CaseTypeSubTypeEnum.STANDARD:
@@ -217,7 +216,7 @@ def _validate_agree_to_declaration(request, errors):
 
 def _validate_temporary_export_details(draft, errors):
     if (
-        draft.case_type.sub_type in [CaseTypeSubTypeEnum.STANDARD, CaseTypeSubTypeEnum.OPEN]
+        draft.case_type.sub_type in [CaseTypeSubTypeEnum.STANDARD]
         and draft.export_type == ApplicationExportType.TEMPORARY
     ):
         if not draft.temp_export_details or draft.is_temp_direct_control is None or draft.proposed_return_date is None:
@@ -277,10 +276,7 @@ def _validate_standard_licence(draft, errors):
 
 
 def _validate_route_of_goods(draft, errors):
-    if (
-        draft.is_shipped_waybill_or_lading is None
-        and not getattr(draft, "goodstype_category", None) == GoodsTypeCategory.CRYPTOGRAPHIC
-    ):
+    if draft.is_shipped_waybill_or_lading is None:
         errors["route_of_goods"] = [strings.Applications.Generic.NO_ROUTE_OF_GOODS]
     return errors
 

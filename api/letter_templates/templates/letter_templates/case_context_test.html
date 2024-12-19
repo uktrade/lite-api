@@ -107,16 +107,6 @@
             </ul>
         </li>
     </ul>
-    {% if goods_type %}
-        <h2>Goods types</h2>
-        <ul>
-            <li><b>goods_type:</b>
-                <ul>
-                    {{ goods_type|context_data_to_list|safe }}
-                </ul>
-            </li>
-        </ul>
-    {% endif %}
     {% if ecju_queries %}
         <h2>ECJU queries</h2>
         <ul>

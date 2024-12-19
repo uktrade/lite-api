@@ -1,6 +1,6 @@
 from django.urls import path
 
-from api.licences.views import main, open_general_licences, hmrc_integration
+from api.licences.views import main, hmrc_integration
 
 app_name = "licences"
 
@@ -23,5 +23,4 @@ urlpatterns = [
         name="hmrc_integration_retrieve",
     ),
     path("hmrc-integration/", hmrc_integration.HMRCIntegration.as_view(), name="hmrc_integration"),
-    path("open-general-licences/", open_general_licences.Create.as_view(), name="open_general_licences"),
 ]
