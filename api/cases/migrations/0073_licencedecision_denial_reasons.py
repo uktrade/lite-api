@@ -8,6 +8,8 @@ class Migration(migrations.Migration):
     dependencies = [
         ("denial_reasons", "0006_populate_uuid_field"),
         ("cases", "0072_alter_decision_populate_issued_on_appeal"),
+        ("countries", "0006_update_trading_country_code"),
+        ("organisations", "0014_alter_organisation_status"),
     ]
 
     operations = [
