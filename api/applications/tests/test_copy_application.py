@@ -176,7 +176,7 @@ class CopyApplicationSuccessTests(DataTestClient):
     def _validate_end_use_details(self, application_type=None):
         if application_type == CaseTypeSubTypeEnum.F680:
             self.assertIsNone(self.copied_application.intended_end_use)
-        elif application_type in [CaseTypeSubTypeEnum.STANDARD, CaseTypeSubTypeEnum.OPEN]:
+        elif application_type in [CaseTypeSubTypeEnum.STANDARD]:
             self.assertIsNone(self.copied_application.intended_end_use)
             self.assertIsNone(self.copied_application.is_informed_wmd)
             self.assertIsNone(self.copied_application.is_suspected_wmd)
@@ -256,7 +256,6 @@ class CopyApplicationSuccessTests(DataTestClient):
     def _validate_case_data(self):
         self.assertEqual(list(self.copied_application.case_ecju_query.all()), [])
         self.assertEqual(list(self.copied_application.case_notes.all()), [])
-        self.assertEqual(list(self.copied_application.goodcountrydecision_set.all()), [])
         self.assertEqual(list(self.copied_application.get_case().advice.all()), [])
         self.assertEqual(list(self.copied_application.applicationdocument_set.all()), [])
         self.assertEqual(list(self.copied_application.casedocument_set.all()), [])

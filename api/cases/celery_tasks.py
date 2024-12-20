@@ -21,7 +21,7 @@ from api.cases.notify import notify_exporter_ecju_query_chaser
 SLA_UPDATE_CUTOFF_TIME = time(18, 0, 0)
 
 STANDARD_APPLICATION_TARGET_DAYS = 20
-OPEN_APPLICATION_TARGET_DAYS = 60
+
 HMRC_QUERY_TARGET_DAYS = 2
 MOD_CLEARANCE_TARGET_DAYS = 30
 
@@ -32,8 +32,6 @@ logger = get_task_logger(__name__)
 def get_application_target_sla(_type):
     if _type == CaseTypeSubTypeEnum.STANDARD:
         return STANDARD_APPLICATION_TARGET_DAYS
-    elif _type == CaseTypeSubTypeEnum.OPEN:
-        return OPEN_APPLICATION_TARGET_DAYS
     elif _type == CaseTypeSubTypeEnum.HMRC:
         return HMRC_QUERY_TARGET_DAYS
     elif _type in [CaseTypeSubTypeEnum.EXHIBITION, CaseTypeSubTypeEnum.F680, CaseTypeSubTypeEnum.GIFTING]:

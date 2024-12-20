@@ -21,7 +21,6 @@ class GovPermissions(Enum):
     MANAGE_PICKLISTS = "Manage picklists"
     ENFORCEMENT_CHECK = "Enforcement check permission"
     MAINTAIN_FOOTNOTES = "Create footnotes"
-    MAINTAIN_OGL = "Maintain open general licences"
     REMOVE_AUTHORISED_COUNTERSIGNER_FLAGS = "Can remove authorised countersigner flags"
     REMOVE_HEAD_OF_LICENSING_UNIT_FLAGS = "Can remove Head of Licensing Unit flags"
 

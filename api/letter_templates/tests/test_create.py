@@ -184,7 +184,7 @@ class LetterTemplateCreateTests(DataTestClient):
             self.assertEqual(letter_paragraphs[1].id, picklist_items[1].id)
 
     def test_create_letter_template_with_decisions_success(self):
-        case_type_references = [CaseTypeEnum.SIEL.reference, CaseTypeEnum.OIEL.reference]
+        case_type_references = [CaseTypeEnum.SIEL.reference]
         data = {
             "name": "Letter Template",
             "case_types": case_type_references,

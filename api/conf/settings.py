@@ -86,7 +86,7 @@ INSTALLED_APPS = [
     "api.documents",
     "api.flags",
     "api.goods",
-    "api.goodstype",
+    "api.goodstype",  # this can't be removed yet as migrations need to be kept as dependencies
     "api.gov_users",
     "api.letter_templates",
     "api.licences",
@@ -97,7 +97,6 @@ INSTALLED_APPS = [
     "api.queries.goods_query",
     "api.queries.end_user_advisories",
     "api.queues",
-    "api.open_general_licences",
     "rest_framework",
     "api.staticdata",
     "api.staticdata.case_types",

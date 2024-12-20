@@ -78,12 +78,6 @@ urlpatterns = [
         goods.ApplicationGoodOnApplicationUpdateSerialNumbers.as_view(),
         name="good_on_application_update_serial_numbers",
     ),
-    # Goods types
-    path(
-        "<uuid:pk>/goodstype/<uuid:goods_type_pk>/document/",
-        documents.GoodsTypeDocumentView.as_view(),
-        name="goods_type_document",
-    ),
     # Parties
     path("<uuid:pk>/parties/", parties.ApplicationPartyView.as_view(), name="parties"),
     path("<uuid:pk>/parties/<uuid:party_pk>/", parties.ApplicationPartyView.as_view(), name="party"),

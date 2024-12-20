@@ -75,13 +75,10 @@ def populate_goods_flags(cases: List[Dict]):
     qs1 = Flag.objects.filter(goods__goods_on_application__application_id__in=case_ids).annotate(
         case_id=F("goods__goods_on_application__application_id"),
     )
-    qs2 = Flag.objects.filter(goods_type__application_id__in=case_ids).annotate(
-        case_id=F("goods_type__application_id"),
-    )
     qs3 = Flag.objects.filter(goods__good__id__in=case_ids).annotate(
         case_id=F("goods__good__id"),
     )
-    flags = qs1.union(qs2, qs3)
+    flags = qs1.union(qs3)
 
     for case in cases:
         case["goods_flags"] = CaseListFlagSerializer(

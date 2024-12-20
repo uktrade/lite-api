@@ -1,8 +1,6 @@
 from django.db import transaction
 from django.http import JsonResponse
 from rest_framework import status
-from rest_framework.exceptions import PermissionDenied
-from rest_framework.generics import get_object_or_404
 from rest_framework.views import APIView
 
 from api.audit_trail import service as audit_trail_service
@@ -10,15 +8,9 @@ from api.audit_trail.enums import AuditType
 from api.cases.libraries.get_case import get_case
 from api.cases.models import CaseAssignment
 from api.core.authentication import GovAuthentication
-from api.licences.enums import LicenceStatus
-from api.licences.models import Licence
 from lite_content.lite_api.strings import Cases
-from api.open_general_licences.helpers import issue_open_general_licence
-from api.open_general_licences.models import OpenGeneralLicenceCase
 from api.queues.models import Queue
 from api.queues.serializers import TinyQueueSerializer
-from api.staticdata.statuses.enums import CaseStatusEnum
-from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
 from api.workflow.user_queue_assignment import user_queue_assignment_workflow
 
 from lite_routing.routing_rules_internal.routing_engine import run_routing_rules
@@ -83,35 +75,6 @@ class AssignedQueues(APIView):
             return JsonResponse(
                 data={"errors": {"queues": [Cases.UnassignQueues.NO_QUEUES]}}, status=status.HTTP_400_BAD_REQUEST
             )
-
-
-class OpenGeneralLicenceReissue(APIView):
-    authentication_classes = (GovAuthentication,)
-
-    def post(self, request, pk):
-        """
-        Reissue an open general licence
-        """
-        open_general_licence_case = get_object_or_404(OpenGeneralLicenceCase, id=pk)
-
-        if Licence.objects.filter(
-            case=open_general_licence_case, status__in=[LicenceStatus.ISSUED, LicenceStatus.REINSTATED]
-        ).exists():
-            raise PermissionDenied({"confirm": [Cases.ReissueOGEL.ERROR]})
-
-        licence = issue_open_general_licence(open_general_licence_case)
-
-        open_general_licence_case.status = get_case_status_by_status(CaseStatusEnum.FINALISED)
-        open_general_licence_case.save()
-
-        audit_trail_service.create(
-            actor=request.user,
-            verb=AuditType.OGEL_REISSUED,
-            target=open_general_licence_case.get_case(),
-            payload={"additional_text": request.data.get("note")},
-        )
-
-        return JsonResponse(data={"licence": str(licence.pk)})
 
 
 class RerunRoutingRules(APIView):
