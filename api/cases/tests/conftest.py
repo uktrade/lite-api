@@ -109,8 +109,9 @@ def draft_standard_application(organisation):
 
 
 @pytest.fixture
-def submit_application(api_client, exporter_headers):
+def submit_application(api_client, exporter_headers, mocker):
     def _submit_application(draft_application):
+        mocker.patch("api.documents.libraries.s3_operations.upload_bytes_file", return_value=None)
         response = api_client.put(
             reverse(
                 "applications:application_submit",
