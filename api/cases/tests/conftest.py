@@ -63,12 +63,8 @@ def gov_user():
 
 
 @pytest.fixture()
-def lu_user(gov_user):
-    return gov_user
-
-
-@pytest.fixture()
-def lu_case_officer(gov_user, gov_user_permissions):
+def lu_case_officer(gov_user_permissions):
+    gov_user = GovUserFactory()
     gov_user.role = RoleFactory(name="Case officer", type=UserType.INTERNAL)
     gov_user.role.permissions.set(
         [
