@@ -1,6 +1,6 @@
 from django.urls import path
 
-from api.queues.views import queues, case_assignments
+from api.queues.views import bulk_approval, queues, case_assignments
 
 app_name = "queues"
 
@@ -12,4 +12,5 @@ urlpatterns = [
         case_assignments.CaseAssignments.as_view(),
         name="case_assignments",
     ),
+    path("<uuid:pk>/bulk-approval/", bulk_approval.BulkApprovalCreateView.as_view(), name="bulk_approval"),
 ]
