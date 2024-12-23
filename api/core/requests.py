@@ -13,6 +13,8 @@ from mohawk.exc import AlreadyProcessed
 
 from django.conf import settings
 
+logger = logging.getLogger(__name__)
+
 
 class RequestException(Exception):
     """Exceptions to raise when sending requests."""
@@ -69,7 +71,7 @@ def send_request(method, url, data=None, headers=None, timeout=None):
 def get_hawk_sender(method, url, data, credentials):
     content = serialize(data) if data else data
     credentials = settings.HAWK_CREDENTIALS.get(credentials)
-
+    logger.info(f"URL: {url}, Method: {method}, Body: {content}")
     return Sender(credentials, url, method, content=content, content_type="application/json", seen_nonce=_seen_nonce)
 
 
