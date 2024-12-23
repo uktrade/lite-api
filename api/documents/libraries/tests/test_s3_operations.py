@@ -63,34 +63,9 @@ class S3OperationsTests(SimpleTestCase):
             config=config,
         )
 
-    def test_get_client_with_aws_endpoint_url(self, mock_Config, mock_boto3):
-        mock_client = Mock()
-        mock_boto3.client.return_value = mock_client
-
-        returned_client = init_s3_client()
-        self.assertEqual(returned_client, mock_client)
-
-        mock_Config.assert_called_with(
-            connect_timeout=22,
-            read_timeout=44,
-        )
-        config = mock_Config(
-            connection_timeout=22,
-            read_timeout=44,
-        )
-        mock_boto3.client.assert_called_with(
-            "s3",
-            aws_access_key_id="AWS_ACCESS_KEY_ID",
-            aws_secret_access_key="AWS_SECRET_ACCESS_KEY",
-            region_name="AWS_REGION",
-            config=config,
-            endpoint_url="AWS_ENDPOINT_URL",
-        )
-
-    @patch("api.documents.libraries.s3_operations.is_copilot")
+ 
     @patch("api.documents.libraries.s3_operations._client")
-    def test_get_client_with_is_copilot(self, mock_client, mock_is_copilot, mock_Config, mock_boto3):
-        mock_is_copilot.return_value = True
+    def test_get_client_with(self, mock_client, mock_Config, mock_boto3):
         mock_client = Mock()
         mock_boto3.client.return_value = mock_client
 

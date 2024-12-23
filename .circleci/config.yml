@@ -13,7 +13,7 @@ image_python: &image_python
 image_python_node: &image_python_node
   image: cimg/python:3.9.18-node
 
-image_postgres13: &image_postgres13
+image_postgres: &image_postgres
   image: circleci/postgres:13
   environment:
     POSTGRES_USER: postgres
@@ -108,7 +108,7 @@ jobs:
   tests:
     docker:
       - <<: *image_python
-      - <<: *image_postgres13
+      - <<: *image_postgres
       - <<: *image_opensearch
       - <<: *image_redis
     working_directory: ~/lite-api
@@ -128,7 +128,7 @@ jobs:
   seeding_tests:
     docker:
       - <<: *image_python
-      - <<: *image_postgres13
+      - <<: *image_postgres
       - <<: *image_opensearch
     working_directory: ~/lite-api
     environment:
@@ -137,7 +137,7 @@ jobs:
     steps:
       - setup
       - run:
-          name: Run seeding tests on Postgres 13
+          name: Run seeding tests
           command: |
             pipenv run pytest --cov=. --cov-report xml --cov-config=.coveragerc -k seeding
       - upload_code_coverage:
@@ -146,7 +146,7 @@ jobs:
   anonymised_db_dump_tests:
     docker:
       - <<: *image_python
-      - <<: *image_postgres13
+      - <<: *image_postgres
       - <<: *image_opensearch
       - <<: *image_redis
     working_directory: ~/lite-api
@@ -156,7 +156,7 @@ jobs:
     steps:
       - setup
       - run:
-          name: Run anonymised DB dump tests on Postgres 13
+          name: Run anonymised DB dump tests
           command: |
             pipenv run pytest --cov=. --cov-report xml --cov-config=.coveragerc api/anonymised_db_dumps
       - upload_code_coverage:
@@ -165,7 +165,7 @@ jobs:
   requires_transactions_tests:
     docker:
       - <<: *image_python
-      - <<: *image_postgres13
+      - <<: *image_postgres
       - <<: *image_opensearch
       - <<: *image_redis
     working_directory: ~/lite-api
@@ -175,7 +175,7 @@ jobs:
     steps:
       - setup
       - run:
-          name: Run requiring transactions tests on Postgres 13
+          name: Run requiring transactions tests
           command: |
             pipenv run pytest --cov=. --cov-report xml --cov-config=.coveragerc -k requires_transactions
       - upload_code_coverage:
@@ -184,7 +184,7 @@ jobs:
   migration_tests:
     docker:
       - <<: *image_python
-      - <<: *image_postgres13
+      - <<: *image_postgres
       - <<: *image_opensearch
       - <<: *image_redis
     working_directory: ~/lite-api
@@ -205,7 +205,7 @@ jobs:
   lite_routing_tests:
     docker:
       - <<: *image_python
-      - <<: *image_postgres13
+      - <<: *image_postgres
       - <<: *image_opensearch
       - <<: *image_redis
     working_directory: ~/lite-api
@@ -226,7 +226,7 @@ jobs:
   lite_routing_bdd_tests:
     docker:
       - <<: *image_python_node
-      - <<: *image_postgres13
+      - <<: *image_postgres
       - <<: *image_opensearch
       - <<: *image_redis
     working_directory: ~/lite-api
@@ -256,7 +256,7 @@ jobs:
   open_search_tests:
     docker:
       - <<: *image_python
-      - <<: *image_postgres13
+      - <<: *image_postgres
       - <<: *image_opensearch
     working_directory: ~/lite-api
     environment:
@@ -275,7 +275,7 @@ jobs:
   check_migrations:
     docker:
       - <<: *image_python
-      - <<: *image_postgres13
+      - <<: *image_postgres
       - <<: *image_opensearch
     working_directory: ~/lite-api
     environment:
