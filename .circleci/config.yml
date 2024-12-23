@@ -291,7 +291,7 @@ jobs:
     docker:
       - <<: *image_python
       - <<: *image_postgres
-      - <<: *image_opensearch_v1
+      - <<: *image_opensearch
     working_directory: ~/lite-api
     environment:
       <<: *common_env_vars
