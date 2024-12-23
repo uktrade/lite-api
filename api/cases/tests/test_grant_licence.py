@@ -12,7 +12,6 @@ from api.cases.generated_documents.models import GeneratedCaseDocument
 from api.cases.generated_documents.tests.factories import SIELLicenceDocumentFactory
 from api.cases.tests.factories import FinalAdviceFactory
 from api.core.constants import GovPermissions
-from api.core.exceptions import PermissionDeniedError
 from api.licences.tests.factories import StandardLicenceFactory
 from lite_content.lite_api.strings import Cases
 from api.staticdata.decisions.models import Decision
@@ -76,7 +75,7 @@ class FinaliseCaseTests(DataTestClient):
         response = self.client.put(self.url, data={}, **self.gov_headers)
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
-        self.assertEqual(response.json(), {"errors": {"error": PermissionDeniedError.default_detail}})
+        self.assertEqual(response.json(), {"errors": {"detail": "You do not have permission to perform this action."}})
 
     def test_missing_advice_document_failure(self):
         StandardLicenceFactory(case=self.standard_case, status=LicenceStatus.DRAFT)
