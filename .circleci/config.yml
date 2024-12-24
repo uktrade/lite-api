@@ -85,7 +85,6 @@ commands:
           name: Install Dependencies
           command: |
             pipenv sync --dev
-            pipenv install endesive==1.5.9
       - save_cache:
           paths:
             - ./.venv
