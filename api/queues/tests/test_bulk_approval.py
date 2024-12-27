@@ -5,8 +5,11 @@ from django.urls import reverse
 from api.applications.models import StandardApplication
 from api.applications.tests.factories import DraftStandardApplicationFactory
 from api.cases.enums import AdviceLevel, AdviceType
+from api.flags.models import Flag
+from api.queues.views.bulk_approval import BULK_APPROVAL_FLAG_ID
 from api.staticdata.statuses.enums import CaseStatusEnum
 from api.staticdata.statuses.models import CaseStatus
+
 from lite_routing.routing_rules_internal.enums import QueuesEnum, TeamIdEnum
 
 pytestmark = pytest.mark.django_db
@@ -47,6 +50,8 @@ def test_user_bulk_approves_cases(api_client, gov_headers, fcdo_bulk_approval_ur
     response = api_client.post(fcdo_bulk_approval_url, data=data, **gov_headers)
     assert response.status_code == 201
 
+    bulk_approved_flag = Flag.objects.get(id=BULK_APPROVAL_FLAG_ID)
+
     for case in multiple_cases_ogd_queue:
         assert case.advice.filter(
             level=AdviceLevel.USER,
@@ -55,3 +60,4 @@ def test_user_bulk_approves_cases(api_client, gov_headers, fcdo_bulk_approval_ur
 
         assert QueuesEnum.FCDO not in [str(queue.id) for queue in case.queues.all()]
         assert QueuesEnum.FCDO_COUNTER_SIGNING in [str(queue.id) for queue in case.queues.all()]
+        assert bulk_approved_flag in case.flags.all()

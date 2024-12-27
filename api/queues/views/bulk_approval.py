@@ -10,8 +10,13 @@ from api.audit_trail.enums import AuditType
 from api.cases.enums import AdviceLevel, AdviceType
 from api.cases.models import Case, CaseAssignment
 from api.core.authentication import GovAuthentication
+from api.flags.enums import FlagLevels, FlagStatuses
+from api.flags.models import Flag
 from api.queues.models import Queue
 from api.workflow.user_queue_assignment import user_queue_assignment_workflow
+
+ADMIN_TEAM_ID = "00000000-0000-0000-0000-000000000001"
+BULK_APPROVAL_FLAG_ID = "28d0270d-5a4a-4fa6-9290-73fc9b4b00a9"
 
 
 class BulkApprovalCreateView(CreateAPIView):
@@ -23,6 +28,18 @@ class BulkApprovalCreateView(CreateAPIView):
         super().setup(request, *args, **kwargs)
         self.case_ids = []
         self.queue = Queue.objects.get(id=kwargs["pk"])
+        self.bulk_approved_flag, _ = Flag.objects.get_or_create(
+            id=BULK_APPROVAL_FLAG_ID,
+            name="Bulk approved",
+            alias="BULK_APPROVAL_FLAG_ID",
+            team_id=ADMIN_TEAM_ID,
+            level=FlagLevels.CASE,
+            status=FlagStatuses.ACTIVE,
+            blocks_finalising=False,
+        )
+
+    def mark_bulk_approved(self, case_ids):
+        self.bulk_approved_flag.cases.add(*case_ids)
 
     def move_case_forward(self, request, case_id):
         assignments = (
@@ -88,6 +105,8 @@ class BulkApprovalCreateView(CreateAPIView):
         serializer.is_valid(raise_exception=True)
 
         super().perform_create(serializer)
+
+        self.mark_bulk_approved(self.case_ids)
 
         self.move_cases_forward(request, self.case_ids)
 
