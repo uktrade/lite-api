@@ -111,6 +111,6 @@ class BulkApprovalCreateView(CreateAPIView):
         self.move_cases_forward(request, self.case_ids)
 
         return JsonResponse(
-            {},
+            {"case_ids": self.case_ids},
             status=status.HTTP_201_CREATED,
         )
