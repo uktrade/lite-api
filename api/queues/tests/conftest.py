@@ -7,6 +7,7 @@ from api.applications.tests.factories import DraftStandardApplicationFactory
 from api.core.constants import ExporterPermissions, GovPermissions, Roles
 from api.organisations.tests.factories import OrganisationFactory
 from api.parties.tests.factories import PartyDocumentFactory
+from api.teams.models import Team
 from api.users.libraries.user_to_token import user_to_token
 from api.users.models import BaseUser, Permission
 from api.users.enums import SystemUser, UserType
@@ -19,6 +20,11 @@ from api.users.tests.factories import (
 )
 
 pytestmark = pytest.mark.django_db
+
+
+@pytest.fixture(autouse=True)
+def setup(gov_user):
+    pass
 
 
 @pytest.fixture()
@@ -99,12 +105,34 @@ def lu_case_officer_headers(lu_case_officer):
 
 @pytest.fixture()
 def fcdo_officer():
-    return GovUserFactory()
+    gov_user = GovUserFactory()
+    gov_user.team = Team.objects.get(name="FCDO")
+    gov_user.save()
+    return gov_user
 
 
 @pytest.fixture()
 def fcdo_officer_headers(fcdo_officer):
     return {"HTTP_GOV_USER_TOKEN": user_to_token(fcdo_officer.baseuser_ptr)}
+
+
+@pytest.fixture()
+def fcdo_countersigner(gov_user_permissions):
+    gov_user = GovUserFactory()
+    gov_user.team = Team.objects.get(name="FCDO")
+    gov_user.role = RoleFactory(name="FCDO Countersigner", type=UserType.INTERNAL)
+    gov_user.role.permissions.set(
+        [
+            GovPermissions.MANAGE_TEAM_ADVICE.name,
+        ]
+    )
+    gov_user.save()
+    return gov_user
+
+
+@pytest.fixture()
+def fcdo_countersigner_headers(fcdo_countersigner):
+    return {"HTTP_GOV_USER_TOKEN": user_to_token(fcdo_countersigner.baseuser_ptr)}
 
 
 @pytest.fixture()
