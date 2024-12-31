@@ -13,4 +13,9 @@ urlpatterns = [
         name="case_assignments",
     ),
     path("<uuid:pk>/bulk-approval/", bulk_approval.BulkApprovalCreateView.as_view(), name="bulk_approval"),
+    path(
+        "<uuid:pk>/bulk-countersign-approval/",
+        bulk_approval.BulkCountersignApprovalUpdateView.as_view(),
+        name="bulk_countersign_approval",
+    ),
 ]

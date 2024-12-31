@@ -1,14 +1,14 @@
 from django.db import transaction
 from django.http import JsonResponse
 from rest_framework import status
-from rest_framework.generics import CreateAPIView
+from rest_framework.generics import CreateAPIView, UpdateAPIView
 
 from api.applications.models import StandardApplication
-from api.applications.serializers.advice import BulkApprovalAdviceSerializer
+from api.applications.serializers.advice import BulkApprovalAdviceSerializer, BulkCountersignApprovalAdviceSerializer
 from api.audit_trail import service as audit_trail_service
 from api.audit_trail.enums import AuditType
 from api.cases.enums import AdviceLevel, AdviceType
-from api.cases.models import Case, CaseAssignment
+from api.cases.models import Advice, Case, CaseAssignment
 from api.core.authentication import GovAuthentication
 from api.flags.enums import FlagLevels, FlagStatuses
 from api.flags.models import Flag
@@ -113,4 +113,73 @@ class BulkApprovalCreateView(CreateAPIView):
         return JsonResponse(
             {"case_ids": self.case_ids},
             status=status.HTTP_201_CREATED,
+        )
+
+
+class BulkCountersignApprovalUpdateView(UpdateAPIView):
+    authentication_classes = (GovAuthentication,)
+    # TODO: Add permission classes
+    serializer_class = BulkCountersignApprovalAdviceSerializer
+
+    def setup(self, request, *args, **kwargs):
+        super().setup(request, *args, **kwargs)
+        self.case_ids = []
+        self.queue = Queue.objects.get(id=kwargs["pk"])
+
+    def get_queryset(self, request_data):
+        self.case_ids = request_data["case_ids"]
+        team = request_data["advice"]["team"]
+        return Advice.objects.filter(
+            case_id__in=self.case_ids,
+            level=AdviceLevel.USER,
+            team=team,
+        )
+
+    def move_case_forward(self, request, case_id):
+        assignments = (
+            CaseAssignment.objects.select_related("queue")
+            .filter(case_id=case_id, queue=self.queue)
+            .order_by("queue__name")
+        )
+        case = Case.objects.get(id=case_id)
+
+        # Unassign existing case advisors to be able to move forward
+        if assignments:
+            assignments.delete()
+
+        # Run routing rules and move the case forward
+        user_queue_assignment_workflow([self.queue], case)
+
+        audit_trail_service.create(
+            actor=request.user,
+            verb=AuditType.UNASSIGNED_QUEUES,
+            target=case,
+            payload={"queues": [self.queue.name], "additional_text": ""},
+        )
+
+    def move_cases_forward(self, request, case_ids):
+        for case_id in case_ids:
+            self.move_case_forward(request, case_id)
+
+    @transaction.atomic
+    def update(self, request, *args, **kwargs):
+        request_data = request.data.copy()
+        instances = self.get_queryset(request_data)
+        data = [
+            {
+                "countersign_comments": request_data["advice"]["countersign_comments"],
+                "countersigned_by": request_data["advice"]["countersigned_by"],
+            }
+            for _ in instances
+        ]
+        serializer = self.get_serializer(instances, data=data, many=True, partial=True)
+        serializer.is_valid(raise_exception=True)
+
+        super().perform_update(serializer)
+
+        self.move_cases_forward(request, self.case_ids)
+
+        return JsonResponse(
+            {"case_ids": self.case_ids},
+            status=status.HTTP_200_OK,
         )

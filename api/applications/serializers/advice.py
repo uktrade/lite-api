@@ -328,3 +328,39 @@ class BulkApprovalAdviceSerializer(serializers.ModelSerializer):
             "third_party",
             "country",
         )
+
+
+class BulkCountersignApprovalListSerializer(serializers.ListSerializer):
+    def update(self, instances, validated_data):
+        instance_map = {index: instance for index, instance in enumerate(instances)}
+        result = [self.child.update(instance_map[index], data) for index, data in enumerate(validated_data)]
+        return result
+
+
+class BulkCountersignApprovalAdviceSerializer(serializers.ModelSerializer):
+    user = serializers.PrimaryKeyRelatedField(queryset=GovUser.objects.filter(status=UserStatuses.ACTIVE))
+    case = serializers.PrimaryKeyRelatedField(queryset=Case.objects.all())
+    countersigned_by = serializers.PrimaryKeyRelatedField(queryset=GovUser.objects.filter(status=UserStatuses.ACTIVE))
+
+    class Meta:
+        model = Advice
+        fields = (
+            "case",
+            "user",
+            "type",
+            "text",
+            "proviso",
+            "note",
+            "level",
+            "footnote",
+            "footnote_required",
+            "good",
+            "consignee",
+            "end_user",
+            "ultimate_end_user",
+            "third_party",
+            "country",
+            "countersign_comments",
+            "countersigned_by",
+        )
+        list_serializer_class = BulkCountersignApprovalListSerializer
