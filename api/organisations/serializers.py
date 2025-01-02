@@ -504,8 +504,7 @@ class OrganisationRegistrationNumberSerializer(serializers.Serializer):
         if not self.instance:
             if (
                 Organisation.objects.filter(registration_number=value)
-                .exclude(status=OrganisationStatus.REJECTED)
-                .exclude(status=OrganisationStatus.DRAFT)
+                .exclude(status__in=[OrganisationStatus.REJECTED, OrganisationStatus.DRAFT])
                 .exists()
             ):
                 raise serializers.ValidationError("This registration number is already in use.")
