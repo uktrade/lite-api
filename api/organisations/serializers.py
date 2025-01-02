@@ -505,6 +505,7 @@ class OrganisationRegistrationNumberSerializer(serializers.Serializer):
             if (
                 Organisation.objects.filter(registration_number=value)
                 .exclude(status=OrganisationStatus.REJECTED)
+                .exclude(status=OrganisationStatus.DRAFT)
                 .exists()
             ):
                 raise serializers.ValidationError("This registration number is already in use.")

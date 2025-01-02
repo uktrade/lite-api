@@ -973,9 +973,10 @@ class ValidateRegistrationNumberTests(DataTestClient):
             response.json(), {"errors": {"registration_number": ["This registration number is already in use."]}}
         )
 
-    def test_validate_registration_number_success_if_rejected_crn_used(self):
+    @parameterized.expand([OrganisationStatus.REJECTED, OrganisationStatus.DRAFT])
+    def test_validate_registration_number_success_for_rejected_or_draft_org(self, org_status):
         self.organisation.refresh_from_db()
-        self.organisation.status = OrganisationStatus.REJECTED
+        self.organisation.status = org_status
         self.organisation.save()
         data = {"registration_number": self.organisation.registration_number}
         response = self.client.post(self.url, data, **self.exporter_headers)
