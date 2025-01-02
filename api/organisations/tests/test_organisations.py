@@ -1,7 +1,6 @@
 import pytest
 
 from unittest import mock
-from django.conf import settings
 from faker import Faker
 from parameterized import parameterized
 
@@ -14,7 +13,6 @@ from api.audit_trail.models import Audit
 from api.core.authentication import EXPORTER_USER_TOKEN_HEADER
 from api.core.constants import Roles, GovPermissions
 from lite_content.lite_api.strings import Organisations
-from api.organisations.constants import UK_VAT_VALIDATION_REGEX, UK_EORI_VALIDATION_REGEX
 from api.organisations.enums import OrganisationType, OrganisationStatus
 from api.organisations.tests.factories import OrganisationFactory
 from api.organisations.models import Organisation
@@ -974,3 +972,12 @@ class ValidateRegistrationNumberTests(DataTestClient):
         self.assertEqual(
             response.json(), {"errors": {"registration_number": ["This registration number is already in use."]}}
         )
+
+    def test_validate_registration_number_success_if_rejected_crn_used(self):
+        self.organisation.refresh_from_db()
+        self.organisation.status = OrganisationStatus.REJECTED
+        self.organisation.save()
+        data = {"registration_number": self.organisation.registration_number}
+        response = self.client.post(self.url, data, **self.exporter_headers)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.json(), data)
