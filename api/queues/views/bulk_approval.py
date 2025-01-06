@@ -10,13 +10,14 @@ from api.audit_trail.enums import AuditType
 from api.cases.enums import AdviceLevel, AdviceType
 from api.cases.models import Case, CaseAssignment
 from api.core.authentication import GovAuthentication
+from api.core.permissions import CanCaseworkerBulkApprove
 from api.queues.models import Queue
 from api.workflow.user_queue_assignment import user_queue_assignment_workflow
 
 
 class BulkApprovalCreateView(CreateAPIView):
     authentication_classes = (GovAuthentication,)
-    # TODO: Add permission classes
+    permission_classes = [CanCaseworkerBulkApprove]
     serializer_class = BulkApprovalAdviceSerializer
 
     def setup(self, request, *args, **kwargs):

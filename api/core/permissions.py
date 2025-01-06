@@ -6,6 +6,15 @@ from api.organisations.libraries.get_organisation import get_request_user_organi
 from api.organisations.models import Organisation
 from api.users.models import GovUser
 
+from lite_routing.routing_rules_internal.enums import TeamIdEnum
+
+TEAMS_ALLOWED_TO_BULK_APPROVE = [
+    TeamIdEnum.MOD_CAPPROT,
+    TeamIdEnum.MOD_DI,
+    TeamIdEnum.MOD_DSR,
+    TeamIdEnum.MOD_DSTL,
+]
+
 
 def assert_user_has_permission(user, permission, organisation: Organisation = None):
     if isinstance(user, GovUser):
@@ -52,3 +61,8 @@ class CanCaseworkersManageOrgainsation(permissions.BasePermission):
 class CanCaseworkersIssueLicence(permissions.BasePermission):
     def has_permission(self, request, view):
         return check_user_has_permission(request.user.govuser, GovPermissions.MANAGE_LICENCE_FINAL_ADVICE)
+
+
+class CanCaseworkerBulkApprove(permissions.BasePermission):
+    def has_permission(self, request, view):
+        return str(request.user.govuser.team_id) in TEAMS_ALLOWED_TO_BULK_APPROVE
