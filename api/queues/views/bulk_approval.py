@@ -80,6 +80,20 @@ class BulkApprovalCreateView(CreateAPIView):
 
         return payload
 
+    def create_audit_event(self, request, cases):
+        audit_trail_service.create(
+            actor=request.user,
+            verb=AuditType.CREATE_BULK_APPROVAL_RECOMMENDATION,
+            target=self.queue,
+            payload={
+                "case_references": [case.reference_code for case in cases],
+                "decision": AdviceType.APPROVE,
+                "level": AdviceLevel.USER,
+                "queue": self.queue.name,
+                "team_id": str(request.user.govuser.team_id),
+            },
+        )
+
     @transaction.atomic
     def create(self, request, *args, **kwargs):
         data = self.build_instances_data(request)
@@ -87,6 +101,8 @@ class BulkApprovalCreateView(CreateAPIView):
         serializer.is_valid(raise_exception=True)
 
         super().perform_create(serializer)
+
+        self.create_audit_event(request, self.cases)
 
         self.move_cases_forward(request, self.cases)
 
