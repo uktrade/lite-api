@@ -52,3 +52,27 @@ class AuditEventMentionsFilter(filters.BaseFilterBackend):
             return queryset
 
         return queryset.filter(verb=AuditType.CREATED_CASE_NOTE_WITH_MENTIONS)
+
+
+class AuditEventBulkApprovalEventsFilter(filters.BaseFilterBackend):
+
+    def filter_queryset(self, request, queryset, view):
+        user_type = request.query_params.get("user_type")
+        audit_type = request.query_params.get("activity_type")
+        if user_type or audit_type:
+            return queryset
+
+        case = Case.objects.get(pk=view.kwargs["pk"])
+        bulk_approval_events = [
+            event
+            for event in Audit.objects.filter(verb=AuditType.CREATE_BULK_APPROVAL_RECOMMENDATION)
+            if case.reference_code in event.payload["case_references"]
+        ]
+
+        team_id = request.query_params.get("team_id")
+        if team_id:
+            bulk_approval_events = [event for event in bulk_approval_events if event.payload.get("team_id") == team_id]
+
+        bulk_approval_qs = Audit.objects.filter(id__in=[event.id for event in bulk_approval_events])
+
+        return queryset | bulk_approval_qs
