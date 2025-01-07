@@ -92,6 +92,7 @@ def test_user_bulk_approves_cases(api_client, mod_officer_headers, mod_bulk_appr
         "level": AdviceLevel.USER,
         "queue": Queue.objects.get(id=QueuesEnum.MOD_CAPPROT).name,
         "team_id": TeamIdEnum.MOD_CAPPROT,
+        "count": len(cases),
     }
 
 

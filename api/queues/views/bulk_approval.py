@@ -91,6 +91,7 @@ class BulkApprovalCreateView(CreateAPIView):
                 "level": AdviceLevel.USER,
                 "queue": self.queue.name,
                 "team_id": str(request.user.govuser.team_id),
+                "count": len(cases),
             },
         )
 
