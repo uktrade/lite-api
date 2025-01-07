@@ -6,13 +6,14 @@ from api.organisations.libraries.get_organisation import get_request_user_organi
 from api.organisations.models import Organisation
 from api.users.models import GovUser
 
-from lite_routing.routing_rules_internal.enums import TeamIdEnum
+from lite_routing.routing_rules_internal.enums import QueuesEnum
 
-TEAMS_ALLOWED_TO_BULK_APPROVE = [
-    TeamIdEnum.MOD_CAPPROT,
-    TeamIdEnum.MOD_DI,
-    TeamIdEnum.MOD_DSR,
-    TeamIdEnum.MOD_DSTL,
+BULK_APPROVE_ALLOWED_QUEUES = [
+    QueuesEnum.MOD_CAPPROT,
+    QueuesEnum.MOD_DI_DIRECT,
+    QueuesEnum.MOD_DI_INDIRECT,
+    QueuesEnum.MOD_DSR,
+    QueuesEnum.MOD_DSTL,
 ]
 
 
@@ -65,4 +66,5 @@ class CanCaseworkersIssueLicence(permissions.BasePermission):
 
 class CanCaseworkerBulkApprove(permissions.BasePermission):
     def has_permission(self, request, view):
-        return str(request.user.govuser.team_id) in TEAMS_ALLOWED_TO_BULK_APPROVE
+        queue_pk = view.kwargs["pk"]
+        return str(queue_pk) in BULK_APPROVE_ALLOWED_QUEUES

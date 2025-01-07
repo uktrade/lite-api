@@ -4,7 +4,7 @@ from django.urls import reverse
 from rest_framework.test import APIClient
 
 from api.applications.tests.factories import DraftStandardApplicationFactory
-from api.core.constants import ExporterPermissions, GovPermissions, Roles
+from api.core.constants import ExporterPermissions, GovPermissions
 from api.organisations.tests.factories import OrganisationFactory
 from api.parties.tests.factories import PartyDocumentFactory
 from api.teams.models import Team
