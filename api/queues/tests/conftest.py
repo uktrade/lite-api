@@ -76,13 +76,7 @@ def gov_headers(gov_user):
 
 @pytest.fixture()
 def gov_user():
-    gov_user = GovUserFactory()
-    gov_user.role = RoleFactory(
-        id=Roles.INTERNAL_DEFAULT_ROLE_ID, type=UserType.INTERNAL.value, name=Roles.INTERNAL_DEFAULT_ROLE_NAME
-    )
-    gov_user.save()
-
-    return gov_user
+    return GovUserFactory()
 
 
 @pytest.fixture()
