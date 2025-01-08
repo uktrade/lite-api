@@ -8,7 +8,6 @@ from api.audit_trail.models import Audit
 from api.audit_trail import service as audit_trail_service
 from api.audit_trail.serializers import AuditSerializer
 from api.cases.views.search.activity_filters import (
-    AuditEventBulkApprovalEventsFilter,
     AuditEventCaseFilter,
     AuditEventExporterUserFilter,
     AuditEventMentionsFilter,
@@ -25,7 +24,6 @@ class CaseActivityView(ListAPIView):
         AuditEventExporterUserFilter,
         AuditEventMentionsFilter,
         AuditEventTeamFilter,
-        AuditEventBulkApprovalEventsFilter,
     ]
     serializer_class = AuditSerializer
     queryset = Audit.objects.all()

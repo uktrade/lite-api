@@ -82,18 +82,15 @@ def test_user_bulk_approves_cases(api_client, mod_officer_headers, mod_bulk_appr
 
         assert QueuesEnum.MOD_CAPPROT not in [str(queue.id) for queue in case.queues.all()]
         assert QueuesEnum.MOD_ECJU_REVIEW_AND_COMBINE in [str(queue.id) for queue in case.queues.all()]
-
-    audit_event = Audit.objects.get(
-        verb=AuditType.CREATE_BULK_APPROVAL_RECOMMENDATION, target_object_id=QueuesEnum.MOD_CAPPROT
-    )
-    assert audit_event.payload == {
-        "case_references": [case.reference_code for case in cases],
-        "decision": AdviceType.APPROVE,
-        "level": AdviceLevel.USER,
-        "queue": Queue.objects.get(id=QueuesEnum.MOD_CAPPROT).name,
-        "team_id": TeamIdEnum.MOD_CAPPROT,
-        "count": len(cases),
-    }
+        audit_event = Audit.objects.get(target_object_id=case.id, verb=AuditType.CREATE_BULK_APPROVAL_RECOMMENDATION)
+        assert audit_event.payload == {
+            "case_references": [case.reference_code for case in cases],
+            "decision": AdviceType.APPROVE,
+            "level": AdviceLevel.USER,
+            "queue": Queue.objects.get(id=QueuesEnum.MOD_CAPPROT).name,
+            "team_id": TeamIdEnum.MOD_CAPPROT,
+            "count": len(cases),
+        }
 
 
 def test_user_bulk_approves_fails_for_unsupported_users(
@@ -125,3 +122,7 @@ def test_user_bulk_approves_fails_for_unsupported_users(
         )
 
         assert QueuesEnum.FCDO in [str(queue.id) for queue in case.queues.all()]
+        assert (
+            Audit.objects.filter(target_object_id=case.id, verb=AuditType.CREATE_BULK_APPROVAL_RECOMMENDATION).exists()
+            is False
+        )

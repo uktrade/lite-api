@@ -7,6 +7,7 @@ from api.applications.models import StandardApplication
 from api.applications.serializers.advice import BulkApprovalAdviceSerializer
 from api.audit_trail import service as audit_trail_service
 from api.audit_trail.enums import AuditType
+from api.audit_trail.models import Audit
 from api.cases.enums import AdviceLevel, AdviceType
 from api.cases.models import Case, CaseAssignment
 from api.core.authentication import GovAuthentication
@@ -80,20 +81,26 @@ class BulkApprovalCreateView(CreateAPIView):
 
         return payload
 
-    def create_audit_event(self, request, cases):
-        audit_trail_service.create(
-            actor=request.user,
-            verb=AuditType.CREATE_BULK_APPROVAL_RECOMMENDATION,
-            target=self.queue,
-            payload={
-                "case_references": [case.reference_code for case in cases],
-                "decision": AdviceType.APPROVE,
-                "level": AdviceLevel.USER,
-                "queue": self.queue.name,
-                "team_id": str(request.user.govuser.team_id),
-                "count": len(cases),
-            },
-        )
+    def create_audit_events(self, request, cases):
+        case_references = [case.reference_code for case in cases]
+        events = [
+            Audit(
+                actor=request.user.govuser,
+                verb=AuditType.CREATE_BULK_APPROVAL_RECOMMENDATION,
+                target=case,
+                payload={
+                    "case_references": case_references,
+                    "decision": AdviceType.APPROVE,
+                    "level": AdviceLevel.USER,
+                    "queue": self.queue.name,
+                    "team_id": str(request.user.govuser.team_id),
+                    "count": len(cases),
+                },
+            )
+            for case in cases
+        ]
+
+        Audit.objects.bulk_create(events)
 
     @transaction.atomic
     def create(self, request, *args, **kwargs):
@@ -103,7 +110,7 @@ class BulkApprovalCreateView(CreateAPIView):
 
         super().perform_create(serializer)
 
-        self.create_audit_event(request, self.cases)
+        self.create_audit_events(request, self.cases)
 
         self.move_cases_forward(request, self.cases)
 
