@@ -4,7 +4,7 @@ from django.urls import reverse
 from rest_framework.test import APIClient
 
 from api.applications.tests.factories import DraftStandardApplicationFactory
-from api.core.constants import ExporterPermissions, GovPermissions
+from api.core.constants import ExporterPermissions, GovPermissions, Roles
 from api.organisations.tests.factories import OrganisationFactory
 from api.parties.tests.factories import PartyDocumentFactory
 from api.teams.models import Team
@@ -76,7 +76,13 @@ def gov_headers(gov_user):
 
 @pytest.fixture()
 def gov_user():
-    return GovUserFactory()
+    gov_user = GovUserFactory()
+    gov_user.role = RoleFactory(
+        id=Roles.INTERNAL_DEFAULT_ROLE_ID, type=UserType.INTERNAL.value, name=Roles.INTERNAL_DEFAULT_ROLE_NAME
+    )
+    gov_user.save()
+
+    return gov_user
 
 
 @pytest.fixture()

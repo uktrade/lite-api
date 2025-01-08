@@ -19,12 +19,12 @@ pytestmark = pytest.mark.django_db
 
 @pytest.fixture
 def fcdo_bulk_approval_url():
-    return reverse("queues:bulk_approval", kwargs={"pk": QueuesEnum.FCDO})
+    return reverse("caseworker_queues:bulk_approval", kwargs={"pk": QueuesEnum.FCDO})
 
 
 @pytest.fixture
 def mod_bulk_approval_url():
-    return reverse("queues:bulk_approval", kwargs={"pk": QueuesEnum.MOD_CAPPROT})
+    return reverse("caseworker_queues:bulk_approval", kwargs={"pk": QueuesEnum.MOD_CAPPROT})
 
 
 @pytest.fixture
