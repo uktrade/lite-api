@@ -1154,6 +1154,27 @@ class SearchAPITest(DataTestClient):
             expected_submitted_at = expected_submitted_at[:-6] + "Z"
         self.assertEqual(case_api_result["submitted_at"], expected_submitted_at)
 
+    def test_api_multiple_cases_flags_correct(self):
+        # Create two cases..
+        self._create_data()
+        self._create_data()
+        # Add a case flag to each case..
+        flag_alias = "REFER_TO_FCDO_MEUC_CONCERNS"
+        flag = Flag.objects.get(alias=flag_alias)
+        all_cases = Case.objects.all()
+        for case in all_cases:
+            case.flags.add(flag)
+
+        # Perform the search
+        response = self.client.get(self.url, **self.gov_headers)
+        response_data = response.json()["results"]
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response_data["cases"]), 2)
+        for search_result in response_data["cases"]:
+            self.assertEqual(len(search_result["flags"]), 1)
+            self.assertEqual(search_result["flags"][0]["alias"], flag_alias)
+
     def test_api_no_advice(self):
         self._create_data()
         response = self.client.get(self.url, **self.gov_headers)
