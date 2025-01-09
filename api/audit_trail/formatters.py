@@ -351,3 +351,7 @@ def exporter_submitted_amendment(**payload):
 
 def amendment_created(**payload):
     return f"created the case to supersede {payload['superseded_case']['reference_code']}."
+
+
+def create_bulk_approval_recommendation(**payload):
+    return f"added bulk approval recommendation on {payload['queue']} queue."

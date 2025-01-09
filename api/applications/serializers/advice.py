@@ -303,3 +303,28 @@ class CountryWithFlagsSerializer(serializers.Serializer):
             return list(instance.flags.filter(status=FlagStatuses.ACTIVE).values("id", "name", "colour", "label"))
         else:
             return list(instance.flags.values("id", "name", "colour", "label"))
+
+
+class BulkApprovalAdviceSerializer(serializers.ModelSerializer):
+    user = serializers.PrimaryKeyRelatedField(queryset=GovUser.objects.filter(status=UserStatuses.ACTIVE))
+    case = serializers.PrimaryKeyRelatedField(queryset=Case.objects.all())
+
+    class Meta:
+        model = Advice
+        fields = (
+            "case",
+            "user",
+            "type",
+            "text",
+            "proviso",
+            "note",
+            "level",
+            "footnote",
+            "footnote_required",
+            "good",
+            "consignee",
+            "end_user",
+            "ultimate_end_user",
+            "third_party",
+            "country",
+        )
