@@ -336,6 +336,28 @@ class Case(TimestampableModel):
 
         notify_exporter_no_licence_required(self)
 
+    def move_case_forward(self, queue, user):
+        from api.audit_trail import service as audit_trail_service
+        from api.workflow.user_queue_assignment import user_queue_assignment_workflow
+
+        assignments = (
+            CaseAssignment.objects.select_related("queue").filter(case=self, queue=queue).order_by("queue__name")
+        )
+
+        # Unassign existing case advisors to be able to move forward
+        if assignments:
+            assignments.delete()
+
+        # Run routing rules and move the case forward
+        user_queue_assignment_workflow([queue], self)
+
+        audit_trail_service.create(
+            actor=user,
+            verb=AuditType.UNASSIGNED_QUEUES,
+            target=self,
+            payload={"queues": [queue.name], "additional_text": ""},
+        )
+
     @transaction.atomic
     def finalise(self, user, decisions, note):
         from api.audit_trail import service as audit_trail_service
