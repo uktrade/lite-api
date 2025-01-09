@@ -2,10 +2,8 @@ from django.utils import timezone
 from rest_framework import serializers
 
 from api.addresses.serializers import AddressSerializer
-from api.cases.enums import CaseTypeEnum
 from api.cases.models import Case
-from api.compliance.models import ComplianceSiteCase, ComplianceVisitCase, OpenLicenceReturns
-from api.compliance.serializers.OpenLicenceReturns import OpenLicenceReturnsListSerializer
+from api.compliance.models import ComplianceSiteCase, ComplianceVisitCase
 from api.core.serializers import PrimaryKeyRelatedSerializerField
 from api.licences.enums import LicenceStatus
 from api.licences.models import Licence
@@ -28,7 +26,6 @@ class ComplianceSiteViewSerializer(serializers.ModelSerializer):
     organisation = PrimaryKeyRelatedSerializerField(
         queryset=Organisation.objects.all(), serializer=OrganisationDetailSerializer
     )
-    open_licence_returns = serializers.SerializerMethodField()
     visits = serializers.SerializerMethodField()
     team = None
 
@@ -40,7 +37,6 @@ class ComplianceSiteViewSerializer(serializers.ModelSerializer):
             "status",
             "organisation",
             "visits",
-            "open_licence_returns",
         )
 
     def __init__(self, *args, **kwargs):
@@ -77,13 +73,6 @@ class ComplianceSiteViewSerializer(serializers.ModelSerializer):
             for case in visit_cases
         ]
 
-    def get_open_licence_returns(self, instance):
-        queryset = OpenLicenceReturns.objects.filter(organisation_id=instance.organisation_id).order_by(
-            "-year", "-created_at"
-        )
-
-        return OpenLicenceReturnsListSerializer(queryset, many=True).data
-
 
 class ComplianceLicenceListSerializer(serializers.ModelSerializer):
     flags = serializers.SerializerMethodField()
@@ -110,13 +99,6 @@ class ComplianceLicenceListSerializer(serializers.ModelSerializer):
         return get_ordered_flags(case=instance, team=self.team, limit=3)
 
     def get_status(self, instance):
-        # Not all case types contain a licence, for example OGLs do not. As a result we display the case status
-        if instance.case_type.id in CaseTypeEnum.OPEN_GENERAL_LICENCE_IDS:
-            return {
-                "key": instance.status.status,
-                "value": get_status_value_from_case_status_enum(instance.status.status),
-            }
-
         # The latest non draft licence should be the only non-draft licence on a case or the licence that was active
         last_licence = (
             Licence.objects.filter(case_id=instance.id)

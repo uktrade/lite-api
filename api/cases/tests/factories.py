@@ -10,13 +10,11 @@ from api.cases.models import (
     CaseStatus,
     CaseType,
     EcjuQuery,
-    GoodCountryDecision,
     DepartmentSLA,
+    LicenceDecision,
 )
 from api.queues.tests.factories import QueueFactory
 from api.organisations.tests.factories import OrganisationFactory
-from api.goodstype.tests.factories import GoodsTypeFactory
-from api.staticdata.countries.factories import CountryFactory
 from api.teams.tests.factories import TeamFactory, DepartmentFactory
 from api.users.tests.factories import BaseUserFactory, GovUserFactory
 
@@ -72,15 +70,6 @@ class CountersignAdviceFactory(factory.django.DjangoModelFactory):
         model = CountersignAdvice
 
 
-class GoodCountryDecisionFactory(factory.django.DjangoModelFactory):
-    goods_type = factory.SubFactory(GoodsTypeFactory, application=factory.SelfAttribute("..case"))
-    country = factory.SubFactory(CountryFactory)
-    approve = True
-
-    class Meta:
-        model = GoodCountryDecision
-
-
 class CaseSIELFactory(CaseFactory):
     case_type_id = CaseTypeEnum.SIEL.id
 
@@ -125,3 +114,8 @@ class CaseNoteFactory(factory.django.DjangoModelFactory):
 
     class Meta:
         model = CaseNote
+
+
+class LicenceDecisionFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = LicenceDecision

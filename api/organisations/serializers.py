@@ -502,7 +502,11 @@ class OrganisationRegistrationNumberSerializer(serializers.Serializer):
     def validate_registration_number(self, value):
         # Check for uniqueness only when creating a new Organisation
         if not self.instance:
-            if Organisation.objects.filter(registration_number=value).exists():
+            if (
+                Organisation.objects.filter(registration_number=value)
+                .exclude(status__in=[OrganisationStatus.REJECTED, OrganisationStatus.DRAFT])
+                .exists()
+            ):
                 raise serializers.ValidationError("This registration number is already in use.")
 
         return value

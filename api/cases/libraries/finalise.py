@@ -1,7 +1,7 @@
 from api.audit_trail.models import Audit
 from api.applications.models import GoodOnApplication
-from api.cases.enums import AdviceType, CaseTypeSubTypeEnum, AdviceLevel
-from api.cases.models import Advice, GoodCountryDecision
+from api.cases.enums import AdviceType, AdviceLevel
+from api.cases.models import Advice
 from api.flags.models import Flag
 
 
@@ -30,16 +30,6 @@ def get_required_decision_document_types(case):
 
     if not has_controlled_good and AdviceType.NO_LICENCE_REQUIRED in required_decisions:
         required_decisions.discard(AdviceType.APPROVE)
-
-    # If Open application, use GoodCountryDecision to override whether approve/refuse is needed.
-    if case.case_type.sub_type == CaseTypeSubTypeEnum.OPEN:
-        # Approve is only applicable if there is an approved GoodCountryDecision
-        required_decisions.discard(AdviceType.APPROVE)
-        decisions = GoodCountryDecision.objects.filter(case=case).values_list("approve", flat=True)
-        if True in decisions:
-            required_decisions.add(AdviceType.APPROVE)
-        if False in decisions:
-            required_decisions.add(AdviceType.REFUSE)
 
     return required_decisions
 

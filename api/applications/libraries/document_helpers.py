@@ -6,8 +6,6 @@ from api.applications.serializers.document import ApplicationDocumentSerializer
 from api.applications.serializers.good import DocumentOnOrganisationSerializer
 from api.audit_trail import service as audit_trail_service
 from api.audit_trail.enums import AuditType
-from api.goodstype.document.models import GoodsTypeDocument
-from api.goodstype.document.serializers import GoodsTypeDocumentSerializer
 from api.parties.enums import PartyDocumentType, PartyType
 from api.parties.models import PartyDocument
 from api.parties.serializers import PartyDocumentSerializer
@@ -140,41 +138,5 @@ def delete_party_document(party, application, user):
             target=application.get_case(),
             payload={"party_type": party.type.replace("_", " "), "party_name": party.name, "file_name": document.name},
         )
-
-    return HttpResponse(status=status.HTTP_204_NO_CONTENT)
-
-
-def get_goods_type_document(goods_type):
-    if not goods_type:
-        return JsonResponse(data={"error": "No such goods type"}, status=status.HTTP_400_BAD_REQUEST)
-
-    documents = GoodsTypeDocument.objects.filter(goods_type=goods_type)
-    return _get_document(documents)
-
-
-def upload_goods_type_document(goods_type, data):
-    if not goods_type:
-        return JsonResponse(data={"error": "No such goods type"}, status=status.HTTP_400_BAD_REQUEST)
-
-    documents = GoodsTypeDocument.objects.filter(goods_type=goods_type)
-    if documents.exists():
-        return JsonResponse(data={"error": "Document already exists"}, status=status.HTTP_400_BAD_REQUEST)
-
-    data["goods_type"] = goods_type.id
-    serializer = GoodsTypeDocumentSerializer(data=data)
-
-    if not serializer.is_valid():
-        return JsonResponse({"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
-
-    serializer.save()
-
-    return JsonResponse({"document": serializer.data}, status=status.HTTP_201_CREATED)
-
-
-def delete_goods_type_document(goods_type):
-    documents = GoodsTypeDocument.objects.filter(goods_type=goods_type)
-    for document in documents:
-        document.delete_s3()
-        document.delete()
 
     return HttpResponse(status=status.HTTP_204_NO_CONTENT)

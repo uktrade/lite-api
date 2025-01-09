@@ -46,17 +46,6 @@ class DecoratorTests(DataTestClient):
         resp = a_view(request=None, pk=application.pk)
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
 
-    def test_allowed_application_types_failure(self):
-        application = self.create_standard_application_case(self.organisation)
-
-        @allowed_application_types(application_types=[CaseTypeSubTypeEnum.OPEN])
-        def a_view(request, *args, **kwargs):
-            return HttpResponse()
-
-        resp = a_view(request=None, pk=application.pk)
-        self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertTrue("This operation can only be used on applications of type:" in resp.content.decode("utf-8"))
-
     @parameterized.expand(get_case_statuses(read_only=False))
     def test_application_in_state_editable_success(self, editable_status):
         application = self.create_standard_application_case(self.organisation)

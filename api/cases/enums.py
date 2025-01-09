@@ -124,7 +124,6 @@ class CaseTypeSubTypeEnum:
             CaseTypeSubTypeEnum.EXHIBITION,
             CaseTypeSubTypeEnum.F680,
             CaseTypeSubTypeEnum.GIFTING,
-            CaseTypeSubTypeEnum.OPEN,
         ]
 
     @classmethod

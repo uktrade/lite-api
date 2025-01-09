@@ -1897,10 +1897,6 @@ components:
           type: string
           format: uuid
           nullable: true
-        goods_type:
-          type: string
-          format: uuid
-          nullable: true
         country:
           type: string
           nullable: true

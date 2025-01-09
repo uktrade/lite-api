@@ -86,7 +86,7 @@ INSTALLED_APPS = [
     "api.documents",
     "api.flags",
     "api.goods",
-    "api.goodstype",
+    "api.goodstype",  # this can't be removed yet as migrations need to be kept as dependencies
     "api.gov_users",
     "api.letter_templates",
     "api.licences",
@@ -97,7 +97,6 @@ INSTALLED_APPS = [
     "api.queries.goods_query",
     "api.queries.end_user_advisories",
     "api.queues",
-    "api.open_general_licences",
     "rest_framework",
     "api.staticdata",
     "api.staticdata.case_types",
@@ -405,7 +404,7 @@ SANCTION_LIST_SOURCES = env.json(
     {
         "un_sanctions_file": "https://scsanctions.un.org/resources/xml/en/consolidated.xml",
         "office_financial_sanctions_file": "https://ofsistorage.blob.core.windows.net/publishlive/2022format/ConList.xml",
-        "uk_sanctions_file": "https://assets.publishing.service.gov.uk/media/65ca02639c5b7f0012951caf/UK_Sanctions_List.xml",  # /PS-IGNORE
+        "uk_sanctions_file": "https://assets.publishing.service.gov.uk/media/6776a7d49d03f12136308d1c/UK_Sanctions_List.xml",  # /PS-IGNORE
     },
 )
 LITE_INTERNAL_NOTIFICATION_EMAILS = env.json("LITE_INTERNAL_NOTIFICATION_EMAILS", {})

@@ -1,9 +1,14 @@
 from django.urls import reverse
-from pytest_bdd import given, parsers, scenarios, when
+from pytest_bdd import (
+    given,
+    parsers,
+    scenarios,
+    when,
+)
 
 from api.applications.tests.factories import GoodOnApplicationFactory
-from api.licences.tests.factories import StandardLicenceFactory
 from api.licences.enums import LicenceStatus
+from api.licences.tests.factories import StandardLicenceFactory
 from api.staticdata.report_summaries.models import (
     ReportSummaryPrefix,
     ReportSummarySubject,

@@ -1,4 +1,3 @@
-from django.db.models import Q
 from django.http import JsonResponse
 from rest_framework import status
 from rest_framework.exceptions import ErrorDetail
@@ -14,7 +13,7 @@ from api.audit_trail.enums import AuditType
 from api.cases.enums import AdviceLevel, AdviceType
 from api.cases.generated_documents.models import GeneratedCaseDocument
 from api.cases.libraries.get_case import get_case
-from api.cases.models import Advice, GoodCountryDecision
+from api.cases.models import Advice
 from api.core import constants
 from api.core.constants import GovPermissions
 from api.core.permissions import assert_user_has_permission
@@ -42,26 +41,6 @@ def check_refusal_errors(advice):
     if advice.get("type") and advice["type"].lower() == AdviceType.REFUSE and not advice["text"]:
         return {"text": [ErrorDetail(string=strings.Cases.ADVICE_REFUSAL_ERROR, code="blank")]}
     return None
-
-
-def update_good_country_decisions(data):
-    """
-    Delete any GoodCountryDecision's that may now be invalid
-    (the country or goods type are no longer approved)
-    """
-    refused_good_types_ids = [
-        advice["goods_type"]
-        for advice in data
-        if advice.get("goods_type") and advice["type"] not in [AdviceType.APPROVE, AdviceType.PROVISO]
-    ]
-    refused_country_ids = [
-        advice["country"]
-        for advice in data
-        if advice.get("country") and advice["type"] not in [AdviceType.APPROVE, AdviceType.PROVISO]
-    ]
-    GoodCountryDecision.objects.filter(
-        Q(country_id__in=refused_country_ids) | Q(goods_type_id__in=refused_good_types_ids)
-    ).delete()
 
 
 def post_advice(request, case, level, team=False):
@@ -112,8 +91,6 @@ def post_advice(request, case, level, team=False):
             )
 
         if level == AdviceLevel.FINAL:
-            # Remove GoodCountryDecision if changing approve decision for applicable country/goods type
-            update_good_country_decisions(data)
             # Remove outdated draft decision documents if advice changes
             GeneratedCaseDocument.objects.filter(
                 case_id=case.id, advice_type__isnull=False, visible_to_exporter=False

@@ -3,7 +3,7 @@ from django.http import JsonResponse
 from rest_framework.generics import ListCreateAPIView, RetrieveAPIView, ListAPIView, RetrieveUpdateAPIView
 from rest_framework import status
 
-from api.cases.enums import CaseTypeSubTypeEnum, AdviceType, AdviceLevel, CaseTypeEnum
+from api.cases.enums import CaseTypeSubTypeEnum, AdviceType, AdviceLevel
 from api.cases.generated_documents.models import GeneratedCaseDocument
 from api.cases.models import CaseType
 from api.core.authentication import ExporterAuthentication, GovAuthentication
@@ -46,11 +46,9 @@ class Licences(ListCreateAPIView):
         end_user = self.request.GET.get("end_user")
         active_only = self.request.GET.get("active_only") == "True"
 
-        # OGL's are always hidden as we don't treat them as a licence
-        # and they shouldn't be viewed from this endpoint
         licences = Licence.objects.filter(
             case__organisation_id=get_request_user_organisation_id(self.request),
-        ).exclude(Q(case__case_type__id__in=CaseTypeEnum.OPEN_GENERAL_LICENCE_IDS) | Q(status=LicenceStatus.DRAFT))
+        ).exclude(Q(status=LicenceStatus.DRAFT))
 
         # Apply filters
         if licence_type in [LicenceType.LICENCE, LicenceType.CLEARANCE]:
@@ -64,7 +62,6 @@ class Licences(ListCreateAPIView):
         if clc:
             licences = licences.filter(
                 Q(case__baseapplication__goods__good__control_list_entries__rating=clc)
-                | Q(case__baseapplication__goods_type__control_list_entries__rating=clc)
             ).distinct()
 
         if end_user:
