@@ -60,7 +60,7 @@ def case_subjects(case):
 def test_user_bulk_approves_cases(api_client, mod_officer_headers, mod_bulk_approval_url, multiple_cases_ogd_queue):
     cases = multiple_cases_ogd_queue(QueuesEnum.MOD_CAPPROT, count=25)
     data = {
-        "case_ids": [str(case.id) for case in cases],
+        "cases": [str(case.id) for case in cases],
         "advice": {
             "text": "No concerns",
             "proviso": "",
