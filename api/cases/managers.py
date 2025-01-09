@@ -323,6 +323,7 @@ class CaseManager(QueryablePropertiesManager):
                 "queues",
                 "queues__team",
                 "baseapplication__licences",
+                "flags",
                 Prefetch(
                     "baseapplication__parties",
                     to_attr="end_user_parties",

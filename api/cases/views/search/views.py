@@ -59,7 +59,6 @@ class CasesSearchView(generics.ListAPIView):
         # Populate certain fields outside of the serializer for performance improvements
         service.populate_goods_flags(cases)
         service.populate_destinations_flags(cases)
-        service.populate_other_flags(cases)
         service.populate_organisation(cases)
         service.populate_is_recently_updated(cases)
         service.populate_activity_updates(case_map)
