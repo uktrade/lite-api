@@ -910,7 +910,7 @@ class OpenEcjuQueriesForTeamOnWorkQueueTests(DataTestClient):
         super().setUp()
 
         self.other_team = self.create_team("other team")
-        self.other_team_gov_user = self.create_gov_user("new_user@digital.trade.gov.uk", self.other_team)
+        self.other_team_gov_user = self.create_gov_user("new_user@digital.trade.gov.uk", self.other_team)  # /PS-IGNORE
         self.queue = self.create_queue("my new queue", self.team)
         self.case = self.create_standard_application_case(self.organisation)
         self.case.queues.set([self.queue])
@@ -1011,7 +1011,7 @@ class SearchAPITest(DataTestClient):
         self._create_data()
         self.advice = FinalAdviceFactory(user=self.gov_user, case=self.case, type=AdviceType.APPROVE, good=self.good)
         self.gov_user2 = self.create_gov_user(
-            team=self.create_team(name="other_team"), email="new_user2@digital.trade.gov.uk"
+            team=self.create_team(name="other_team"), email="new_user2@digital.trade.gov.uk"  # /PS-IGNORE
         )
         self.group_advice = FinalAdviceFactory(
             user=self.gov_user2, case=self.case, type=AdviceType.REFUSE, good=self.good
@@ -1148,11 +1148,32 @@ class SearchAPITest(DataTestClient):
             ],
         )
 
-        # Reflect rest framework's way of rendering datetime objects... https://github.com/encode/django-rest-framework/blob/c9e7b68a4c1db1ac60e962053380acda549609f3/rest_framework/utils/encoders.py#L29
+        # Reflect rest framework's way of rendering datetime objects... https://github.com/encode/django-rest-framework/blob/c9e7b68a4c1db1ac60e962053380acda549609f3/rest_framework/utils/encoders.py#L29  /PS-IGNORE
         expected_submitted_at = self.case.submitted_at.isoformat()
         if expected_submitted_at.endswith("+00:00"):
             expected_submitted_at = expected_submitted_at[:-6] + "Z"
         self.assertEqual(case_api_result["submitted_at"], expected_submitted_at)
+
+    def test_api_multiple_cases_flags_correct(self):
+        # Create two cases..
+        self._create_data()
+        self._create_data()
+        # Add a case flag to each case..
+        flag_alias = "REFER_TO_FCDO_MEUC_CONCERNS"
+        flag = Flag.objects.get(alias=flag_alias)
+        all_cases = Case.objects.all()
+        for case in all_cases:
+            case.flags.add(flag)
+
+        # Perform the search
+        response = self.client.get(self.url, **self.gov_headers)
+        response_data = response.json()["results"]
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response_data["cases"]), 2)
+        for search_result in response_data["cases"]:
+            self.assertEqual(len(search_result["flags"]), 1)
+            self.assertEqual(search_result["flags"][0]["alias"], flag_alias)
 
     def test_api_no_advice(self):
         self._create_data()

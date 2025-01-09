@@ -16,6 +16,7 @@ from api.cases import serializers as cases_serializers
 from api.applications.serializers.advice import AdviceSearchViewSerializer
 from api.cases.models import Case, EcjuQuery, Advice
 from api.common.dates import working_days_in_range, number_of_days_since
+from api.flags.models import Flag
 from api.flags.serializers import CaseListFlagSerializer
 from api.organisations.models import Organisation
 from api.staticdata.statuses.enums import CaseStatusEnum
@@ -50,27 +51,7 @@ def get_advice_types_list():
     return AdviceType.to_representation()
 
 
-def populate_other_flags(cases: List[Dict]):
-    from api.flags.models import Flag
-
-    case_ids = [case["id"] for case in cases]
-
-    union_flags = set(
-        [
-            *Flag.objects.filter(cases__id__in=case_ids).annotate(case_id=F("cases__id")),
-            *Flag.objects.filter(organisations__cases__id__in=case_ids).annotate(case_id=F("organisations__cases__id")),
-        ]
-    )
-
-    for case in cases:
-        case_id = str(case["id"])
-        flags = [flag for flag in union_flags if str(flag.case_id) == case_id]
-        case["flags"] = CaseListFlagSerializer(flags, many=True).data
-
-
 def populate_goods_flags(cases: List[Dict]):
-    from api.flags.models import Flag
-
     case_ids = [case["id"] for case in cases]
     qs1 = Flag.objects.filter(goods__goods_on_application__application_id__in=case_ids).annotate(
         case_id=F("goods__goods_on_application__application_id"),
