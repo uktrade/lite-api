@@ -1,6 +1,6 @@
+import importlib
 import logging
 import os
-import sys
 from pathlib import Path
 from urllib.parse import urlencode
 
@@ -366,13 +366,9 @@ SIGNING_LOCATION = env("SIGNING_LOCATION")
 SIGNING_REASON = env("SIGNING_REASON")
 
 # Django Extensions
-if DEBUG and "django_extensions" in sys.modules:
-    INSTALLED_APPS.append("django_extensions")
-
-    GRAPH_MODELS = {
-        "all_applications": False,
-        "group_models": True,
-    }
+if DEBUG:
+    if importlib.util.find_spec("django_extensions"):
+        INSTALLED_APPS.append("django_extensions")
 
 
 # SSO config
