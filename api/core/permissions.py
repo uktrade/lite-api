@@ -47,3 +47,8 @@ class CaseInCaseworkerOperableStatus(permissions.BasePermission):
 class CanCaseworkersManageOrgainsation(permissions.BasePermission):
     def has_permission(self, request, view):
         return check_user_has_permission(request.user.govuser, GovPermissions.MANAGE_ORGANISATIONS)
+
+
+class CanCaseworkersIssueLicence(permissions.BasePermission):
+    def has_permission(self, request, view):
+        return check_user_has_permission(request.user.govuser, GovPermissions.MANAGE_LICENCE_FINAL_ADVICE)
