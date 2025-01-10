@@ -289,8 +289,8 @@ class OrganisationCreateUpdateSerializer(serializers.ModelSerializer):
         if not self.instance:
             if (
                 Organisation.objects.filter(registration_number=value)
-                .exists()
                 .exclude(status__in=[OrganisationStatus.REJECTED, OrganisationStatus.DRAFT])
+                .exists()
             ):
                 raise serializers.ValidationError("This registration number is already in use.")
 
