@@ -8,13 +8,14 @@ from api.users.models import GovUser
 
 from lite_routing.routing_rules_internal.enums import QueuesEnum
 
-BULK_APPROVE_ALLOWED_QUEUES = [
-    QueuesEnum.MOD_CAPPROT,
-    QueuesEnum.MOD_DI_DIRECT,
-    QueuesEnum.MOD_DI_INDIRECT,
-    QueuesEnum.MOD_DSR,
-    QueuesEnum.MOD_DSTL,
-]
+BULK_APPROVE_ALLOWED_QUEUES = {
+    "MOD_CAPPROT": QueuesEnum.MOD_CAPPROT,
+    "MOD_DI_DIRECT": QueuesEnum.MOD_DI_DIRECT,
+    "MOD_DI_INDIRECT": QueuesEnum.MOD_DI_INDIRECT,
+    "MOD_DSR": QueuesEnum.MOD_DSR,
+    "MOD_DSTL": QueuesEnum.MOD_DSTL,
+    "NCSC": QueuesEnum.NCSC,
+}
 
 
 def assert_user_has_permission(user, permission, organisation: Organisation = None):
@@ -67,4 +68,4 @@ class CanCaseworkersIssueLicence(permissions.BasePermission):
 class CanCaseworkerBulkApprove(permissions.BasePermission):
     def has_permission(self, request, view):
         queue_pk = view.kwargs["pk"]
-        return str(queue_pk) in BULK_APPROVE_ALLOWED_QUEUES
+        return str(queue_pk) in BULK_APPROVE_ALLOWED_QUEUES.values()
