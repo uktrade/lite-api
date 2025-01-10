@@ -11,7 +11,7 @@ from queryable_properties.managers import (
     QueryablePropertiesQuerySet,
 )
 
-from api.cases.enums import AdviceLevel, CaseTypeEnum
+from api.cases.enums import AdviceLevel, CaseTypeEnum, LicenceDecisionType
 from api.cases.helpers import get_assigned_to_user_case_ids, get_assigned_as_case_officer_case_ids
 from api.common.enums import SortOrder
 from api.cases.enums import AdviceType
@@ -169,9 +169,17 @@ class CaseQuerySet(QueryablePropertiesQuerySet):
     def with_finalised_range(self, finalised_from, finalised_to):
         qs = self.filter(status__status=CaseStatusEnum.FINALISED)
         if finalised_from:
-            qs = qs.filter(advice__level=AdviceLevel.FINAL, advice__created_at__date__gte=finalised_from)
+            qs = qs.filter(
+                Q(licence_decisions__decision=LicenceDecisionType.ISSUED)
+                | Q(licence_decisions__decision=LicenceDecisionType.ISSUED_ON_APPEAL),
+                licence_decisions__created_at__date__gte=finalised_from,
+            )
         if finalised_to:
-            qs = qs.filter(advice__level=AdviceLevel.FINAL, advice__created_at__date__lte=finalised_to)
+            qs = qs.filter(
+                Q(licence_decisions__decision=LicenceDecisionType.ISSUED)
+                | Q(licence_decisions__decision=LicenceDecisionType.ISSUED_ON_APPEAL),
+                licence_decisions__created_at__date__lte=finalised_to,
+            )
         return qs
 
     def with_party_name(self, party_name):
@@ -320,6 +328,7 @@ class CaseManager(QueryablePropertiesManager):
                 "case_assignments__user__baseuser_ptr",
                 "case_assignments__user__team",
                 "case_assignments__queue",
+                "licence_decisions",
                 "queues",
                 "queues__team",
                 "baseapplication__licences",
