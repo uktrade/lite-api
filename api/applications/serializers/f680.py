@@ -145,7 +145,7 @@ class F680ApplicationViewSerializer(PartiesSerializerMixin, GenericApplicationVi
             return CaseLicenceViewSerializer(licence).data
 
     def get_denial_matches(self, instance):
-        denial_matches = instance.denial_matches.filter(denial__is_revoked=False)
+        denial_matches = instance.denial_matches.filter(denial_entity__denial__is_revoked=False)
         return DenialMatchOnApplicationViewSerializer(denial_matches, many=True).data
 
     def get_is_amended(self, instance):
