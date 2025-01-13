@@ -175,7 +175,7 @@ class CreateOrganisationTests(DataTestClient):
                     "region": "Hertfordshire",
                     "postcode": "AL1 4GT",
                     "city": "St Albans",
-                }
+                },
             ],
             [{"address": "123", "country": "PL"}],
         ]
@@ -245,6 +245,51 @@ class CreateOrganisationTests(DataTestClient):
         mocked_notify_caseworker_new_registration.assert_called_with(
             {"organisation_name": data["name"], "applicant_email": data["user"]["email"]}
         )
+
+    def test_create_commercial_organisation_as_exporter_success_with_previously_rejected_or_draft_crn(self):
+        data = {
+            "name": "Lemonworld Co",
+            "type": OrganisationType.COMMERCIAL,
+            "eori_number": "GB123456789000",
+            "sic_number": "01110",
+            "vat_number": "GB123456789",
+            "registration_number": "98765432",
+            "phone_number": "+441234567895",
+            "website": "",
+            "site": {
+                "name": "Headquarters",
+                "address": {
+                    "address_line_1": "42 Industrial Estate",
+                    "address_line_2": "Queens Road",
+                    "region": "Hertfordshire",
+                    "postcode": "AL1 4GT",
+                    "city": "St Albans",
+                },
+            },
+            "user": {"email": "trinity@bsg.com"},
+        }
+        response = self.client.post(
+            self.url, data, **{EXPORTER_USER_TOKEN_HEADER: user_to_token(self.exporter_user.baseuser_ptr)}
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        organisation = Organisation.objects.get(id=response.json()["id"])
+        organisation.status = OrganisationStatus.REJECTED
+        organisation.save()
+        response = self.client.post(
+            self.url, data, **{EXPORTER_USER_TOKEN_HEADER: user_to_token(self.exporter_user.baseuser_ptr)}
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        organisation = Organisation.objects.get(id=response.json()["id"])
+        organisation.status = OrganisationStatus.DRAFT
+        organisation.save()
+        response = self.client.post(
+            self.url, data, **{EXPORTER_USER_TOKEN_HEADER: user_to_token(self.exporter_user.baseuser_ptr)}
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
     def test_create_organisation_phone_number_mandatory(self):
         data = {
