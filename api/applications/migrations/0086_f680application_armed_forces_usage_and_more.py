@@ -7,22 +7,22 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("applications", "0080_f680application"),
+        ("applications", "0080_f680application"),  # /PS-IGNORE
     ]
 
     operations = [
         migrations.AddField(
-            model_name="f680application",
+            model_name="f680application",  # /PS-IGNORE
             name="armed_forces_usage",
             field=models.BooleanField(blank=True, default=None, null=True),
         ),
         migrations.AddField(
-            model_name="f680application",
+            model_name="f680application",  # /PS-IGNORE
             name="armed_forces_usage_details",
             field=models.TextField(blank=True, default=""),
         ),
         migrations.AddField(
-            model_name="f680application",
+            model_name="f680application",  # /PS-IGNORE
             name="clearances",
             field=django.contrib.postgres.fields.ArrayField(
                 base_field=models.CharField(
@@ -41,7 +41,7 @@ class Migration(migrations.Migration):
             ),
         ),
         migrations.AddField(
-            model_name="f680application",
+            model_name="f680application",  # /PS-IGNORE
             name="cryptography",
             field=models.BooleanField(
                 blank=True,
@@ -51,59 +51,59 @@ class Migration(migrations.Migration):
             ),
         ),
         migrations.AddField(
-            model_name="f680application",
+            model_name="f680application",  # /PS-IGNORE
             name="ew_data",
             field=models.BooleanField(blank=True, default=None, null=True),
         ),
         migrations.AddField(
-            model_name="f680application",
+            model_name="f680application",  # /PS-IGNORE
             name="exceptional_circumstances",
             field=models.BooleanField(blank=True, default=False, null=True),
         ),
         migrations.AddField(
-            model_name="f680application",
+            model_name="f680application",  # /PS-IGNORE
             name="foreign_technology_information",
             field=models.BooleanField(blank=True, default=None, null=True),
         ),
         migrations.AddField(
-            model_name="f680application",
+            model_name="f680application",  # /PS-IGNORE
             name="foreign_technology_information_details",
             field=models.TextField(blank=True, default=""),
         ),
         migrations.AddField(
-            model_name="f680application",
+            model_name="f680application",  # /PS-IGNORE
             name="is_list_X_company",
             field=models.BooleanField(
                 blank=True, default=None, help_text="indicates whether it is a list X company or site", null=True
             ),
         ),
         migrations.AddField(
-            model_name="f680application",
+            model_name="f680application",  # /PS-IGNORE
             name="is_list_X_company_other_information",
             field=models.TextField(blank=True, default=""),
         ),
         migrations.AddField(
-            model_name="f680application",
+            model_name="f680application",  # /PS-IGNORE
             name="is_local_assembly_manufacture",
             field=models.BooleanField(blank=True, default=None, null=True),
         ),
         migrations.AddField(
-            model_name="f680application",
+            model_name="f680application",  # /PS-IGNORE
             name="is_local_assembly_manufacture_details",
             field=models.TextField(blank=True, default=""),
         ),
         migrations.AddField(
-            model_name="f680application",
+            model_name="f680application",  # /PS-IGNORE
             name="open_licence_more_details",
             field=models.TextField(blank=True, default=""),
         ),
         migrations.AddField(
-            model_name="f680application",
+            model_name="f680application",  # /PS-IGNORE
             name="other_information",
             field=models.TextField(blank=True, default=""),
         ),
         migrations.AddField(
-            model_name="f680application",
+            model_name="f680application",  # /PS-IGNORE
             name="product_funding",
             field=models.TextField(
                 blank=True,
@@ -112,7 +112,7 @@ class Migration(migrations.Migration):
             ),
         ),
         migrations.AddField(
-            model_name="f680application",
+            model_name="f680application",  # /PS-IGNORE
             name="product_mtcr_rating_type",
             field=models.TextField(
                 blank=True,
@@ -126,12 +126,12 @@ class Migration(migrations.Migration):
             ),
         ),
         migrations.AddField(
-            model_name="f680application",
+            model_name="f680application",  # /PS-IGNORE
             name="product_mtcr_rating_type_details",
             field=models.TextField(blank=True, default=""),
         ),
         migrations.AddField(
-            model_name="f680application",
+            model_name="f680application",  # /PS-IGNORE
             name="requires_open_licence",
             field=models.BooleanField(
                 blank=True, default=None, help_text="does this clearance requires an open licence", null=True
