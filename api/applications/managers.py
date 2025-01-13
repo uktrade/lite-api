@@ -45,7 +45,8 @@ class StandardApplicationManager(BaseApplicationManager):
                 "status",
                 "submitted_by",
                 "submitted_by__baseuser_ptr",
-            ).prefetch_related(
+            )
+            .prefetch_related(
                 "goods",
                 "goods__control_list_entries",
                 "goods__good",
@@ -130,7 +131,6 @@ class F680ApplicationManager(BaseApplicationManager):
                 "goods__regime_entries__subsection__regime",
                 "goods__good__report_summary_prefix",
                 "goods__good__report_summary_subject",
-                "goods__audit_trail",
                 "goods__goodonapplicationdocument_set",
                 "goods__goodonapplicationdocument_set__user",
                 "goods__good_on_application_internal_documents",
