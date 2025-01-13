@@ -6,6 +6,7 @@ from api.applications.models import StandardApplication
 from api.applications.tests.factories import DraftStandardApplicationFactory
 from api.audit_trail.enums import AuditType
 from api.audit_trail.models import Audit
+from api.audit_trail.serializers import AuditSerializer
 from api.cases.enums import AdviceLevel, AdviceType
 from api.cases.models import CaseAssignment
 from api.cases.tests.factories import CaseAssignmentFactory
@@ -151,6 +152,8 @@ def test_user_bulk_approves_cases(
             "team_id": team_id,
             "count": len(cases),
         }
+        audit_text = AuditSerializer(audit_event).data["text"]
+        assert audit_text == "added a recommendation using the Approve button in the queue."
 
 
 @pytest.mark.parametrize(
