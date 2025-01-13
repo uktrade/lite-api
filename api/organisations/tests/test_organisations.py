@@ -285,6 +285,9 @@ class CreateOrganisationTests(DataTestClient):
         organisation = Organisation.objects.get(id=response.json()["id"])
         organisation.status = OrganisationStatus.DRAFT
         organisation.save()
+        response = self.client.post(
+            self.url, data, **{EXPORTER_USER_TOKEN_HEADER: user_to_token(self.exporter_user.baseuser_ptr)}
+        )
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
