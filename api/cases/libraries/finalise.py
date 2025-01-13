@@ -1,9 +1,7 @@
 from api.audit_trail.models import Audit
-from api.cases.enums import AdviceType, CaseTypeEnum, CaseTypeSubTypeEnum, AdviceLevel
-from api.cases.models import Advice, GoodCountryDecision
-from api.applications.models import GoodOnApplication
-from api.cases.enums import AdviceType, AdviceLevel
+from api.cases.enums import AdviceType, CaseTypeEnum, AdviceLevel
 from api.cases.models import Advice
+from api.applications.models import GoodOnApplication
 from api.flags.models import Flag
 
 
