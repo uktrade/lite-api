@@ -33,6 +33,8 @@ from api.compliance.serializers.ComplianceSiteCaseSerializers import ComplianceS
 from api.compliance.serializers.ComplianceVisitCaseSerializers import ComplianceVisitSerializer
 from api.core.serializers import KeyValueChoiceField, PrimaryKeyRelatedSerializerField
 from api.documents.libraries.process_document import process_document
+from api.flags.serializers import CaseListFlagSerializer
+from api.flags.models import Flag
 from api.gov_users.serializers import GovUserSimpleSerializer
 from api.organisations.models import Organisation
 from api.organisations.serializers import TinyOrganisationViewSerializer
@@ -122,6 +124,7 @@ class CaseListSerializer(serializers.Serializer):
     intended_end_use = serializers.SerializerMethodField()
     end_users = serializers.SerializerMethodField()
     sub_status = CaseSubStatusSerializer()
+    flags = PrimaryKeyRelatedSerializerField(many=True, queryset=Flag.objects.all(), serializer=CaseListFlagSerializer)
 
     def __init__(self, *args, **kwargs):
         self.team = kwargs.pop("team", None)
