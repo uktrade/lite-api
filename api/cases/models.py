@@ -151,6 +151,7 @@ class Case(TimestampableModel):
             AdviceType.REFUSE: cls.refuse,
             AdviceType.NO_LICENCE_REQUIRED: cls.no_licence_required,
             AdviceType.INFORM: lambda x: x,
+            AdviceType.F680: lambda x: x,
         }
 
     def _reset_sub_status_on_status_change(self):
