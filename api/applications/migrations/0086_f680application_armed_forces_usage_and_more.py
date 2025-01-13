@@ -7,7 +7,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("applications", "0080_f680application"),  # /PS-IGNORE
+        ("applications", "0085_f680application"),  # /PS-IGNORE
     ]
 
     operations = [
