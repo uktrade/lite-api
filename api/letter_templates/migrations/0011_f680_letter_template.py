@@ -3,7 +3,6 @@
 from django.db import migrations
 
 
-
 def populate_f680_letter_template(apps, schema_editor):
 
     CASETYPE_F680_ID = "00000000-0000-0000-0000-000000000007"
@@ -14,53 +13,46 @@ def populate_f680_letter_template(apps, schema_editor):
     LetterTemplates = apps.get_model("letter_templates", "LetterTemplate")
     PicklistItem = apps.get_model("picklists", "PicklistItem")
     Team = apps.get_model("teams", "Team")
-       
 
     lu_team = Team.objects.get(pk=LICENSING_UNIT_ID)
 
-    text = '''Dear {{addressee.name}} 
+    text = """Dear {{addressee.name}}
     **Application reference: {{ case_reference }}**
-    Thank you for your export licence application dated {{case_submitted_at|date:"jS F Y"}}. 
-    Your F680 Application has been approved. 
+    Thank you for your export licence application dated {{case_submitted_at|date:"jS F Y"}}.
+    Your F680 Application has been approved.
 
     Yours sincerely
-    Prototype 
-    F680 Team'''
+    Prototype
+    F680 Team"""
 
     pick_list_item = PicklistItem.objects.create(
-    team=lu_team,
-    name='F680 P1',
-    text=text,
-    type="letter_paragraph",
-    status="active",
+        team=lu_team,
+        name="F680 P1",
+        text=text,
+        type="letter_paragraph",
+        status="active",
     )
     pick_list_item.save()
 
-    # Create the template 
-    
-    f680_letter_layout= LetterLayout.objects.create(
-        name='F680 Letter', 
-        filename="f680_letter"
-    )
+    # Create the template
+
+    f680_letter_layout = LetterLayout.objects.create(name="F680 Letter", filename="f680_letter")
     f680_letter_layout.save()
-    
+
     f680_letter_template = LetterTemplates.objects.create(
-        name="F680 letter",
-        layout=f680_letter_layout,
-        visible_to_exporter=False, 
-        include_digital_signature=True
+        name="F680 letter", layout=f680_letter_layout, visible_to_exporter=False, include_digital_signature=True
     )
- 
+
     f680_letter_template.letter_paragraphs.set([pick_list_item.id])
     f680_letter_template.case_types.set([CASETYPE_F680_ID])
     f680_letter_template.decisions.set([ADVICETYPE_APPROVAL_ID])
-    f680_letter_template.save()        
+    f680_letter_template.save()
 
 
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("letter_templates", "0009_refusal_letter_update_fix"),
+        ("letter_templates", "0010_refusal_letter_picklist_update_team_ownership"),
     ]
 
     operations = [
