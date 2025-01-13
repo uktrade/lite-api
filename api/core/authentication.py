@@ -23,6 +23,7 @@ ORGANISATION_ID = "HTTP_ORGANISATION_ID"
 
 MISSING_TOKEN_ERROR = "You must supply the correct token in your headers"  # nosec
 ORGANISATION_DEACTIVATED_ERROR = "Organisation is not activated or not in draft"
+ORGANISATION_NOT_FOUND_ERROR = "Organisation does not exist"
 USER_DEACTIVATED_ERROR = "User is not active for this organisation"
 USER_NOT_FOUND_ERROR = "User does not exist"
 
@@ -45,6 +46,12 @@ class ExporterBaseAuthentication(authentication.BaseAuthentication):
         except ExporterUser.DoesNotExist:
             raise PermissionDeniedError(USER_NOT_FOUND_ERROR)
 
+    def get_exporter_organisation(self, organisation_id):
+        try:
+            return Organisation.objects.get(id=organisation_id)
+        except ExporterUser.DoesNotExist:
+            raise Organisation(ORGANISATION_NOT_FOUND_ERROR)
+
     def check_organisation(self, user_id, organisation_id, organisation_status):
         if not Organisation.objects.filter(id=organisation_id, status=organisation_status).exists():
             raise PermissionDeniedError(ORGANISATION_DEACTIVATED_ERROR)
@@ -66,7 +73,9 @@ class ExporterAuthentication(ExporterBaseAuthentication):
 
         exporter_user_token, user_id, organisation_id = self.get_header_data(request)
 
-        self.check_organisation(user_id, organisation_id, OrganisationStatus.ACTIVE)
+        organisation = self.get_exporter_organisation(organisation_id)
+
+        self.check_organisation(user_id, organisation.id, organisation.status)
 
         exporter_user = self.get_exporter_user(user_id)
 
