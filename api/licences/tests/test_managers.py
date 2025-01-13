@@ -12,9 +12,7 @@ class LicenceTests(DataTestClient):
         StandardLicenceFactory(status=LicenceStatus.DRAFT, case=case)
         issued_licence = StandardLicenceFactory(status=LicenceStatus.ISSUED, case=case)
         cancelled_licence = StandardLicenceFactory(status=LicenceStatus.CANCELLED, case=case)
-        assert sorted(list(Licence.objects.filter_non_draft_licences(application=application))) == sorted(
-            [
-                issued_licence,
-                cancelled_licence,
-            ]
-        )
+        assert list(Licence.objects.filter_non_draft_licences(application=application).order_by("reference_code")) == [
+            issued_licence,
+            cancelled_licence,
+        ]
