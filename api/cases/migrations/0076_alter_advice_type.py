@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("cases", "0063_ecjuquery_chaser_email_sent_on"),
+        ("cases", "0075_update_licence_decision_denial_reasons"),
     ]
 
     operations = [
