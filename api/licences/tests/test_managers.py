@@ -9,10 +9,12 @@ class LicenceTests(DataTestClient):
     def test_manager_filter_non_draft_licences(self):
         application = StandardApplicationFactory()
         case = application.case_ptr
-        draft_licence = StandardLicenceFactory(status=LicenceStatus.DRAFT, case=case)
+        StandardLicenceFactory(status=LicenceStatus.DRAFT, case=case)
         issued_licence = StandardLicenceFactory(status=LicenceStatus.ISSUED, case=case)
         cancelled_licence = StandardLicenceFactory(status=LicenceStatus.CANCELLED, case=case)
-        assert list(Licence.objects.filter_non_draft_licences(application=application)) == [
-            issued_licence,
-            cancelled_licence,
-        ]
+        assert sorted(list(Licence.objects.filter_non_draft_licences(application=application))) == sorted(
+            [
+                issued_licence,
+                cancelled_licence,
+            ]
+        )
