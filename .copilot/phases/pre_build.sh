@@ -14,7 +14,7 @@ if [ -f "./.gitmodules" ]; then
 
     sed -i "s|url = git@github.com:uktrade/\(.*\).git|url = $git_clone_base_url/\1.git|g" ./.gitmodules
 
-    git submodule update --init --remote --recursive
+    git submodule update --init --recursive
 
 else
   echo ".gitmodules file does not exist. No URLs to update."
