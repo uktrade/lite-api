@@ -1,16 +1,13 @@
 from unittest import mock
 from parameterized import parameterized
 
-from django.urls import reverse
-from rest_framework.request import Request
-from rest_framework.test import APIRequestFactory
 
 from api.core.permissions import BULK_APPROVE_ALLOWED_QUEUES, CanCaseworkerBulkApprove, CaseInCaseworkerOperableStatus
 from api.applications.tests.factories import StandardApplicationFactory
 from api.queues.caseworker.views.bulk_approval import BulkApprovalCreateView
 from api.staticdata.statuses.enums import CaseStatusEnum
 from api.staticdata.statuses.models import CaseStatus
-from lite_routing.routing_rules_internal.enums import QueuesEnum, TeamIdEnum
+from lite_routing.routing_rules_internal.enums import QueuesEnum
 
 from test_helpers.clients import DataTestClient
 

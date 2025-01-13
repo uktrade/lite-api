@@ -354,4 +354,4 @@ def amendment_created(**payload):
 
 
 def create_bulk_approval_recommendation(**payload):
-    return f"added a recommendation using the Approve button in the queue."
+    return "added a recommendation using the Approve button in the queue."

@@ -23,16 +23,6 @@ from lite_routing.routing_rules_internal.enums import QueuesEnum, TeamIdEnum
 pytestmark = pytest.mark.django_db
 
 
-@pytest.fixture
-def fcdo_bulk_approval_url():
-    return reverse("caseworker_queues:bulk_approval", kwargs={"pk": QueuesEnum.FCDO})
-
-
-@pytest.fixture
-def mod_bulk_approval_url():
-    return reverse("caseworker_queues:bulk_approval", kwargs={"pk": QueuesEnum.MOD_CAPPROT})
-
-
 @pytest.fixture()
 def team_case_advisor():
     def _team_case_advisor(team_id):
