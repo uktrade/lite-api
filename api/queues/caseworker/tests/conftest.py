@@ -9,7 +9,7 @@ from api.organisations.tests.factories import OrganisationFactory
 from api.parties.tests.factories import PartyDocumentFactory
 from api.teams.models import Team
 from api.users.libraries.user_to_token import user_to_token
-from api.users.models import BaseUser, Permission
+from api.users.models import BaseUser, Permission, Role
 from api.users.enums import SystemUser, UserType
 from api.users.tests.factories import (
     BaseUserFactory,
@@ -77,6 +77,9 @@ def gov_headers(gov_user):
 @pytest.fixture()
 def gov_user():
     gov_user = GovUserFactory()
+    if Role.objects.filter(id=Roles.INTERNAL_DEFAULT_ROLE_ID, type=UserType.INTERNAL.value).exists():
+        return gov_user
+
     gov_user.role = RoleFactory(
         id=Roles.INTERNAL_DEFAULT_ROLE_ID, type=UserType.INTERNAL.value, name=Roles.INTERNAL_DEFAULT_ROLE_NAME
     )
