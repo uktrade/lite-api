@@ -6,6 +6,17 @@ from api.organisations.libraries.get_organisation import get_request_user_organi
 from api.organisations.models import Organisation
 from api.users.models import GovUser
 
+from lite_routing.routing_rules_internal.enums import QueuesEnum
+
+BULK_APPROVE_ALLOWED_QUEUES = {
+    "MOD_CAPPROT": QueuesEnum.MOD_CAPPROT,
+    "MOD_DI_DIRECT": QueuesEnum.MOD_DI_DIRECT,
+    "MOD_DI_INDIRECT": QueuesEnum.MOD_DI_INDIRECT,
+    "MOD_DSR": QueuesEnum.MOD_DSR,
+    "MOD_DSTL": QueuesEnum.MOD_DSTL,
+    "NCSC": QueuesEnum.NCSC,
+}
+
 
 def assert_user_has_permission(user, permission, organisation: Organisation = None):
     if isinstance(user, GovUser):
@@ -52,3 +63,9 @@ class CanCaseworkersManageOrgainsation(permissions.BasePermission):
 class CanCaseworkersIssueLicence(permissions.BasePermission):
     def has_permission(self, request, view):
         return check_user_has_permission(request.user.govuser, GovPermissions.MANAGE_LICENCE_FINAL_ADVICE)
+
+
+class CanCaseworkerBulkApprove(permissions.BasePermission):
+    def has_permission(self, request, view):
+        queue_pk = view.kwargs["pk"]
+        return str(queue_pk) in BULK_APPROVE_ALLOWED_QUEUES.values()
