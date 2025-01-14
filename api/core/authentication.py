@@ -26,6 +26,8 @@ ORGANISATION_DEACTIVATED_ERROR = "Organisation is not activated or not in draft"
 USER_DEACTIVATED_ERROR = "User is not active for this organisation"
 USER_NOT_FOUND_ERROR = "User does not exist"
 
+logger = logging.getLogger(__name__)
+
 
 class ExporterBaseAuthentication(authentication.BaseAuthentication):
     def get_header_data(self, request):
@@ -45,14 +47,13 @@ class ExporterBaseAuthentication(authentication.BaseAuthentication):
         except ExporterUser.DoesNotExist:
             raise PermissionDeniedError(USER_NOT_FOUND_ERROR)
 
-    def check_organisation(self, user_id, organisation_id, organisation_status):
-        if not Organisation.objects.filter(id=organisation_id, status=organisation_status).exists():
-            raise PermissionDeniedError(ORGANISATION_DEACTIVATED_ERROR)
+    def check_organisation(self, organisation_id, organisation_status):
+        return Organisation.objects.filter(id=organisation_id, status=organisation_status).exists()
 
-        if not UserOrganisationRelationship.objects.filter(
+    def check_user(self, user_id, organisation_id):
+        return UserOrganisationRelationship.objects.filter(
             user_id=user_id, organisation_id=organisation_id, status=UserStatuses.ACTIVE
-        ).exists():
-            raise PermissionDeniedError(USER_DEACTIVATED_ERROR)
+        ).exists()
 
 
 class ExporterAuthentication(ExporterBaseAuthentication):
@@ -66,7 +67,15 @@ class ExporterAuthentication(ExporterBaseAuthentication):
 
         exporter_user_token, user_id, organisation_id = self.get_header_data(request)
 
-        self.check_organisation(user_id, organisation_id, OrganisationStatus.ACTIVE)
+        org_exists = self.check_organisation(organisation_id, OrganisationStatus.ACTIVE)
+        if not org_exists:
+            logger.exception(ORGANISATION_DEACTIVATED_ERROR)
+            raise PermissionDeniedError(ORGANISATION_DEACTIVATED_ERROR)
+
+        user_active = self.check_user(user_id, organisation_id)
+        if not user_active:
+            logger.exception(USER_DEACTIVATED_ERROR)
+            raise PermissionDeniedError(USER_DEACTIVATED_ERROR)
 
         exporter_user = self.get_exporter_user(user_id)
 
