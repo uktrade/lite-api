@@ -55,6 +55,15 @@ class ExporterBaseAuthentication(authentication.BaseAuthentication):
             user_id=user_id, organisation_id=organisation_id, status=UserStatuses.ACTIVE
         ).exists()
 
+    def check_organisation_draft(self, user_id, organisation_id, organisation_status):
+        if not Organisation.objects.filter(id=organisation_id, status=organisation_status).exists():
+            raise PermissionDeniedError(ORGANISATION_DEACTIVATED_ERROR)
+
+        if not UserOrganisationRelationship.objects.filter(
+            user_id=user_id, organisation_id=organisation_id, status=UserStatuses.ACTIVE
+        ).exists():
+            raise PermissionDeniedError(USER_DEACTIVATED_ERROR)
+
 
 class ExporterAuthentication(ExporterBaseAuthentication):
     def authenticate(self, request):
@@ -93,7 +102,7 @@ class ExporterDraftOrganisationAuthentication(ExporterBaseAuthentication):
 
         exporter_user_token, user_id, organisation_id = self.get_header_data(request)
 
-        self.check_organisation(user_id, organisation_id, OrganisationStatus.DRAFT)
+        self.check_organisation_draft(user_id, organisation_id, OrganisationStatus.DRAFT)
 
         exporter_user = self.get_exporter_user(user_id)
 
