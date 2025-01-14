@@ -199,12 +199,13 @@ class UserMeDetail(APIView):
             relationship = get_user_organisation_relationship(user, org_pk)
             data.update(
                 {
+                    "user_status": relationship.status,
                     "role": {
                         "id": relationship.role_id,
                         "permissions": convert_queryset_to_str(
                             relationship.role.permissions.values_list("id", flat=True)
                         ),
-                    }
+                    },
                 }
             )
 
