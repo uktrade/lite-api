@@ -42,6 +42,7 @@ class UserTests(DataTestClient):
                         "status": generate_key_value_pair(relationship.organisation.status, OrganisationStatus.choices),
                     }
                 ],
+                "user_status": relationship.status,
                 "role": {
                     "id": str(relationship.role.id),
                     "permissions": convert_queryset_to_str(relationship.role.permissions.values_list("id", flat=True)),
