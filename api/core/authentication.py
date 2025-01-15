@@ -47,15 +47,7 @@ class ExporterBaseAuthentication(authentication.BaseAuthentication):
         except ExporterUser.DoesNotExist:
             raise PermissionDeniedError(USER_NOT_FOUND_ERROR)
 
-    def check_organisation(self, organisation_id, organisation_status):
-        return Organisation.objects.filter(id=organisation_id, status=organisation_status).exists()
-
-    def check_user(self, user_id, organisation_id):
-        return UserOrganisationRelationship.objects.filter(
-            user_id=user_id, organisation_id=organisation_id, status=UserStatuses.ACTIVE
-        ).exists()
-
-    def check_organisation_draft(self, user_id, organisation_id, organisation_status):
+    def check_organisation(self, user_id, organisation_id, organisation_status):
         if not Organisation.objects.filter(id=organisation_id, status=organisation_status).exists():
             raise PermissionDeniedError(ORGANISATION_DEACTIVATED_ERROR)
 
@@ -76,15 +68,7 @@ class ExporterAuthentication(ExporterBaseAuthentication):
 
         exporter_user_token, user_id, organisation_id = self.get_header_data(request)
 
-        org_exists = self.check_organisation(organisation_id, OrganisationStatus.ACTIVE)
-        if not org_exists:
-            logger.exception(ORGANISATION_DEACTIVATED_ERROR)
-            raise PermissionDeniedError(ORGANISATION_DEACTIVATED_ERROR)
-
-        user_active = self.check_user(user_id, organisation_id)
-        if not user_active:
-            logger.exception(USER_DEACTIVATED_ERROR)
-            raise PermissionDeniedError(USER_DEACTIVATED_ERROR)
+        self.check_organisation(user_id, organisation_id, OrganisationStatus.ACTIVE)
 
         exporter_user = self.get_exporter_user(user_id)
 
@@ -102,7 +86,7 @@ class ExporterDraftOrganisationAuthentication(ExporterBaseAuthentication):
 
         exporter_user_token, user_id, organisation_id = self.get_header_data(request)
 
-        self.check_organisation_draft(user_id, organisation_id, OrganisationStatus.DRAFT)
+        self.check_organisation(user_id, organisation_id, OrganisationStatus.ACTIVE)
 
         exporter_user = self.get_exporter_user(user_id)
 
