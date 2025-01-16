@@ -4,13 +4,14 @@ from django.urls import reverse
 from rest_framework.test import APIClient
 
 from api.applications.tests.factories import DraftStandardApplicationFactory
-from api.core.constants import ExporterPermissions, GovPermissions
+from api.core.constants import ExporterPermissions, GovPermissions, Roles
 from api.organisations.tests.factories import OrganisationFactory
 from api.parties.tests.factories import PartyDocumentFactory
 from api.users.libraries.user_to_token import user_to_token
-from api.users.models import Permission
-from api.users.enums import UserType
+from api.users.models import BaseUser, Permission, Role
+from api.users.enums import SystemUser, UserType
 from api.users.tests.factories import (
+    BaseUserFactory,
     ExporterUserFactory,
     GovUserFactory,
     RoleFactory,
@@ -52,6 +53,14 @@ def exporter_headers(exporter_user, organisation):
     }
 
 
+@pytest.fixture(autouse=True)
+def system_user():
+    if BaseUser.objects.filter(id=SystemUser.id).exists():
+        return BaseUser.objects.get(id=SystemUser.id)
+    else:
+        return BaseUserFactory(id=SystemUser.id)
+
+
 @pytest.fixture()
 def gov_headers(gov_user):
     return {"HTTP_GOV_USER_TOKEN": user_to_token(gov_user.baseuser_ptr)}
@@ -59,7 +68,16 @@ def gov_headers(gov_user):
 
 @pytest.fixture()
 def gov_user():
-    return GovUserFactory()
+    gov_user = GovUserFactory()
+    if Role.objects.filter(id=Roles.INTERNAL_DEFAULT_ROLE_ID, type=UserType.INTERNAL.value).exists():
+        return gov_user
+
+    gov_user.role = RoleFactory(
+        id=Roles.INTERNAL_DEFAULT_ROLE_ID, type=UserType.INTERNAL.value, name=Roles.INTERNAL_DEFAULT_ROLE_NAME
+    )
+    gov_user.save()
+
+    return gov_user
 
 
 @pytest.fixture()

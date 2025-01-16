@@ -20,7 +20,13 @@ from api.external_data.models import Denial, DenialEntity, SanctionMatch
 from api.documents.tests.factories import DocumentFactory
 from api.goods.tests.factories import GoodFactory
 from api.organisations.tests.factories import OrganisationFactory, SiteFactory, ExternalLocationFactory
-from api.parties.tests.factories import ConsigneeFactory, EndUserFactory, PartyFactory, ThirdPartyFactory
+from api.parties.tests.factories import (
+    ConsigneeFactory,
+    EndUserFactory,
+    PartyFactory,
+    PartyDocumentFactory,
+    ThirdPartyFactory,
+)
 from api.users.tests.factories import ExporterUserFactory, GovUserFactory
 from api.staticdata.units.enums import Units
 from api.staticdata.control_list_entries.helpers import get_control_list_entry
@@ -228,6 +234,11 @@ class DraftStandardApplicationFactory(StandardApplicationFactory):
         GoodOnApplicationFactory(application=obj, good=GoodFactory(organisation=obj.organisation))
 
         PartyOnApplicationFactory(application=obj, party=EndUserFactory(organisation=obj.organisation))
+        PartyDocumentFactory(
+            party=obj.end_user.party,
+            s3_key="party-document",
+            safe=True,
+        )
 
         if kwargs["goods_recipients"] in [
             StandardApplication.VIA_CONSIGNEE,
