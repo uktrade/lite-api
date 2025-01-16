@@ -12,7 +12,7 @@ from api.applications.tests.factories import (
 )
 from api.cases.enums import AdviceType
 from api.cases.models import Case
-from api.cases.tests.factories import TeamAdviceFactory, FinalAdviceFactory
+from api.cases.tests.factories import LicenceDecisionFactory, TeamAdviceFactory, FinalAdviceFactory
 from api.flags.tests.factories import FlagFactory
 from api.goods.tests.factories import GoodFactory
 from api.parties.tests.factories import PartyFactory
@@ -289,18 +289,17 @@ class FilterAndSortTests(DataTestClient):
         application_1 = StandardApplicationFactory()
         application_1.status = get_case_status_by_status(CaseStatusEnum.FINALISED)
         application_1.save()
-        good = GoodFactory(organisation=application_1.organisation)
-        FinalAdviceFactory(
-            user=self.gov_user, team=self.team, case=application_1, good=good, type=AdviceType.APPROVE, created_at=day_2
-        )
+        LicenceDecisionFactory(case=application_1, created_at=day_2)
 
         application_2 = StandardApplicationFactory()
         application_2.status = get_case_status_by_status(CaseStatusEnum.FINALISED)
         application_2.save()
-        good = GoodFactory(organisation=application_2.organisation)
-        FinalAdviceFactory(
-            user=self.gov_user, team=self.team, case=application_2, good=good, type=AdviceType.APPROVE, created_at=day_4
-        )
+        LicenceDecisionFactory(case=application_2, created_at=day_4)
+
+        application_3 = StandardApplicationFactory()
+        application_3.status = get_case_status_by_status(CaseStatusEnum.FINALISED)
+        application_3.save()
+        LicenceDecisionFactory(case=application_3, created_at=day_5)
 
         qs_1 = Case.objects.search(finalised_from=day_1, finalised_to=day_3)
         qs_2 = Case.objects.search(finalised_from=day_3, finalised_to=day_5)
@@ -310,11 +309,11 @@ class FilterAndSortTests(DataTestClient):
         qs_6 = Case.objects.search(finalised_from=day_5)
 
         self.assertEqual(qs_1.count(), 1)
-        self.assertEqual(qs_2.count(), 1)
-        self.assertEqual(qs_3.count(), 2)
-        self.assertEqual(qs_4.count(), 2)
+        self.assertEqual(qs_2.count(), 2)
+        self.assertEqual(qs_3.count(), 3)
+        self.assertEqual(qs_4.count(), 3)
         self.assertEqual(qs_5.count(), 0)
-        self.assertEqual(qs_6.count(), 0)
+        self.assertEqual(qs_6.count(), 1)
         self.assertEqual(qs_1.first().pk, application_1.pk)
         self.assertEqual(qs_2.first().pk, application_2.pk)
 
