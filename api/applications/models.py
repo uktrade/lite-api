@@ -21,7 +21,7 @@ from api.appeals.models import Appeal
 from api.applications.exceptions import AmendmentError
 from api.applications.managers import BaseApplicationManager, StandardApplicationManager, F680ApplicationManager
 from api.applications.libraries.application_helpers import create_submitted_audit
-from api.audit_trail.models import Audit, AuditType
+from api.audit_trail.models import AuditType
 from api.audit_trail import service as audit_trail_service
 from api.cases.enums import CaseTypeEnum
 from api.cases.models import Case, CaseQueue
@@ -437,7 +437,7 @@ class F680Application(BaseApplication):
         default=None, blank=True, null=True, help_text="does this clearance requires an open licence"
     )
     open_licence_more_details = models.TextField(default="", blank=True)
-    exceptional_circumstances = models.BooleanField(default=False, blank=True, null=True)
+    exceptional_circumstances = models.BooleanField(default=None, blank=True, null=True)
     cryptography = models.BooleanField(
         default=None,
         blank=True,
