@@ -13,6 +13,10 @@ from importlib import import_module
 import pytest  # noqa
 from django.conf import settings
 
+pytest_plugins = [
+    "api.tests.unit.fixtures.core",
+]
+
 
 def camelcase_to_underscore(string):
     """SRC: https://djangosnippets.org/snippets/585/"""
