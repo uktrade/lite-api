@@ -276,7 +276,8 @@ def _validate_standard_licence(draft, errors):
 
 
 def _validate_f680(draft, errors):
-    # placeholder as we don't want anything required in the tasklist currently
+    errors = _validate_end_user(draft, errors, is_mandatory=True)
+    errors = _validate_goods(draft, errors, is_mandatory=True)
     return errors
 
 
