@@ -146,6 +146,7 @@ class AuditType(LiteEnum):
     AMENDMENT_CREATED = autostr()
     DEVELOPER_INTERVENTION = autostr()
     ADD_EXPORTER_USER_TO_ORGANISATION = autostr()
+    CREATE_BULK_APPROVAL_RECOMMENDATION = autostr()
 
     def human_readable(self):
         """
