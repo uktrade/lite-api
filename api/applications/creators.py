@@ -275,6 +275,12 @@ def _validate_standard_licence(draft, errors):
     return errors
 
 
+def _validate_f680(draft, errors):
+    errors = _validate_end_user(draft, errors, is_mandatory=True)
+    errors = _validate_goods(draft, errors, is_mandatory=True)
+    return errors
+
+
 def _validate_route_of_goods(draft, errors):
     if draft.is_shipped_waybill_or_lading is None:
         errors["route_of_goods"] = [strings.Applications.Generic.NO_ROUTE_OF_GOODS]
@@ -304,6 +310,8 @@ def validate_application_ready_for_submission(application):
     # Perform additional validation and append errors if found
     if application.case_type.sub_type == CaseTypeSubTypeEnum.STANDARD:
         _validate_standard_licence(application, errors)
+    elif application.case_type.sub_type == CaseTypeSubTypeEnum.F680:
+        _validate_f680(application, errors)
     else:
         errors["unsupported_application"] = ["You can only validate a supported application type"]
 

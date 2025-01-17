@@ -1,7 +1,7 @@
 from api.audit_trail.models import Audit
-from api.applications.models import GoodOnApplication
-from api.cases.enums import AdviceType, AdviceLevel
+from api.cases.enums import AdviceType, CaseTypeEnum, AdviceLevel
 from api.cases.models import Advice
+from api.applications.models import GoodOnApplication
 from api.flags.models import Flag
 
 
@@ -30,6 +30,10 @@ def get_required_decision_document_types(case):
 
     if not has_controlled_good and AdviceType.NO_LICENCE_REQUIRED in required_decisions:
         required_decisions.discard(AdviceType.APPROVE)
+
+    # Will update at some point when we have the f680 instances working
+    if case.case_type.sub_type == CaseTypeEnum.F680.sub_type:
+        required_decisions.add(AdviceType.F680)
 
     return required_decisions
 

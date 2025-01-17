@@ -4,7 +4,7 @@ from rest_framework.reverse import reverse
 from urllib.parse import urlencode
 
 from api.applications.enums import ApplicationExportType, ApplicationExportLicenceOfficialType
-from api.applications.models import StandardApplication, BaseApplication
+from api.applications.models import F680Application, StandardApplication, BaseApplication
 from api.applications.tests.factories import DraftStandardApplicationFactory
 from api.cases.enums import CaseTypeEnum, CaseTypeReferenceEnum
 from lite_content.lite_api import strings
@@ -146,6 +146,20 @@ class DraftTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         errors = response.json()["errors"]
         self.assertEqual(errors[missing_field], [expected_error])
+
+    def test_create_draft_f680_application_successful(self):
+        data = {
+            "name": "F680 draft",
+            "application_type": CaseTypeReferenceEnum.F680,
+        }
+
+        response = self.client.post(self.url, data, **self.exporter_headers)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        response = response.json()
+        self.assertEqual(F680Application.objects.count(), 1)
+        f680_application = F680Application.objects.first()
+        self.assertEqual(response["id"], str(f680_application.id))
 
 
 class ApplicationsListTests(DataTestClient):
