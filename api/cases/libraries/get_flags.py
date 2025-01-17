@@ -27,6 +27,8 @@ def get_destination_flags(case, case_type):
     if case_type == CaseTypeSubTypeEnum.EUA:
         return Flag.objects.filter(parties__parties_on_application__application_id=case.id)
     elif case_type == CaseTypeSubTypeEnum.STANDARD:
+        # Usually destination level flags are attached to `Party` but some of the flags
+        # are attached to `PartyOnApplication` so gather all of them
         flags = Flag.objects.filter(
             (
                 Q(parties__parties_on_application__application_id=case.id)
