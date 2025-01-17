@@ -1,7 +1,6 @@
 import pytest
 
 from unittest import mock
-from django.conf import settings
 from faker import Faker
 from parameterized import parameterized
 
@@ -14,7 +13,6 @@ from api.audit_trail.models import Audit
 from api.core.authentication import EXPORTER_USER_TOKEN_HEADER
 from api.core.constants import Roles, GovPermissions
 from lite_content.lite_api.strings import Organisations
-from api.organisations.constants import UK_VAT_VALIDATION_REGEX, UK_EORI_VALIDATION_REGEX
 from api.organisations.enums import OrganisationType, OrganisationStatus
 from api.organisations.tests.factories import OrganisationFactory
 from api.organisations.models import Organisation
@@ -177,7 +175,7 @@ class CreateOrganisationTests(DataTestClient):
                     "region": "Hertfordshire",
                     "postcode": "AL1 4GT",
                     "city": "St Albans",
-                }
+                },
             ],
             [{"address": "123", "country": "PL"}],
         ]
@@ -247,6 +245,51 @@ class CreateOrganisationTests(DataTestClient):
         mocked_notify_caseworker_new_registration.assert_called_with(
             {"organisation_name": data["name"], "applicant_email": data["user"]["email"]}
         )
+
+    def test_create_commercial_organisation_as_exporter_success_with_previously_rejected_or_draft_crn(self):
+        data = {
+            "name": "Lemonworld Co",
+            "type": OrganisationType.COMMERCIAL,
+            "eori_number": "GB123456789000",
+            "sic_number": "01110",
+            "vat_number": "GB123456789",
+            "registration_number": "98765432",
+            "phone_number": "+441234567895",
+            "website": "",
+            "site": {
+                "name": "Headquarters",
+                "address": {
+                    "address_line_1": "42 Industrial Estate",
+                    "address_line_2": "Queens Road",
+                    "region": "Hertfordshire",
+                    "postcode": "AL1 4GT",
+                    "city": "St Albans",
+                },
+            },
+            "user": {"email": "trinity@bsg.com"},
+        }
+        response = self.client.post(
+            self.url, data, **{EXPORTER_USER_TOKEN_HEADER: user_to_token(self.exporter_user.baseuser_ptr)}
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        organisation = Organisation.objects.get(id=response.json()["id"])
+        organisation.status = OrganisationStatus.REJECTED
+        organisation.save()
+        response = self.client.post(
+            self.url, data, **{EXPORTER_USER_TOKEN_HEADER: user_to_token(self.exporter_user.baseuser_ptr)}
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        organisation = Organisation.objects.get(id=response.json()["id"])
+        organisation.status = OrganisationStatus.DRAFT
+        organisation.save()
+        response = self.client.post(
+            self.url, data, **{EXPORTER_USER_TOKEN_HEADER: user_to_token(self.exporter_user.baseuser_ptr)}
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
     def test_create_organisation_phone_number_mandatory(self):
         data = {
@@ -974,3 +1017,13 @@ class ValidateRegistrationNumberTests(DataTestClient):
         self.assertEqual(
             response.json(), {"errors": {"registration_number": ["This registration number is already in use."]}}
         )
+
+    @parameterized.expand([OrganisationStatus.REJECTED, OrganisationStatus.DRAFT])
+    def test_validate_registration_number_success_for_rejected_or_draft_org(self, org_status):
+        self.organisation.refresh_from_db()
+        self.organisation.status = org_status
+        self.organisation.save()
+        data = {"registration_number": self.organisation.registration_number}
+        response = self.client.post(self.url, data, **self.exporter_headers)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.json(), data)
