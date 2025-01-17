@@ -3,7 +3,7 @@ import pytest
 from django.urls import reverse
 from urllib import parse
 
-from api.applications.tests.factories import StandardApplicationFactory
+from api.applications.tests.factories import StandardSubmittedApplicationFactory
 from api.flags.enums import FlagLevels
 from api.queues.constants import ALL_CASES_QUEUE_ID
 
@@ -31,9 +31,13 @@ def test_queue_view_case_flags(
     api_client,
     all_cases_queue_url,
     gov_headers,
+    mocker,
     flags_data,
 ):
-    StandardApplicationFactory(flags=flags_data)
+    # When changes are saved in factory then post_save() signal can trigger flagging rules
+    # and alter flags applied which is not desirable in these tests hence mock that function.
+    mocker.patch("api.cases.signals.apply_flagging_rules_to_case", return_value=None)
+    StandardSubmittedApplicationFactory(flags=flags_data)
 
     response = api_client.get(all_cases_queue_url, **gov_headers)
     assert response.status_code == 200
@@ -53,18 +57,26 @@ def test_queue_view_case_flags(
 @pytest.mark.parametrize(
     "flags_data",
     (
-        {FlagLevels.CASE: [FlagsEnum.UNSCR_OFSI_SANCTIONS]},
+        {
+            FlagLevels.CASE: [FlagsEnum.UNSCR_OFSI_SANCTIONS],
+            FlagLevels.GOOD: [FlagsEnum.DUAL_USE_ANNEX_1],
+        },
         {FlagLevels.GOOD: [FlagsEnum.SMALL_ARMS, FlagsEnum.UK_DUAL_USE_SCH3]},
         {FlagLevels.DESTINATION: [FlagsEnum.OIL_AND_GAS_ID]},
-        {FlagLevels.PARTY_ON_APPLICATION: [FlagsEnum.SANCTION_UK_MATCH, FlagsEnum.SANCTION_OFSI_MATCH]},
+        {
+            FlagLevels.CASE: [FlagsEnum.GOODS_NOT_LISTED],
+            FlagLevels.PARTY_ON_APPLICATION: [FlagsEnum.SANCTION_UK_MATCH, FlagsEnum.SANCTION_OFSI_MATCH],
+        },
     ),
 )
 def test_case_detail_flags(
     api_client,
     gov_headers,
+    mocker,
     flags_data,
 ):
-    case = StandardApplicationFactory(flags=flags_data)
+    mocker.patch("api.cases.signals.apply_flagging_rules_to_case", return_value=None)
+    case = StandardSubmittedApplicationFactory(flags=flags_data)
 
     url = reverse("cases:case", kwargs={"pk": case.id})
     response = api_client.get(url, **gov_headers)
@@ -77,4 +89,4 @@ def test_case_detail_flags(
     for flags in flags_data.values():
         expected_flags.extend(flags)
 
-    assert set(all_flags).difference(set(expected_flags)) == set()
+    assert sorted(all_flags) == sorted(expected_flags)

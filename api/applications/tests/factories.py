@@ -1,9 +1,9 @@
 import factory
 import factory.fuzzy
+
 from faker import Faker
 
 from django.utils import timezone
-
 
 from api.applications.enums import ApplicationExportType, ApplicationExportLicenceOfficialType
 from api.applications.models import (
@@ -69,29 +69,12 @@ class StandardApplicationFactory(factory.django.DjangoModelFactory):
 
     @classmethod
     def _create(cls, model_class, *args, **kwargs):
-        flags = kwargs.pop("flags", {})
-        application = model_class(*args, **kwargs)
+        obj = model_class(*args, **kwargs)
         if "status" not in kwargs:
-            application.status = get_case_status_by_status(CaseStatusEnum.SUBMITTED)
+            obj.status = get_case_status_by_status(CaseStatusEnum.SUBMITTED)
 
-        application.submitted_at = timezone.now()
-        application.save()
-
-        if flags:
-            case_flags = flags.get(FlagLevels.CASE, [])
-            application.case_ptr.flags.add(*case_flags)
-
-            good_flags = flags.get(FlagLevels.GOOD, [])
-            for good_on_application in application.goods.all():
-                good_on_application.good.flags.add(*good_flags)
-
-            destination_flags = flags.get(FlagLevels.DESTINATION, [])
-            party_on_application_flags = flags.get(FlagLevels.PARTY_ON_APPLICATION, [])
-            for party_on_application in application.parties.all():
-                party_on_application.party.flags.add(*destination_flags)
-                party_on_application.flags.add(*party_on_application_flags)
-
-        return application
+        obj.save()
+        return obj
 
 
 class PartyOnApplicationFactory(factory.django.DjangoModelFactory):
@@ -295,3 +278,30 @@ class FinalAdviceOnApplicationFactory(StandardApplicationFactory):
         AdviceFactory(case=obj, level=AdviceLevel.FINAL)
 
         return obj
+
+
+class StandardSubmittedApplicationFactory(DraftStandardApplicationFactory):
+
+    @classmethod
+    def _create(cls, model_class, *args, **kwargs):
+        flags = kwargs.pop("flags", {})
+        application = super()._create(model_class, *args, **kwargs)
+        application.status = get_case_status_by_status(CaseStatusEnum.SUBMITTED)
+        application.submitted_at = timezone.now()
+        application.save()
+
+        if flags:
+            case_flags = flags.get(FlagLevels.CASE, [])
+            application.case_ptr.flags.add(*case_flags)
+
+            good_flags = flags.get(FlagLevels.GOOD, [])
+            for good_on_application in application.goods.all():
+                good_on_application.good.flags.add(*good_flags)
+
+            destination_flags = flags.get(FlagLevels.DESTINATION, [])
+            party_on_application_flags = flags.get(FlagLevels.PARTY_ON_APPLICATION, [])
+            for party_on_application in application.parties.all():
+                party_on_application.party.flags.add(*destination_flags)
+                party_on_application.flags.add(*party_on_application_flags)
+
+        return application
