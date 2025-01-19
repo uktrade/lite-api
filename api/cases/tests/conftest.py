@@ -15,6 +15,7 @@ from api.users.tests.factories import (
     ExporterUserFactory,
     GovUserFactory,
     RoleFactory,
+    SystemUserFactory,
     UserOrganisationRelationshipFactory,
 )
 
@@ -55,10 +56,7 @@ def exporter_headers(exporter_user, organisation):
 
 @pytest.fixture(autouse=True)
 def system_user():
-    if BaseUser.objects.filter(id=SystemUser.id).exists():
-        return BaseUser.objects.get(id=SystemUser.id)
-    else:
-        return BaseUserFactory(id=SystemUser.id)
+    return SystemUserFactory()
 
 
 @pytest.fixture()
