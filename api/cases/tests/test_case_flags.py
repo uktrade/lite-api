@@ -51,7 +51,7 @@ def test_queue_view_case_flags(
         for flags in flags_data.values():
             expected_flags.extend(flags)
 
-        assert set(all_flags).difference(set(expected_flags)) == set()
+        assert sorted(all_flags) == sorted(expected_flags)
 
 
 @pytest.mark.parametrize(
