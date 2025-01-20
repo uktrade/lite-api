@@ -18,6 +18,8 @@ from api.core.tests.models import (
     ROOT_URLCONF="api.core.tests.urls",
 )
 class TestMisconfiguredParentFilter(SimpleTestCase):
+    databases = {"default"}
+
     def test_misconfigured_parent_filter(self):
         url = reverse(
             "test-misconfigured-parent-filter",

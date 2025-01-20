@@ -4,25 +4,14 @@ from django.urls import reverse
 from urllib import parse
 
 from api.applications.tests.factories import DraftStandardApplicationFactory
-from api.audit_trail.enums import AuditType
-from api.audit_trail.models import Audit
-from api.audit_trail.serializers import AuditSerializer
-from api.cases.enums import AdviceLevel, AdviceType
-from api.cases.models import Case, CaseAssignment
-from api.cases.tests.factories import CaseAssignmentFactory
-from api.parties.tests.factories import PartyDocumentFactory
+from api.cases.models import Case
 from api.queues.models import Queue
 from api.staticdata.control_list_entries.models import ControlListEntry
 from api.staticdata.statuses.enums import CaseStatusEnum
 from api.staticdata.statuses.models import CaseStatus
-from api.teams.models import Team
 from api.users.enums import UserType
-from api.users.libraries.user_to_token import user_to_token
-from api.users.tests.factories import GovUserFactory
 
 from lite_routing.routing_rules_internal.enums import QueuesEnum, TeamIdEnum
-
-pytestmark = pytest.mark.django_db
 
 
 @pytest.fixture
