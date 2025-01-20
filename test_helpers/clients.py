@@ -732,6 +732,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         user=None,
         num_products=1,
         reuse_good=False,
+        add_a_good=True,
     ):
         """
         Creates a complete standard application case
@@ -745,6 +746,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             user=user,
             num_products=num_products,
             reuse_good=reuse_good,
+            add_a_good=add_a_good,
         )
 
         return self.submit_application(draft, self.exporter_user)
