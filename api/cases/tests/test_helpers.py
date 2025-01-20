@@ -1,9 +1,13 @@
 # TODO; test notify_ecju_query in total isolation
 
 import datetime
+import pytest
+
 from parameterized import parameterized
 
 from api.cases.helpers import working_days_in_range
+
+pytestmark = pytest.mark.django_db
 
 
 @parameterized.expand(

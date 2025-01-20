@@ -1,6 +1,9 @@
 import factory
 import factory.fuzzy
+
 from faker import Faker
+
+from django.utils import timezone
 
 from api.applications.enums import ApplicationExportType, ApplicationExportLicenceOfficialType
 from api.applications.models import (
@@ -18,9 +21,16 @@ from api.cases.enums import AdviceLevel, AdviceType, CaseTypeEnum
 from api.cases.models import Advice
 from api.external_data.models import Denial, DenialEntity, SanctionMatch
 from api.documents.tests.factories import DocumentFactory
+from api.flags.enums import FlagLevels
 from api.goods.tests.factories import GoodFactory
 from api.organisations.tests.factories import OrganisationFactory, SiteFactory, ExternalLocationFactory
-from api.parties.tests.factories import ConsigneeFactory, EndUserFactory, PartyFactory, PartyDocumentFactory, ThirdPartyFactory
+from api.parties.tests.factories import (
+    ConsigneeFactory,
+    EndUserFactory,
+    PartyFactory,
+    PartyDocumentFactory,
+    ThirdPartyFactory,
+)
 from api.users.tests.factories import ExporterUserFactory, GovUserFactory
 from api.staticdata.units.enums import Units
 from api.staticdata.control_list_entries.helpers import get_control_list_entry
@@ -62,6 +72,7 @@ class StandardApplicationFactory(factory.django.DjangoModelFactory):
         obj = model_class(*args, **kwargs)
         if "status" not in kwargs:
             obj.status = get_case_status_by_status(CaseStatusEnum.SUBMITTED)
+
         obj.save()
         return obj
 
@@ -267,3 +278,30 @@ class FinalAdviceOnApplicationFactory(StandardApplicationFactory):
         AdviceFactory(case=obj, level=AdviceLevel.FINAL)
 
         return obj
+
+
+class StandardSubmittedApplicationFactory(DraftStandardApplicationFactory):
+
+    @classmethod
+    def _create(cls, model_class, *args, **kwargs):
+        flags = kwargs.pop("flags", {})
+        application = super()._create(model_class, *args, **kwargs)
+        application.status = get_case_status_by_status(CaseStatusEnum.SUBMITTED)
+        application.submitted_at = timezone.now()
+        application.save()
+
+        if flags:
+            case_flags = flags.get(FlagLevels.CASE, [])
+            application.case_ptr.flags.add(*case_flags)
+
+            good_flags = flags.get(FlagLevels.GOOD, [])
+            for good_on_application in application.goods.all():
+                good_on_application.good.flags.add(*good_flags)
+
+            destination_flags = flags.get(FlagLevels.DESTINATION, [])
+            party_on_application_flags = flags.get(FlagLevels.PARTY_ON_APPLICATION, [])
+            for party_on_application in application.parties.all():
+                party_on_application.party.flags.add(*destination_flags)
+                party_on_application.flags.add(*party_on_application_flags)
+
+        return application

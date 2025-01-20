@@ -169,9 +169,9 @@ class CaseQuerySet(QueryablePropertiesQuerySet):
     def with_finalised_range(self, finalised_from, finalised_to):
         qs = self.filter(status__status=CaseStatusEnum.FINALISED)
         if finalised_from:
-            qs = qs.filter(advice__level=AdviceLevel.FINAL, advice__created_at__date__gte=finalised_from)
+            qs = qs.filter(licence_decisions__created_at__date__gte=finalised_from)
         if finalised_to:
-            qs = qs.filter(advice__level=AdviceLevel.FINAL, advice__created_at__date__lte=finalised_to)
+            qs = qs.filter(licence_decisions__created_at__date__lte=finalised_to)
         return qs
 
     def with_party_name(self, party_name):
@@ -320,6 +320,7 @@ class CaseManager(QueryablePropertiesManager):
                 "case_assignments__user__baseuser_ptr",
                 "case_assignments__user__team",
                 "case_assignments__queue",
+                "licence_decisions",
                 "queues",
                 "queues__team",
                 "baseapplication__licences",
