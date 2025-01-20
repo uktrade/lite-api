@@ -8,10 +8,9 @@ from api.core.constants import ExporterPermissions, GovPermissions, Roles
 from api.organisations.tests.factories import OrganisationFactory
 from api.parties.tests.factories import PartyDocumentFactory
 from api.users.libraries.user_to_token import user_to_token
-from api.users.models import BaseUser, Permission, Role
-from api.users.enums import SystemUser, UserType
+from api.users.models import Permission, Role
+from api.users.enums import UserType
 from api.users.tests.factories import (
-    BaseUserFactory,
     ExporterUserFactory,
     GovUserFactory,
     RoleFactory,
