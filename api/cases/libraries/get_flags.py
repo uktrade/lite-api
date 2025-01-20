@@ -1,4 +1,4 @@
-from django.db.models import QuerySet, When, Case as DB_Case, IntegerField, BinaryField
+from django.db.models import Q, QuerySet, When, Case as DB_Case, IntegerField, BinaryField
 
 from api.cases.enums import CaseTypeSubTypeEnum
 from api.cases.models import Case
@@ -27,10 +27,16 @@ def get_destination_flags(case, case_type):
     if case_type == CaseTypeSubTypeEnum.EUA:
         return Flag.objects.filter(parties__parties_on_application__application_id=case.id)
     elif case_type == CaseTypeSubTypeEnum.STANDARD:
-        return Flag.objects.filter(
-            parties__parties_on_application__application_id=case.id,
-            parties__parties_on_application__deleted_at__isnull=True,
+        # Usually destination level flags are attached to `Party` but some of the flags
+        # are attached to `PartyOnApplication` so gather all of them
+        flags = Flag.objects.filter(
+            (
+                Q(parties__parties_on_application__application_id=case.id)
+                & Q(parties__parties_on_application__deleted_at__isnull=True)
+            )
+            | (Q(parties_on_application__application__pk=case.id) & Q(parties_on_application__deleted_at__isnull=True))
         )
+        return flags
 
     return Flag.objects.none()
 
