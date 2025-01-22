@@ -9,7 +9,9 @@ from api.queues.models import Queue
 from api.staticdata.control_list_entries.models import ControlListEntry
 from api.staticdata.statuses.enums import CaseStatusEnum
 from api.staticdata.statuses.models import CaseStatus
+from api.teams.models import Team
 from api.users.enums import UserType
+from api.users.tests.factories import GovUserFactory, RoleFactory
 
 from lite_routing.routing_rules_internal.enums import QueuesEnum, TeamIdEnum
 
@@ -86,3 +88,39 @@ def test_caseworker_team_events(api_client, activity_url, standard_case_routed_t
         activities[0]["text"]
         == "marked themselves as done for this case on the following queues: Licensing Unit Pre-circulation Cases to Review."
     )
+
+
+def test_caseworker_mentions(api_client, activity_url, standard_case_routed_to_ogds, lu_case_officer_headers):
+    # Create a case note mentioning another user
+    other_lu_user = GovUserFactory()
+    other_lu_user.team = Team.objects.get(id=TeamIdEnum.LICENSING_UNIT)
+    other_lu_user.role = RoleFactory(name="Case officer", type=UserType.INTERNAL)
+    other_lu_user.save()
+
+    case = standard_case_routed_to_ogds()
+
+    url = reverse("cases:case_notes", kwargs={"pk": case.id})
+    data = {
+        "text": "Please verify product assessments on this case",
+        "is_urgent": True,
+        "mentions": [
+            {"user": str(other_lu_user.baseuser_ptr.id)},
+        ],
+    }
+    response = api_client.post(url, data=data, **lu_case_officer_headers)
+    assert response.status_code == 201
+
+    # verify mention event is shown when filtered by this type
+    query_params = {"activity_type": "created_case_note_with_mentions"}
+    url = f"{activity_url(case)}?{parse.urlencode(query_params, doseq=True)}"
+    response = api_client.get(url, **lu_case_officer_headers)
+    assert response.status_code == 200
+
+    activities = response.json()["activity"]
+    assert len(activities) == 1
+    assert activities[0]["verb"] == "created_case_note_with_mentions"
+    assert activities[0]["payload"] == {
+        "is_urgent": True,
+        "mention_users": [f"{other_lu_user.full_name} ({other_lu_user.team.name})"],
+        "additional_text": "Please verify product assessments on this case",
+    }
