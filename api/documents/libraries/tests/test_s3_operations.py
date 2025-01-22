@@ -37,6 +37,8 @@ from ..s3_operations import (
     S3_REQUEST_TIMEOUT=44,
 )
 class S3OperationsTests(SimpleTestCase):
+    databases = {"default"}
+
     @override_settings(
         AWS_ENDPOINT_URL=None,
     )
@@ -117,6 +119,8 @@ class S3OperationsTests(SimpleTestCase):
     AWS_STORAGE_BUCKET_NAME="test-bucket",
 )
 class S3OperationsGetObjectTests(SimpleTestCase):
+    databases = {"default"}
+
     @patch("api.documents.libraries.s3_operations._client")
     def test_get_object(self, mock_client):
         mock_object = Mock()
@@ -164,6 +168,8 @@ class S3OperationsGetObjectTests(SimpleTestCase):
 
 @mock_aws
 class S3OperationsDeleteFileTests(SimpleTestCase):
+    databases = {"default"}
+
     def setUp(self, *args, **kwargs):
         super().setUp(*args, **kwargs)
 
@@ -211,6 +217,8 @@ class S3OperationsDeleteFileTests(SimpleTestCase):
 
 @mock_aws
 class S3OperationsUploadBytesFileTests(SimpleTestCase):
+    databases = {"default"}
+
     def setUp(self, *args, **kwargs):
         super().setUp(*args, **kwargs)
 
@@ -225,6 +233,8 @@ class S3OperationsUploadBytesFileTests(SimpleTestCase):
 
 @mock_aws
 class S3OperationsDocumentDownloadStreamTests(SimpleTestCase):
+    databases = {"default"}
+
     def setUp(self, *args, **kwargs):
         super().setUp(*args, **kwargs)
 
