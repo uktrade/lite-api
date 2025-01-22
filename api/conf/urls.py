@@ -8,6 +8,7 @@ import api.core.views
 from api.healthcheck.views import HealthCheckPingdomView, ServiceAvailableHealthCheckView
 
 urlpatterns = [
+    path("f680/", include("api.f680.urls")),
     path("healthcheck/", include("health_check.urls")),
     path("pingdom/ping.xml", HealthCheckPingdomView.as_view(), name="healthcheck-pingdom"),
     path("service-available-check/", ServiceAvailableHealthCheckView.as_view(), name="service-available-check"),

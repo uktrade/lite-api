@@ -104,6 +104,7 @@ from api.cases.enums import CaseTypeSubTypeEnum
 
 
 class F680(APIView):  # PS-IGNORE
+
     authentication_classes = (ExporterAuthentication,)
 
     def post(self, request, **kwargs):
@@ -112,6 +113,7 @@ class F680(APIView):  # PS-IGNORE
         """
 
         data = request.data
+        breakpoint()
         return
 
 
