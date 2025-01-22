@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from api.f680.models import F680Application  # /PS-IGNORE
+from .models import F680Application  # /PS-IGNORE
 
 
 class F680Serializer(serializers.ModelSerializer):  # /PS-IGNORE

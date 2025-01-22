@@ -1,10 +1,10 @@
 from django.urls import path
 
-from api.f680.views import F680View  # /PS-IGNORE
+from . import views  # /PS-IGNORE
 
 
 app_name = "f680"  # /PS-IGNORE
 
 urlpatterns = [
-    path("", F680View.as_view(), name="application"),  # /PS-IGNORE
+    path("", views.F680CreateView.as_view(), name="f680"),  # /PS-IGNORE
 ]

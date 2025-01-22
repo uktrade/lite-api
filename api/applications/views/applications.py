@@ -103,20 +103,6 @@ from lite_routing.routing_rules_internal.routing_engine import run_routing_rules
 from api.cases.enums import CaseTypeSubTypeEnum
 
 
-class F680(APIView):  # PS-IGNORE
-
-    authentication_classes = (ExporterAuthentication,)
-
-    def post(self, request, **kwargs):
-        """
-        Create a new F680 application
-        """
-
-        data = request.data
-        breakpoint()
-        return
-
-
 class ApplicationList(ListCreateAPIView):
     authentication_classes = (ExporterAuthentication,)
     serializer_class = GenericApplicationListSerializer

@@ -21,7 +21,6 @@ from api.exporter.applications.views import ApplicationQuantityValueUpdateView
 app_name = "applications"
 
 urlpatterns = [
-    path("f680/", applications.F680.as_view(), name="f680"),  # PS-IGNORE
     path("", applications.ApplicationList.as_view(), name="applications"),
     path(
         "require-serial-numbers/",
