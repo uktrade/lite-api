@@ -135,6 +135,7 @@ INSTALLED_APPS = [
     "api.assessments",
     "api.document_data",
     "api.survey",
+    "api.exporter_answers",
     "django_db_anonymiser.db_anonymiser",
     "reversion",
     "drf_spectacular",
