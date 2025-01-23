@@ -1,0 +1,7 @@
+STATUS_DRAFT = "draft"
+STATUS_SUBMITTED = "submitted"
+
+STATUS_CHOICES = (
+    (STATUS_DRAFT, "Draft"),
+    (STATUS_SUBMITTED, "Submitted"),
+)
