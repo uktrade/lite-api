@@ -35,7 +35,7 @@ class CaseTypeReferenceEnum:
         (SIEL, "Standard Individual Export Licence"),
         (SICL, "Standard Individual Trade Control Licence"),
         (SITL, "Standard Individual Transhipment Licence"),
-        (F680, "MOD F680 Clearance"),
+        (F680, "MOD F680 Approval"),
         (EXHC, "MOD Exhibition Clearance"),
         (GIFT, "MOD Gifting Clearance"),
         (CRE, "HMRC Query"),
@@ -100,7 +100,7 @@ class CaseTypeSubTypeEnum:
         (GOODS, "Goods Query"),
         (EXHIBITION, "MOD Exhibition Clearance"),
         (GIFTING, "MOD Gifting Clearance"),
-        (F680, "MOD F680 Clearance"),
+        (F680, "MOD F680 Approval"),
         (COMP_SITE, "Compliance Site Case"),
         (COMP_VISIT, "Compliance Visit Case"),
     ]
