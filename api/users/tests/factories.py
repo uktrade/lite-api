@@ -3,7 +3,7 @@ import factory
 
 from api.organisations.tests.factories import OrganisationFactory
 from api.users import models
-from api.users.enums import UserType, UserStatuses
+from api.users.enums import SystemUser, UserType, UserStatuses
 from api.users.models import Role, UserOrganisationRelationship
 from api.teams.tests.factories import TeamFactory
 
@@ -17,6 +17,22 @@ class BaseUserFactory(factory.django.DjangoModelFactory):
 
     class Meta:
         model = models.BaseUser
+
+
+class SystemUserFactory(factory.django.DjangoModelFactory):
+    first_name = factory.Faker("first_name")
+    last_name = factory.Faker("last_name")
+    email = factory.LazyAttribute(lambda n: faker.unique.email())
+
+    class Meta:
+        model = models.BaseUser
+        django_get_or_create = (
+            "id",
+            "type",
+        )
+
+    id = SystemUser.id
+    type = UserType.SYSTEM
 
 
 class GovUserFactory(factory.django.DjangoModelFactory):
