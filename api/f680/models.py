@@ -5,14 +5,14 @@ from api.cases.enums import (
     CaseTypeTypeEnum,
 )
 from api.cases.models import (
-    Case,
     CaseType,
 )
+from api.applications.models import BaseApplication
 from api.staticdata.statuses.enums import CaseStatusEnum
 from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
 
 
-class F680Application(Case):  # /PS-IGNORE
+class F680Application(BaseApplication):  # /PS-IGNORE
     data = models.JSONField()
 
     def save(self, *args, **kwargs):
