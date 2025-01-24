@@ -61,6 +61,7 @@ from api.cases.enums import AdviceLevel, AdviceType, CaseTypeSubTypeEnum, CaseTy
 from api.cases.generated_documents.models import GeneratedCaseDocument
 from api.cases.generated_documents.helpers import auto_generate_case_document
 from api.cases.libraries.get_flags import get_flags
+from api.cases.models import Case
 from api.cases.notify import notify_exporter_appeal_acknowledgement
 from api.cases.serializers import ApplicationManageSubStatusSerializer
 from api.cases.celery_tasks import get_application_target_sla
@@ -405,10 +406,10 @@ class ApplicationSubStatuses(ListAPIView):
 
     def setup(self, request, *args, **kwargs):
         super().setup(request, *args, **kwargs)
-        self.application = get_object_or_404(StandardApplication, pk=self.kwargs["pk"])
+        self.case = get_object_or_404(Case, pk=self.kwargs["pk"])
 
     def get_queryset(self):
-        return self.application.status.sub_statuses.all().order_by("order")
+        return self.case.status.sub_statuses.all().order_by("order")
 
 
 class ApplicationFinaliseView(APIView):
