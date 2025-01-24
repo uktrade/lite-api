@@ -31,6 +31,8 @@ class ExporterAnswerSet(TimestampableModel):
             section=self.section,
             status__in=[STATUS_ACTIVE],
             superseded_by__isnull=True,
+            target_object_id=self.target_object_id,
+            target_content_type=self.target_content_type,
         ).exclude(id=self.id)
         existing_answer_sets.update(status=STATUS_SUPERSEDED, superseded_by=self)
 
