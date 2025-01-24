@@ -7,7 +7,7 @@ from rest_framework import viewsets
 from api.core.authentication import ExporterAuthentication
 from api.core.permissions import IsExporterInOrganisation
 from api.exporter_answers.models import ExporterAnswerSet
-from api.exporter_answers.enums import STATUS_DRAFT
+from api.exporter_answers.enums import STATUS_ACTIVE
 
 from api.organisations.libraries.get_organisation import get_request_user_organisation
 
@@ -25,7 +25,7 @@ class ExporterAnswerSetViewSet(viewsets.ModelViewSet):
     authentication_classes = (ExporterAuthentication,)
     permission_classes = [IsExporterInOrganisation]
     serializer_class = ExporterAnswerSetSerializer
-    queryset = ExporterAnswerSet.objects.filter(status=STATUS_DRAFT)
+    queryset = ExporterAnswerSet.objects.filter(status=STATUS_ACTIVE)
     lookup_url_kwarg = "exporter_answer_set_id"
     filter_backends = [DjangoFilterBackend]
     filterset_fields = ["target_object_id", "status"]
