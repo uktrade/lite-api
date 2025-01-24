@@ -8,7 +8,7 @@ from .models import F680Application  # /PS-IGNORE
 class F680Serializer(serializers.ModelSerializer):  # /PS-IGNORE
     class Meta:
         model = F680Application  # /PS-IGNORE
-        fields = ["id", "data", "status"]
+        fields = ["id", "data", "name", "status"]
 
     def create(self, validated_data):
         validated_data["organisation"] = self.context["organisation"]
