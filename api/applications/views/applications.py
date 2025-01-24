@@ -39,7 +39,7 @@ from api.applications.libraries.edit_applications import (
     save_and_audit_have_you_been_informed_ref,
     set_case_flags_on_submitted_standard_application,
 )
-from api.applications.libraries.get_applications import get_application
+from api.applications.libraries.get_applications import get_application, _get_application_type, get_f680_application
 from api.applications.libraries.goods_on_applications import add_goods_flags_to_submitted_application
 from api.applications.libraries.licence import get_default_duration
 from api.applications.models import (
@@ -57,7 +57,7 @@ from api.applications.serializers.generic_application import (
 from api.applications.serializers.standard_application import StandardApplicationRequiresSerialNumbersSerializer
 from api.audit_trail import service as audit_trail_service
 from api.audit_trail.enums import AuditType
-from api.cases.enums import AdviceLevel, AdviceType, CaseTypeSubTypeEnum, CaseTypeEnum
+from api.cases.enums import AdviceLevel, AdviceType, CaseTypeEnum
 from api.cases.generated_documents.models import GeneratedCaseDocument
 from api.cases.generated_documents.helpers import auto_generate_case_document
 from api.cases.libraries.get_flags import get_flags
@@ -99,6 +99,8 @@ from api.users.models import ExporterUser
 from lite_routing.routing_rules_internal.flagging_engine import apply_flagging_rules_to_case
 
 from lite_routing.routing_rules_internal.routing_engine import run_routing_rules
+
+from api.cases.enums import CaseTypeSubTypeEnum
 
 
 class ApplicationList(ListCreateAPIView):
@@ -188,8 +190,15 @@ class ApplicationDetail(RetrieveUpdateDestroyAPIView):
         """
         Retrieve an application instance
         """
-        application = get_application(pk)
+        application_type = _get_application_type(pk)
+
+        if application_type == "f680_clearance":
+            application = get_f680_application(pk)
+        else:
+            application = get_application(pk)
+
         serializer = get_application_view_serializer(application)
+
         data = serializer(
             application,
             context={
@@ -207,8 +216,15 @@ class ApplicationDetail(RetrieveUpdateDestroyAPIView):
         """
         Update an application instance
         """
-        application = get_application(pk)
+        application_type = _get_application_type(pk)
+
+        if application_type == "f680_clearance":
+            application = get_f680_application(pk)
+        else:
+            application = get_application(pk)
+
         update_serializer = get_application_update_serializer(application)
+
         case = application.get_case()
         data = request.data.copy()
         serializer = update_serializer(
