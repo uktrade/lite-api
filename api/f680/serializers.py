@@ -37,6 +37,7 @@ class F680ApplicationUpdateSerializer(serializers.ModelSerializer):
         model = F680Application
         fields = (
             "name",
+            "data",
             "status",
         )
 
@@ -45,6 +46,7 @@ class F680ApplicationUpdateSerializer(serializers.ModelSerializer):
         Update and return an existing `Application` instance, given the validated data.
         """
         instance.name = validated_data.get("name", instance.name)
+        instance.data = validated_data.get("data", instance.data)
         # instance.status = validated_data.get("status", instance.status)
         # instance.clearance_level = validated_data.get("clearance_level", instance.clearance_level)
 
