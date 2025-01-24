@@ -263,7 +263,8 @@ def _validate_standard_licence(draft, errors):
 
     errors = _validate_siel_locations(draft, errors)
     errors = _validate_end_user(draft, errors, is_mandatory=True)
-    errors = _validate_security_approvals(draft, errors, is_mandatory=True)
+    # TODO: Make this aware of exporter_answers in some way (or replace it!)
+    # errors = _validate_security_approvals(draft, errors, is_mandatory=True)
     errors = _validate_consignee(draft, errors, is_mandatory=True)
     errors = _validate_third_parties(draft, errors, is_mandatory=False)
     errors = _validate_goods(draft, errors, is_mandatory=True)
