@@ -15,6 +15,7 @@ class ExporterAnswerSet(TimestampableModel):
     flow = models.CharField(max_length=2000)
     section = models.CharField(max_length=2000)
     answers = models.JSONField()
+    questions = models.JSONField()
     answer_fields = ArrayField(models.CharField(max_length=200))
     frontend_commit_sha = models.CharField(max_length=40)
     status = models.CharField(choices=STATUS_CHOICES, default=STATUS_DRAFT, max_length=50)
