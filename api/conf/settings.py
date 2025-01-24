@@ -81,6 +81,7 @@ INSTALLED_APPS = [
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.messages",
+    "django_filters",
     "phonenumber_field",
     "api.core",
     "api.documents",

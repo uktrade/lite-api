@@ -1,4 +1,6 @@
+from django.contrib.contenttypes.models import ContentType
 from django.http import Http404
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import serializers
 from rest_framework import viewsets
 
@@ -16,6 +18,8 @@ class ExporterAnswerSetSerializer(serializers.ModelSerializer):
         fields = "__all__"
         read_only_fields = ["id", "answer_fields", "status"]
 
+    target_content_type = serializers.SlugRelatedField(slug_field="model", queryset=ContentType.objects.all())
+
 
 class ExporterAnswerSetViewSet(viewsets.ModelViewSet):
     authentication_classes = (ExporterAuthentication,)
@@ -23,6 +27,11 @@ class ExporterAnswerSetViewSet(viewsets.ModelViewSet):
     serializer_class = ExporterAnswerSetSerializer
     queryset = ExporterAnswerSet.objects.filter(status=STATUS_DRAFT)
     lookup_url_kwarg = "exporter_answer_set_id"
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ["target_object_id", "status"]
+
+    def get_queryset(self):
+        return self.queryset.filter(created_by=self.request.user.exporteruser)
 
     def create(self, *args, **kwargs):
         self.request.data["created_by"] = self.request.user.exporteruser
