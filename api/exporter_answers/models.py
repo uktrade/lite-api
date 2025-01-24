@@ -6,7 +6,7 @@ from django.contrib.postgres.fields import ArrayField
 from django.db import models
 
 from api.common.models import TimestampableModel
-from api.exporter_answers.enums import STATUS_CHOICES, STATUS_DRAFT
+from api.exporter_answers.enums import STATUS_CHOICES, STATUS_DRAFT, STATUS_SUBMITTED, STATUS_SUPERSEDED
 from api.users.models import ExporterUser
 
 
@@ -22,8 +22,19 @@ class ExporterAnswerSet(TimestampableModel):
     target_content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
     target_object_id = models.UUIDField()
     target_object = GenericForeignKey("target_content_type", "target_object_id")
+    superseded_by = models.ForeignKey("exporter_answers.ExporterAnswerSet", on_delete=models.CASCADE, null=True)
+
+    def supersede_existing(self):
+        existing_answer_sets = ExporterAnswerSet.objects.filter(
+            flow=self.flow,
+            section=self.section,
+            status__in=[STATUS_DRAFT, STATUS_SUBMITTED],
+            superseded_by__isnull=True,
+        ).exclude(id=self.id)
+        existing_answer_sets.update(status=STATUS_SUPERSEDED, superseded_by=self)
 
     def save(self, **kwargs):
         if self.answers:
             self.answer_fields = list(self.answers.keys())
-        return super().save(**kwargs)
+        super().save(**kwargs)
+        self.supersede_existing()
