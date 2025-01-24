@@ -1,6 +1,7 @@
 import logging
 import uuid
 
+from django.contrib.contenttypes.fields import GenericRelation
 from django.contrib.postgres.fields import ArrayField
 from django.db import models, transaction
 from django.utils import timezone
@@ -25,6 +26,7 @@ from api.cases.models import Case, CaseQueue
 from api.common.models import TimestampableModel
 from api.core.model_mixins import Clonable
 from api.documents.models import Document
+from api.exporter_answers.models import ExporterAnswerSet
 from api.external_data.models import DenialEntity
 from api.external_data import enums as denial_enums
 from api.flags.models import Flag
@@ -326,6 +328,9 @@ class StandardApplication(BaseApplication, Clonable):
     f1686_approval_date = models.DateField(blank=False, null=True)
     other_security_approval_details = models.TextField(default=None, blank=True, null=True)
     subject_to_itar_controls = models.BooleanField(blank=True, default=None, null=True)
+    exporter_answers = GenericRelation(
+        ExporterAnswerSet, content_type_field="target_content_type", object_id_field="target_object_id"
+    )
 
     clone_exclusions = [
         "appeal",
@@ -356,6 +361,28 @@ class StandardApplication(BaseApplication, Clonable):
     clone_overrides = {
         "status_id": CaseStatusIdEnum.DRAFT,
     }
+
+    exporter_answers_to_promote = {
+        "is_mod_security_approved": "is_mod_security_approved",
+        "security_approvals": "security_approvals",
+    }
+
+    def promote_exporter_answers(self):
+        all_answer_sets = self.exporter_answers.filter(status="active")
+        complete_answers = {}
+        for answer_set in all_answer_sets:
+            complete_answers.update(answer_set.answers)
+
+        for exporter_answer_key, attribute_name in self.exporter_answers_to_promote.items():
+            if not exporter_answer_key in complete_answers:
+                continue
+            setattr(self, attribute_name, complete_answers[exporter_answer_key])
+
+        self.save()
+
+    def on_submit(self, old_status):
+        super().on_submit(old_status)
+        self.promote_exporter_answers()
 
     def clone(self, exclusions=None, **overrides):
         cloned_application = super().clone(exclusions=exclusions, **overrides)
