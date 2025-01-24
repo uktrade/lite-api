@@ -3,10 +3,11 @@ from typing import Callable, Type, Union, List
 from functools import wraps
 from uuid import UUID
 
-from django.http import JsonResponse, Http404
+from django.http import JsonResponse
+from django.shortcuts import get_object_or_404
 from rest_framework import status
 
-from api.applications.models import BaseApplication
+from api.cases.models import Case
 from api.licences.enums import LicenceStatus
 from api.licences.models import Licence
 from lite_content.lite_api import strings
@@ -31,11 +32,8 @@ def _get_application_id(request: APIView, kwargs):
 
 def _get_application(request: APIView, kwargs):
     pk = _get_application_id(request, kwargs)
-    result = BaseApplication.objects.filter(pk=pk)
-    if not result.exists():
-        raise Http404
-    else:
-        return result
+    case = get_object_or_404(Case, pk=pk)
+    return case.get_application()
 
 
 def allowed_application_types(application_types: List[str]) -> Callable:
@@ -46,7 +44,8 @@ def allowed_application_types(application_types: List[str]) -> Callable:
     def decorator(func):
         @wraps(func)
         def inner(request, *args, **kwargs):
-            sub_type = _get_application(request, kwargs).values_list("case_type__sub_type", flat=True)[0]
+            application = _get_application(request, kwargs)
+            sub_type = application.case_type.sub_type
 
             if sub_type not in application_types:
                 return JsonResponse(
@@ -71,8 +70,8 @@ def application_in_status(status_check_func):
     def decorator(view_func):
         @wraps(view_func)
         def inner(request, *args, **kwargs):
-            application_status = _get_application(request, kwargs).values_list("status__status", flat=True)[0]
-            has_status, error = status_check_func(application_status)
+            application = _get_application(request, kwargs)
+            has_status, error = status_check_func(application.status.status)
             if has_status:
                 return view_func(request, *args, **kwargs)
             return JsonResponse(
@@ -148,11 +147,9 @@ def authorised_to_view_application(user_type: Union[Type[GovUser], Type[Exporter
 
             if user.type == UserType.EXPORTER:
                 organisation_id = get_request_user_organisation_id(request.request)
-                required_application_details = _get_application(request, kwargs).values(
-                    "case_type__sub_type", "organisation_id"
-                )[0]
+                application = _get_application(request, kwargs)
 
-                has_access = required_application_details["organisation_id"] == organisation_id
+                has_access = application.organisation_id == organisation_id
                 if not has_access:
                     return JsonResponse(
                         data={

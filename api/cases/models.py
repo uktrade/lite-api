@@ -486,6 +486,18 @@ class Case(TimestampableModel):
         )
         return super().delete(*args, **kwargs)
 
+    def get_application(self):
+        from api.applications.models import StandardApplication
+        from api.f680.models import F680Application
+
+        application_mapping = {
+            CaseTypeSubTypeEnum.STANDARD: StandardApplication,
+            CaseTypeSubTypeEnum.F680: F680Application,
+        }
+        model_class = application_mapping[self.case_type.sub_type]
+
+        return model_class.objects.get_prepared_object(pk=self.pk)
+
 
 class CaseQueue(TimestampableModel):
     case = models.ForeignKey(Case, related_name="casequeues", on_delete=models.DO_NOTHING)
