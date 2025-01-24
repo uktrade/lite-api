@@ -101,7 +101,6 @@ from lite_routing.routing_rules_internal.flagging_engine import apply_flagging_r
 from lite_routing.routing_rules_internal.routing_engine import run_routing_rules
 
 from api.cases.enums import CaseTypeSubTypeEnum
-from api.f680.serializers import F680ApplicationViewSerializer
 
 
 class ApplicationList(ListCreateAPIView):

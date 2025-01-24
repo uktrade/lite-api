@@ -3,7 +3,7 @@ from django.http import JsonResponse
 from rest_framework.views import APIView
 
 from api.applications.libraries import document_helpers
-from api.applications.libraries.get_applications import get_application
+from api.applications.libraries.get_applications import get_application, _get_application_type, get_f680_application
 from api.applications.models import ApplicationDocument
 from api.applications.serializers.document import ApplicationDocumentSerializer
 from api.core.authentication import ExporterAuthentication
@@ -26,7 +26,13 @@ class ApplicationDocumentView(APIView):
         """
         View all additional documents on an application
         """
-        application = get_application(pk)
+        application_type = _get_application_type(pk)
+
+        if application_type == "f680_clearance":
+            application = get_f680_application(pk)
+        else:
+            application = get_application(pk)
+
         documents = ApplicationDocumentSerializer(ApplicationDocument.objects.filter(application_id=pk), many=True).data
 
         return JsonResponse({"documents": documents, "editable": application.is_major_editable()})
@@ -38,7 +44,13 @@ class ApplicationDocumentView(APIView):
         """
         Upload additional document onto an application
         """
-        application = get_application(pk)
+        application_type = _get_application_type(pk)
+
+        if application_type == "f680_clearance":
+            application = get_f680_application(pk)
+        else:
+            application = get_application(pk)
+
         return document_helpers.upload_application_document(application, request.data, request.user)
 
 
