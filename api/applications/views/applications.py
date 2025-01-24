@@ -22,7 +22,7 @@ from rest_framework.views import APIView
 from api.appeals.models import Appeal
 from api.appeals.serializers import AppealSerializer
 from api.applications import constants
-from api.applications.creators import validate_application_ready_for_submission, _validate_agree_to_declaration
+from api.applications.creators import _validate_agree_to_declaration
 from api.applications.helpers import (
     get_application_create_serializer,
     get_application_view_serializer,
@@ -290,8 +290,7 @@ class ApplicationSubmission(APIView):
                 request.user.exporteruser, ExporterPermissions.SUBMIT_LICENCE_APPLICATION, application.organisation
             )
 
-        errors = validate_application_ready_for_submission(application)
-
+        errors = application.validate_application_ready_for_submission()
         if errors:
             return JsonResponse(data={"errors": errors}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -345,10 +344,11 @@ class ApplicationSubmission(APIView):
                 run_routing_rules(application)
 
                 # Set the sites on this application as used so their name/site records located at are no longer editable
-                sites_on_application = SiteOnApplication.objects.filter(application=application)
-                Site.objects.filter(id__in=sites_on_application.values_list("site_id", flat=True)).update(
-                    is_used_on_application=True
-                )
+                if application.case_type.sub_type == CaseTypeSubTypeEnum.STANDARD:
+                    sites_on_application = SiteOnApplication.objects.filter(application=application)
+                    Site.objects.filter(id__in=sites_on_application.values_list("site_id", flat=True)).update(
+                        is_used_on_application=True
+                    )
 
         if application.case_type.sub_type in [
             CaseTypeSubTypeEnum.STANDARD,
