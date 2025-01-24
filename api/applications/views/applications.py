@@ -195,10 +195,11 @@ class ApplicationDetail(RetrieveUpdateDestroyAPIView):
 
         if application_type == "f680_clearance":
             application = get_f680_application(pk)
-            serializer = F680ApplicationViewSerializer
         else:
             application = get_application(pk)
-            serializer = get_application_view_serializer(application)
+
+        serializer = get_application_view_serializer(application)
+
         data = serializer(
             application,
             context={
@@ -216,8 +217,15 @@ class ApplicationDetail(RetrieveUpdateDestroyAPIView):
         """
         Update an application instance
         """
-        application = get_application(pk)
+        application_type = _get_application_type(pk)
+
+        if application_type == "f680_clearance":
+            application = get_f680_application(pk)
+        else:
+            application = get_application(pk)
+
         update_serializer = get_application_update_serializer(application)
+
         case = application.get_case()
         data = request.data.copy()
         serializer = update_serializer(
