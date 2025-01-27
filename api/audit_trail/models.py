@@ -2,6 +2,7 @@ import uuid
 
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
+from django.contrib.postgres.indexes import GinIndex
 from django.db import models
 from django.utils import timesince
 from django.utils.translation import gettext_lazy as _
@@ -52,6 +53,7 @@ class Audit(TimestampableModel):
 
     class Meta:
         ordering = ("-created_at",)
+        indexes = [GinIndex(name="AuditPayloadIndex", fields=["payload"])]
 
     def __str__(self):
         context = {
