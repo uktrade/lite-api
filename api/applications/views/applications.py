@@ -39,7 +39,7 @@ from api.applications.libraries.edit_applications import (
     save_and_audit_have_you_been_informed_ref,
     set_case_flags_on_submitted_standard_application,
 )
-from api.applications.libraries.get_applications import get_application, _get_application_type, get_f680_application
+from api.applications.libraries.get_applications import get_application
 from api.applications.libraries.goods_on_applications import add_goods_flags_to_submitted_application
 from api.applications.libraries.licence import get_default_duration
 from api.applications.models import (
@@ -190,12 +190,8 @@ class ApplicationDetail(RetrieveUpdateDestroyAPIView):
         """
         Retrieve an application instance
         """
-        application_type = _get_application_type(pk)
 
-        if application_type == "f680_clearance":
-            application = get_f680_application(pk)
-        else:
-            application = get_application(pk)
+        application = get_application(pk)
 
         serializer = get_application_view_serializer(application)
 
@@ -216,12 +212,7 @@ class ApplicationDetail(RetrieveUpdateDestroyAPIView):
         """
         Update an application instance
         """
-        application_type = _get_application_type(pk)
-
-        if application_type == "f680_clearance":
-            application = get_f680_application(pk)
-        else:
-            application = get_application(pk)
+        application = get_application(pk)
 
         update_serializer = get_application_update_serializer(application)
 

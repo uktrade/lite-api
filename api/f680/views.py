@@ -9,7 +9,7 @@ from api.users.models import ExporterUser
 
 from .serializers import F680Serializer, F680ApplicationViewSerializer, F680ApplicationUpdateSerializer
 from .models import F680Application
-from api.applications.libraries.get_applications import get_f680_application
+from api.applications.libraries.get_applications import get_application
 
 
 class F680CreateView(CreateAPIView):
@@ -34,7 +34,7 @@ class F680Detail(RetrieveUpdateDestroyAPIView):
         Retrieve an f680 application instance
         """
 
-        application = get_f680_application(pk)
+        application = get_application(pk)
         serializer = F680ApplicationViewSerializer
         data = serializer(
             application,
@@ -48,7 +48,7 @@ class F680Detail(RetrieveUpdateDestroyAPIView):
 
     @authorised_to_view_application(ExporterUser)
     def put(self, request, pk):
-        application = get_f680_application(pk)
+        application = get_application(pk)
         update_serializer = F680ApplicationUpdateSerializer
         data = request.data
         serializer = update_serializer(
