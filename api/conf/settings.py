@@ -85,6 +85,7 @@ INSTALLED_APPS = [
     "api.core",
     "api.documents",
     "api.flags",
+    "api.f680",
     "api.goods",
     "api.goodstype",  # this can't be removed yet as migrations need to be kept as dependencies
     "api.gov_users",

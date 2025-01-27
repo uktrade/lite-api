@@ -1,4 +1,5 @@
 from api.applications.models import BaseApplication, StandardApplication
+from api.f680.models import F680Application
 from api.cases.enums import CaseTypeSubTypeEnum
 from api.core.exceptions import NotFoundError
 
@@ -9,10 +10,20 @@ def get_application(pk, organisation_id=None):
         kwargs["organisation_id"] = str(organisation_id)
 
     application_type = _get_application_type(pk)
-    if application_type != CaseTypeSubTypeEnum.STANDARD:
+
+    if application_type not in [
+        CaseTypeSubTypeEnum.STANDARD,
+        CaseTypeSubTypeEnum.F680,
+    ]:
+
         raise NotImplementedError(f"get_application does not support this application type: {application_type}")
 
-    qs = StandardApplication.objects.select_related(
+    if application_type == CaseTypeSubTypeEnum.STANDARD:
+        app_type = StandardApplication
+    elif application_type == CaseTypeSubTypeEnum.F680:
+        app_type = F680Application
+
+    qs = app_type.objects.select_related(
         "baseapplication_ptr",
         "baseapplication_ptr__end_user",
         "baseapplication_ptr__end_user__party",
