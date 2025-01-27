@@ -346,7 +346,7 @@ class CaseManager(QueryablePropertiesManager):
                 action_object_content_type=content_type,
                 verb=AuditType.MOVE_CASE,
                 payload__queue_ids__contains=queue_id,
-            ).values("created_at")
+            ).values("created_at")[:1]
         )
 
         if not include_hidden and user:
