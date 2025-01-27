@@ -57,7 +57,7 @@ from api.applications.serializers.generic_application import (
 from api.applications.serializers.standard_application import StandardApplicationRequiresSerialNumbersSerializer
 from api.audit_trail import service as audit_trail_service
 from api.audit_trail.enums import AuditType
-from api.cases.enums import AdviceLevel, AdviceType, CaseTypeEnum
+from api.cases.enums import AdviceLevel, AdviceType, CaseTypeEnum, CaseTypeSubTypeEnum
 from api.cases.generated_documents.models import GeneratedCaseDocument
 from api.cases.generated_documents.helpers import auto_generate_case_document
 from api.cases.libraries.get_flags import get_flags
@@ -99,8 +99,6 @@ from api.users.models import ExporterUser
 from lite_routing.routing_rules_internal.flagging_engine import apply_flagging_rules_to_case
 
 from lite_routing.routing_rules_internal.routing_engine import run_routing_rules
-
-from api.cases.enums import CaseTypeSubTypeEnum
 
 
 class ApplicationList(ListCreateAPIView):

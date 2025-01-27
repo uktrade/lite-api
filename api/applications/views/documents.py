@@ -28,6 +28,7 @@ class ApplicationDocumentView(APIView):
         """
         application = get_application(pk)
         documents = ApplicationDocumentSerializer(ApplicationDocument.objects.filter(application_id=pk), many=True).data
+
         return JsonResponse({"documents": documents, "editable": application.is_major_editable()})
 
     @transaction.atomic
@@ -37,9 +38,7 @@ class ApplicationDocumentView(APIView):
         """
         Upload additional document onto an application
         """
-
         application = get_application(pk)
-
         return document_helpers.upload_application_document(application, request.data, request.user)
 
 
