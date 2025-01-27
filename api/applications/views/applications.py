@@ -190,11 +190,8 @@ class ApplicationDetail(RetrieveUpdateDestroyAPIView):
         """
         Retrieve an application instance
         """
-
         application = get_application(pk)
-
         serializer = get_application_view_serializer(application)
-
         data = serializer(
             application,
             context={
@@ -213,9 +210,7 @@ class ApplicationDetail(RetrieveUpdateDestroyAPIView):
         Update an application instance
         """
         application = get_application(pk)
-
         update_serializer = get_application_update_serializer(application)
-
         case = application.get_case()
         data = request.data.copy()
         serializer = update_serializer(
