@@ -35,4 +35,6 @@ class F680Serializer(serializers.ModelSerializer):  # /PS-IGNORE
         return application.application["application"]["name"]["value"]
 
     def get_submitted_by(self, application):
+        if not application.submitted_by:
+            return ""
         return f"{application.submitted_by.first_name} {application.submitted_by.last_name}"
