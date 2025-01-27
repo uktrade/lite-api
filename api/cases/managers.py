@@ -2,8 +2,9 @@ from datetime import datetime
 from typing import List
 
 from django.apps import apps
+from django.contrib.contenttypes.models import ContentType
 from django.db import models, transaction
-from django.db.models import Prefetch, Q, Sum
+from django.db.models import OuterRef, Prefetch, Q, Sum
 from django.utils import timezone
 
 from queryable_properties.managers import (
@@ -308,6 +309,11 @@ class CaseManager(QueryablePropertiesManager):
         Search for a user's available cases given a set of search parameters.
         """
         from api.applications.models import PartyOnApplication
+        from api.audit_trail.enums import AuditType
+        from api.audit_trail.models import Audit
+        from api.cases.models import Case
+
+        content_type = ContentType.objects.get_for_model(Case)
 
         case_qs = (
             self.submitted()
@@ -334,6 +340,13 @@ class CaseManager(QueryablePropertiesManager):
                     ),
                 ),
             )
+        ).annotate(
+            moved_to_queue_at=Audit.objects.filter(
+                action_object_object_id=OuterRef("pk"),
+                action_object_content_type=content_type,
+                verb=AuditType.MOVE_CASE,
+                payload__queue_ids__contains=queue_id,
+            ).values("created_at")
         )
 
         if not include_hidden and user:
