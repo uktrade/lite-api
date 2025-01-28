@@ -53,7 +53,7 @@ class Audit(TimestampableModel):
 
     class Meta:
         ordering = ("-created_at",)
-        indexes = [GinIndex(name="AuditPayloadIndex", fields=["payload"])]
+        indexes = [GinIndex(name="AuditPayloadFieldIndex", fields=["payload"], opclasses=["jsonb_path_ops"])]
 
     def __str__(self):
         context = {
