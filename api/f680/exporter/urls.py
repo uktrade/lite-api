@@ -6,13 +6,13 @@ app_name = "exporter_f680"
 
 urlpatterns = [
     path(
-        "f680-application/",
+        "application/",
         F680ApplicationViewSet.as_view({"get": "list", "post": "create"}),  # /PS-IGNORE
-        name="f680_applications",
+        name="applications",
     ),
     path(
-        "f680-application/<uuid:f680_application_id>/",
+        "application/<uuid:f680_application_id>/",
         F680ApplicationViewSet.as_view({"get": "retrieve", "patch": "partial_update"}),  # /PS-IGNORE
-        name="f680_application",
+        name="application",
     ),
 ]

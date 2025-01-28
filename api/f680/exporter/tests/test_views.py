@@ -19,7 +19,7 @@ class F680ApplicationViewSetTests(DataTestClient):  # /PS-IGNORE
     def setUp(self):
         super().setUp()
         self.maxDiff = 10000
-        self.f680_url = reverse("exporter_f680:f680_applications")
+        self.f680_url = reverse("exporter_f680:applications")
 
     def test_GET_list_empty_data_success(self):
         response = self.client.get(self.f680_url, **self.exporter_headers)
@@ -72,7 +72,7 @@ class F680ApplicationViewSetTests(DataTestClient):  # /PS-IGNORE
         self.assertEqual(response.data, expected_result)
 
     def test_GET_single_empty_data_not_found(self):
-        url = reverse("exporter_f680:f680_application", kwargs={"f680_application_id": uuid4()})
+        url = reverse("exporter_f680:application", kwargs={"f680_application_id": uuid4()})
         response = self.client.get(url, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
@@ -81,7 +81,7 @@ class F680ApplicationViewSetTests(DataTestClient):  # /PS-IGNORE
             organisation=self.organisation,
             submitted_by=self.exporter_user,
         )
-        url = reverse("exporter_f680:f680_application", kwargs={"f680_application_id": f680_application.id})
+        url = reverse("exporter_f680:application", kwargs={"f680_application_id": f680_application.id})
         response = self.client.get(url, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         expected_result = {
@@ -107,7 +107,7 @@ class F680ApplicationViewSetTests(DataTestClient):  # /PS-IGNORE
 
     def test_GET_single_different_organisation_not_found(self):
         f680_application = SubmittedF680ApplicationFactory()  # /PS-IGNORE
-        url = reverse("exporter_f680:f680_application", kwargs={"f680_application_id": f680_application.id})
+        url = reverse("exporter_f680:application", kwargs={"f680_application_id": f680_application.id})
         response = self.client.get(url, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
@@ -187,7 +187,7 @@ class F680ApplicationViewSetTests(DataTestClient):  # /PS-IGNORE
         self.assertEqual(response.data, expected_result)
 
     def test_PATCH_partial_update_empty_data_not_found(self):
-        url = reverse("exporter_f680:f680_application", kwargs={"f680_application_id": uuid4()})
+        url = reverse("exporter_f680:application", kwargs={"f680_application_id": uuid4()})
         response = self.client.patch(url, {"application": {"new": "new value"}}, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
@@ -197,7 +197,7 @@ class F680ApplicationViewSetTests(DataTestClient):  # /PS-IGNORE
             submitted_by=self.exporter_user,
             application={"old key": "old value"},
         )
-        url = reverse("exporter_f680:f680_application", kwargs={"f680_application_id": f680_application.id})
+        url = reverse("exporter_f680:application", kwargs={"f680_application_id": f680_application.id})
         patch_data = {"application": {"new key": "new value"}}
         response = self.client.patch(url, patch_data, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -224,7 +224,7 @@ class F680ApplicationViewSetTests(DataTestClient):  # /PS-IGNORE
 
     def test_PATCH_partial_update_different_organisation_not_found(self):
         f680_application = SubmittedF680ApplicationFactory()  # /PS-IGNORE
-        url = reverse("exporter_f680:f680_application", kwargs={"f680_application_id": f680_application.id})
+        url = reverse("exporter_f680:application", kwargs={"f680_application_id": f680_application.id})
         response = self.client.patch(url, {"application": {"new": "new value"}}, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
@@ -251,7 +251,7 @@ class F680ApplicationViewSetTests(DataTestClient):  # /PS-IGNORE
             "application": {"name": "test application"},
             **extra_data,
         }
-        url = reverse("exporter_f680:f680_application", kwargs={"f680_application_id": f680_application.id})
+        url = reverse("exporter_f680:application", kwargs={"f680_application_id": f680_application.id})
         response = self.client.patch(url, patch_data, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
