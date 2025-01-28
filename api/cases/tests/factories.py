@@ -1,5 +1,7 @@
 import factory
 
+from functools import partial
+
 from api.cases.enums import AdviceLevel, AdviceType, CaseTypeEnum
 from api.cases.models import (
     Advice,
@@ -20,12 +22,10 @@ from api.teams.tests.factories import TeamFactory, DepartmentFactory
 from api.users.tests.factories import BaseUserFactory, GovUserFactory
 
 
-class LazyStatus(factory.declarations.BaseDeclaration):
-    def __init__(self, status):
-        self.status = status
-
-    def evaluate(self, instance, step, extra):
-        return get_case_status_by_status(self.status)
+class LazyStatus(factory.declarations.LazyFunction):
+    def __init__(self, status, *args, **kwargs):
+        function = partial(get_case_status_by_status, status)
+        super().__init__(function, *args, **kwargs)
 
 
 class CaseFactory(factory.django.DjangoModelFactory):
