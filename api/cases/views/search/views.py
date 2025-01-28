@@ -32,15 +32,16 @@ class CasesSearchView(generics.ListAPIView):
         # and if the flag to include hidden is added
         include_hidden = not is_work_queue or str_to_bool(request.GET.get("hidden"))
         filters = self.get_filters(request)
-        page = self.paginate_queryset(
-            self.get_case_queryset(user, queue_id, is_work_queue, include_hidden, filters).annotate(
-                has_open_queries=Exists(
-                    EcjuQuery.objects.filter(
-                        case=OuterRef("pk"), raised_by_user__team_id=user.team.id, is_query_closed=False
-                    )
-                ),
-            )
+        sort_by_field = filters.get("sort_by", "-submitted_at")
+
+        case_queryset = self.get_case_queryset(user, queue_id, is_work_queue, include_hidden, filters).annotate(
+            has_open_queries=Exists(
+                EcjuQuery.objects.filter(
+                    case=OuterRef("pk"), raised_by_user__team_id=user.team.id, is_query_closed=False
+                )
+            ),
         )
+        page = self.paginate_queryset(case_queryset.order_by(sort_by_field))
         context = {
             "queue_id": queue_id,
             "is_system_queue": is_system_queue,
