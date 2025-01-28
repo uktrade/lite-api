@@ -15,8 +15,17 @@ from api.cases.models import (
 )
 from api.queues.tests.factories import QueueFactory
 from api.organisations.tests.factories import OrganisationFactory
+from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
 from api.teams.tests.factories import TeamFactory, DepartmentFactory
 from api.users.tests.factories import BaseUserFactory, GovUserFactory
+
+
+class LazyStatus(factory.declarations.BaseDeclaration):
+    def __init__(self, status):
+        self.status = status
+
+    def evaluate(self, instance, step, extra):
+        return get_case_status_by_status(self.status)
 
 
 class CaseFactory(factory.django.DjangoModelFactory):
