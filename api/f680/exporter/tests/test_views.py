@@ -9,7 +9,10 @@ from rest_framework.exceptions import ErrorDetail
 from test_helpers.clients import DataTestClient
 
 from api.f680.models import F680Application  # /PS-IGNORE
-from api.f680.tests.factories import F680ApplicationFactory  # /PS-IGNORE
+from api.f680.tests.factories import (
+    F680ApplicationFactory,  # /PS-IGNORE
+    SubmittedF680ApplicationFactory,  # /PS-IGNORE
+)
 
 
 class F680ApplicationViewSetTests(DataTestClient):  # /PS-IGNORE
@@ -24,10 +27,8 @@ class F680ApplicationViewSetTests(DataTestClient):  # /PS-IGNORE
         self.assertEqual(response.data, {"count": 0, "total_pages": 1, "results": []})
 
     def test_GET_list_success(self):
-        submitted_at = timezone.now()
-        f680_application = F680ApplicationFactory(  # /PS-IGNORE
+        f680_application = SubmittedF680ApplicationFactory(  # /PS-IGNORE
             organisation=self.organisation,
-            submitted_at=submitted_at,
             submitted_by=self.exporter_user,
         )
         response = self.client.get(self.f680_url, **self.exporter_headers)
@@ -46,7 +47,7 @@ class F680ApplicationViewSetTests(DataTestClient):  # /PS-IGNORE
                         "type": self.organisation.type,
                         "status": self.organisation.status,
                     },
-                    "submitted_at": submitted_at.strftime("%Y-%m-%dT%H:%M:%S.%fZ"),
+                    "submitted_at": f680_application.submitted_at.strftime("%Y-%m-%dT%H:%M:%S.%fZ"),
                     "submitted_by": {
                         "email": self.exporter_user.email,
                         "first_name": self.exporter_user.first_name,
@@ -60,10 +61,7 @@ class F680ApplicationViewSetTests(DataTestClient):  # /PS-IGNORE
         self.assertEqual(response.data, expected_result)
 
     def test_GET_list_different_organisation_empty_results(self):
-        submitted_at = timezone.now()
-        f680_application = F680ApplicationFactory(  # /PS-IGNORE
-            submitted_at=submitted_at,
-        )
+        _ = SubmittedF680ApplicationFactory()  # /PS-IGNORE
         response = self.client.get(self.f680_url, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         expected_result = {
@@ -79,10 +77,8 @@ class F680ApplicationViewSetTests(DataTestClient):  # /PS-IGNORE
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_GET_single_success(self):
-        submitted_at = timezone.now()
-        f680_application = F680ApplicationFactory(  # /PS-IGNORE
+        f680_application = SubmittedF680ApplicationFactory(  # /PS-IGNORE
             organisation=self.organisation,
-            submitted_at=submitted_at,
             submitted_by=self.exporter_user,
         )
         url = reverse("exporter_f680:f680_application", kwargs={"f680_application_id": f680_application.id})
@@ -98,7 +94,7 @@ class F680ApplicationViewSetTests(DataTestClient):  # /PS-IGNORE
                 "type": self.organisation.type,
                 "status": self.organisation.status,
             },
-            "submitted_at": submitted_at.strftime("%Y-%m-%dT%H:%M:%S.%fZ"),
+            "submitted_at": f680_application.submitted_at.strftime("%Y-%m-%dT%H:%M:%S.%fZ"),
             "submitted_by": {
                 "email": self.exporter_user.email,
                 "first_name": self.exporter_user.first_name,
@@ -110,10 +106,7 @@ class F680ApplicationViewSetTests(DataTestClient):  # /PS-IGNORE
         self.assertEqual(response.data, expected_result)
 
     def test_GET_single_different_organisation_not_found(self):
-        submitted_at = timezone.now()
-        f680_application = F680ApplicationFactory(  # /PS-IGNORE
-            submitted_at=submitted_at,
-        )
+        f680_application = SubmittedF680ApplicationFactory()  # /PS-IGNORE
         url = reverse("exporter_f680:f680_application", kwargs={"f680_application_id": f680_application.id})
         response = self.client.get(url, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
@@ -199,10 +192,8 @@ class F680ApplicationViewSetTests(DataTestClient):  # /PS-IGNORE
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_PATCH_partial_update_success(self):
-        submitted_at = timezone.now()
-        f680_application = F680ApplicationFactory(  # /PS-IGNORE
+        f680_application = SubmittedF680ApplicationFactory(  # /PS-IGNORE
             organisation=self.organisation,
-            submitted_at=submitted_at,
             submitted_by=self.exporter_user,
             application={"old key": "old value"},
         )
@@ -220,7 +211,7 @@ class F680ApplicationViewSetTests(DataTestClient):  # /PS-IGNORE
                 "type": self.organisation.type,
                 "status": self.organisation.status,
             },
-            "submitted_at": submitted_at.strftime("%Y-%m-%dT%H:%M:%S.%fZ"),
+            "submitted_at": f680_application.submitted_at.strftime("%Y-%m-%dT%H:%M:%S.%fZ"),
             "submitted_by": {
                 "email": self.exporter_user.email,
                 "first_name": self.exporter_user.first_name,
@@ -232,10 +223,7 @@ class F680ApplicationViewSetTests(DataTestClient):  # /PS-IGNORE
         self.assertEqual(response.data, expected_result)
 
     def test_PATCH_partial_update_different_organisation_not_found(self):
-        submitted_at = timezone.now()
-        f680_application = F680ApplicationFactory(  # /PS-IGNORE
-            submitted_at=submitted_at,
-        )
+        f680_application = SubmittedF680ApplicationFactory()  # /PS-IGNORE
         url = reverse("exporter_f680:f680_application", kwargs={"f680_application_id": f680_application.id})
         response = self.client.patch(url, {"application": {"new": "new value"}}, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
