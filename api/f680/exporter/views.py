@@ -3,6 +3,7 @@ from rest_framework import viewsets
 from api.cases.enums import CaseTypeEnum
 from api.core.authentication import ExporterAuthentication
 from api.organisations.libraries.get_organisation import get_request_user_organisation
+from api.organisations.filters import CurrentExporterUserOrganisationFilter
 from api.staticdata.statuses.enums import CaseStatusEnum
 from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
 
@@ -15,9 +16,7 @@ class F680ApplicationViewSet(viewsets.ModelViewSet):  # /PS-IGNORE
     serializer_class = F680ApplicationSerializer  # /PS-IGNORE
     queryset = F680Application.objects.all()  # /PS-IGNORE
     lookup_url_kwarg = "f680_application_id"
-
-    def get_queryset(self):
-        return self.queryset.filter(organisation=get_request_user_organisation(self.request))
+    filter_backends = [CurrentExporterUserOrganisationFilter]
 
     def get_serializer_context(self):
         serializer_context = super().get_serializer_context()
