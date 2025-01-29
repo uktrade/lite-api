@@ -30,7 +30,7 @@ from .generic_application import (
     GenericApplicationUpdateSerializer,
     GenericApplicationViewSerializer,
 )
-from .good import GoodOnApplicationViewSerializer, GoodOnApplicationDataWorkspaceSerializer
+from .good import GoodOnApplicationViewSerializer
 from .fields import CaseStatusField
 
 
@@ -155,17 +155,83 @@ class StandardApplicationViewSerializer(PartiesSerializerMixin, GenericApplicati
         return any([is_reference_name_updated, app_letter_ref_updated, is_product_removed])
 
 
-class StandardApplicationDataWorkspaceSerializer(StandardApplicationViewSerializer):
-    goods = GoodOnApplicationDataWorkspaceSerializer(many=True, read_only=True)
-    amendment_of = serializers.UUIDField(source="amendment_of.id", default=None)
-    superseded_by = serializers.UUIDField(source="superseded_by.id", default=None)
+class StandardApplicationDataWorkspaceSerializer(serializers.ModelSerializer):
+    is_amended = serializers.SerializerMethodField()
+    destinations = serializers.SerializerMethodField()
 
     class Meta:
         model = StandardApplication
-        fields = StandardApplicationViewSerializer.Meta.fields + (
+        fields = (
+            "id",
+            "created_at",
+            "updated_at",
+            "export_type",
+            "reference_code",
+            "submitted_at",
+            "name",
+            "activity",
+            "is_eu_military",
+            "is_informed_wmd",
+            "is_suspected_wmd",
+            "is_compliant_limitations_eu",
+            "is_military_end_use_controls",
+            "intended_end_use",
+            "agreed_to_foi",
+            "foi_reason",
+            "reference_number_on_information_form",
+            "have_you_been_informed",
+            "is_shipped_waybill_or_lading",
+            "is_temp_direct_control",
+            "proposed_return_date",
+            "sla_days",
+            "sla_remaining_days",
+            "sla_updated_at",
+            "last_closed_at",
+            "submitted_by",
+            "status_id",
+            "case_type_id",
+            "organisation_id",
+            "case_officer_id",
+            "copy_of_id",
+            "is_amended",
+            "destinations",
+            "goods_starting_point",
             "amendment_of",
             "superseded_by",
         )
+
+    def get_is_amended(self, instance):
+        """Determines whether an application is major/minor edited using Audit logs
+        and returns True if either of the amends are done, False otherwise"""
+        audit_qs = Audit.objects.filter(target_object_id=instance.id)
+        is_reference_name_updated = audit_qs.filter(verb=AuditType.UPDATED_APPLICATION_NAME).exists()
+        is_product_removed = audit_qs.filter(verb=AuditType.REMOVE_GOOD_FROM_APPLICATION).exists()
+        app_letter_ref_updated = audit_qs.filter(
+            Q(
+                verb__in=[
+                    AuditType.ADDED_APPLICATION_LETTER_REFERENCE,
+                    AuditType.UPDATE_APPLICATION_LETTER_REFERENCE,
+                    AuditType.REMOVED_APPLICATION_LETTER_REFERENCE,
+                ]
+            )
+        )
+        # in case of doing major edits then the status is set as "Applicant editing"
+        # Here we are detecting the transition from "Submitted" -> "Applicant editing"
+        for item in audit_qs.filter(verb=AuditType.UPDATED_STATUS):
+            status = item.payload["status"]
+            if status["old"] == CaseStatusEnum.get_text(CaseStatusEnum.SUBMITTED) and status[
+                "new"
+            ] == CaseStatusEnum.get_text(CaseStatusEnum.APPLICANT_EDITING):
+                return True
+
+        return any([is_reference_name_updated, app_letter_ref_updated, is_product_removed])
+
+    def get_destinations(self, application):
+        if getattr(application, "end_user", None):
+            party = application.end_user.party
+            return {"data": {"country": {"id": party.country.pk}}}
+        else:
+            return {"data": ""}
 
 
 class StandardApplicationCreateSerializer(GenericApplicationCreateSerializer):
