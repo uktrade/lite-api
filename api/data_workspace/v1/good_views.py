@@ -2,19 +2,24 @@ from rest_framework import viewsets
 from rest_framework.pagination import LimitOffsetPagination
 
 from api.conf.pagination import CreatedAtCursorPagination
-from api.goods import models, serializers
 from api.core.authentication import DataWorkspaceOnlyAuthentication
+from api.data_workspace.v1.serializers import GoodSerializer
+from api.goods.models import (
+    Good,
+    GoodControlListEntry,
+)
+from api.goods.serializers import GoodControlListEntryViewSerializer
 
 
 class GoodListView(viewsets.ReadOnlyModelViewSet):
     authentication_classes = (DataWorkspaceOnlyAuthentication,)
-    serializer_class = serializers.GoodSerializerInternalIncludingPrecedents
+    serializer_class = GoodSerializer
     pagination_class = CreatedAtCursorPagination
-    queryset = models.Good.objects.all()
+    queryset = Good.objects.all()
 
 
 class GoodControlListEntryListView(viewsets.ReadOnlyModelViewSet):
     authentication_classes = (DataWorkspaceOnlyAuthentication,)
-    serializer_class = serializers.GoodControlListEntryViewSerializer
+    serializer_class = GoodControlListEntryViewSerializer
     pagination_class = LimitOffsetPagination
-    queryset = models.GoodControlListEntry.objects.all()
+    queryset = GoodControlListEntry.objects.all()
