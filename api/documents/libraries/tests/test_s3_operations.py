@@ -30,8 +30,6 @@ from ..s3_operations import (
 @patch("api.documents.libraries.s3_operations.Config")
 @override_settings(
     AWS_ENDPOINT_URL="AWS_ENDPOINT_URL",
-    AWS_ACCESS_KEY_ID="AWS_ACCESS_KEY_ID",
-    AWS_SECRET_ACCESS_KEY="AWS_SECRET_ACCESS_KEY",
     AWS_REGION="AWS_REGION",
     S3_CONNECT_TIMEOUT=22,
     S3_REQUEST_TIMEOUT=44,
@@ -61,8 +59,7 @@ class S3OperationsTests(SimpleTestCase):
             config=config,
         )
 
-    @patch("api.documents.libraries.s3_operations._client")
-    def test_get_client(self, mock_client, mock_Config, mock_boto3):
+    def test_get_client_with_aws_endpoint_url(self, mock_Config, mock_boto3):
         mock_client = Mock()
         mock_boto3.client.return_value = mock_client
 
