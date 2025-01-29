@@ -15,7 +15,7 @@ class GoodListView(viewsets.ReadOnlyModelViewSet):
     authentication_classes = (DataWorkspaceOnlyAuthentication,)
     serializer_class = GoodSerializer
     pagination_class = CreatedAtCursorPagination
-    queryset = Good.objects.all()
+    queryset = Good.objects.prefetch_related("control_list_entries")
 
 
 class GoodControlListEntryListView(viewsets.ReadOnlyModelViewSet):
