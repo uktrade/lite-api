@@ -158,6 +158,10 @@ class StandardApplicationViewSerializer(PartiesSerializerMixin, GenericApplicati
 class StandardApplicationDataWorkspaceSerializer(serializers.ModelSerializer):
     is_amended = serializers.SerializerMethodField()
     destinations = serializers.SerializerMethodField()
+    export_type = serializers.SerializerMethodField()
+    case_type = serializers.SerializerMethodField()
+    status = serializers.SerializerMethodField()
+    organisation = serializers.SerializerMethodField()
 
     class Meta:
         model = StandardApplication
@@ -188,11 +192,11 @@ class StandardApplicationDataWorkspaceSerializer(serializers.ModelSerializer):
             "sla_updated_at",
             "last_closed_at",
             "submitted_by",
-            "status_id",
-            "case_type_id",
-            "organisation_id",
-            "case_officer_id",
-            "copy_of_id",
+            "status",
+            "case_type",
+            "organisation",
+            "case_officer",
+            "copy_of",
             "is_amended",
             "destinations",
             "goods_starting_point",
@@ -203,21 +207,12 @@ class StandardApplicationDataWorkspaceSerializer(serializers.ModelSerializer):
     def get_is_amended(self, instance):
         """Determines whether an application is major/minor edited using Audit logs
         and returns True if either of the amends are done, False otherwise"""
-        audit_qs = Audit.objects.filter(target_object_id=instance.id)
-        is_reference_name_updated = audit_qs.filter(verb=AuditType.UPDATED_APPLICATION_NAME).exists()
-        is_product_removed = audit_qs.filter(verb=AuditType.REMOVE_GOOD_FROM_APPLICATION).exists()
-        app_letter_ref_updated = audit_qs.filter(
-            Q(
-                verb__in=[
-                    AuditType.ADDED_APPLICATION_LETTER_REFERENCE,
-                    AuditType.UPDATE_APPLICATION_LETTER_REFERENCE,
-                    AuditType.REMOVED_APPLICATION_LETTER_REFERENCE,
-                ]
-            )
-        )
+        is_reference_name_updated = bool(instance.is_reference_update_audits)
+        is_product_removed = bool(instance.is_product_removed_audits)
+        app_letter_ref_updated = bool(instance.app_letter_ref_updated_audits)
         # in case of doing major edits then the status is set as "Applicant editing"
         # Here we are detecting the transition from "Submitted" -> "Applicant editing"
-        for item in audit_qs.filter(verb=AuditType.UPDATED_STATUS):
+        for item in instance.updated_status_audits:
             status = item.payload["status"]
             if status["old"] == CaseStatusEnum.get_text(CaseStatusEnum.SUBMITTED) and status[
                 "new"
@@ -227,11 +222,32 @@ class StandardApplicationDataWorkspaceSerializer(serializers.ModelSerializer):
         return any([is_reference_name_updated, app_letter_ref_updated, is_product_removed])
 
     def get_destinations(self, application):
-        if getattr(application, "end_user", None):
-            party = application.end_user.party
-            return {"data": {"country": {"id": party.country.pk}}}
-        else:
+        if not application.end_users:
             return {"data": ""}
+
+        end_user = application.end_users[0]
+        return {"data": {"country": {"id": end_user.party.country_id}}}
+
+    def get_export_type(self, application):
+        if hasattr(application, "export_type"):
+            return {
+                "key": application.export_type,
+            }
+
+    def get_status(self, application):
+        return {
+            "id": application.status_id,
+        }
+
+    def get_case_type(self, application):
+        return {
+            "id": application.case_type_id,
+        }
+
+    def get_organisation(self, application):
+        return {
+            "id": application.organisation_id,
+        }
 
 
 class StandardApplicationCreateSerializer(GenericApplicationCreateSerializer):
