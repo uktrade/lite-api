@@ -30,7 +30,7 @@ from .generic_application import (
     GenericApplicationUpdateSerializer,
     GenericApplicationViewSerializer,
 )
-from .good import GoodOnApplicationViewSerializer, GoodOnApplicationDataWorkspaceSerializer
+from .good import GoodOnApplicationViewSerializer
 from .fields import CaseStatusField
 
 
@@ -155,17 +155,119 @@ class StandardApplicationViewSerializer(PartiesSerializerMixin, GenericApplicati
         return any([is_reference_name_updated, app_letter_ref_updated, is_product_removed])
 
 
-class StandardApplicationDataWorkspaceSerializer(StandardApplicationViewSerializer):
-    goods = GoodOnApplicationDataWorkspaceSerializer(many=True, read_only=True)
-    amendment_of = serializers.UUIDField(source="amendment_of.id", default=None)
-    superseded_by = serializers.UUIDField(source="superseded_by.id", default=None)
+class StandardApplicationDataWorkspaceSerializer(serializers.ModelSerializer):
+    is_amended = serializers.SerializerMethodField()
+    destinations = serializers.SerializerMethodField()
+    export_type = serializers.SerializerMethodField()
+    case_type = serializers.SerializerMethodField()
+    status = serializers.SerializerMethodField()
+    organisation = serializers.SerializerMethodField()
+    submitted_by = serializers.SerializerMethodField()
+    superseded_by = serializers.SerializerMethodField()
+    amendment_of = serializers.SerializerMethodField()
 
     class Meta:
         model = StandardApplication
-        fields = StandardApplicationViewSerializer.Meta.fields + (
+        fields = (
+            "id",
+            "created_at",
+            "updated_at",
+            "export_type",
+            "reference_code",
+            "submitted_at",
+            "name",
+            "activity",
+            "is_eu_military",
+            "is_informed_wmd",
+            "is_suspected_wmd",
+            "is_compliant_limitations_eu",
+            "is_military_end_use_controls",
+            "intended_end_use",
+            "agreed_to_foi",
+            "foi_reason",
+            "reference_number_on_information_form",
+            "have_you_been_informed",
+            "is_shipped_waybill_or_lading",
+            "is_temp_direct_control",
+            "proposed_return_date",
+            "sla_days",
+            "sla_remaining_days",
+            "sla_updated_at",
+            "last_closed_at",
+            "submitted_by",
+            "status",
+            "case_type",
+            "organisation",
+            "case_officer",
+            "copy_of",
+            "is_amended",
+            "destinations",
+            "goods_starting_point",
             "amendment_of",
             "superseded_by",
         )
+
+    def get_is_amended(self, instance):
+        """Determines whether an application is major/minor edited using Audit logs
+        and returns True if either of the amends are done, False otherwise"""
+        is_reference_name_updated = bool(instance.is_reference_update_audits)
+        is_product_removed = bool(instance.is_product_removed_audits)
+        app_letter_ref_updated = bool(instance.app_letter_ref_updated_audits)
+        # in case of doing major edits then the status is set as "Applicant editing"
+        # Here we are detecting the transition from "Submitted" -> "Applicant editing"
+        for item in instance.updated_status_audits:
+            status = item.payload["status"]
+            if status["old"] == CaseStatusEnum.get_text(CaseStatusEnum.SUBMITTED) and status[
+                "new"
+            ] == CaseStatusEnum.get_text(CaseStatusEnum.APPLICANT_EDITING):
+                return True
+
+        return any([is_reference_name_updated, app_letter_ref_updated, is_product_removed])
+
+    def get_destinations(self, application):
+        if not application.end_users:
+            return {"data": ""}
+
+        end_user = application.end_users[0]
+        return {"data": {"country": {"id": end_user.party.country_id}}}
+
+    def get_export_type(self, application):
+        if hasattr(application, "export_type"):
+            return {
+                "key": application.export_type,
+            }
+
+    def get_status(self, application):
+        return {
+            "id": application.status_id,
+        }
+
+    def get_case_type(self, application):
+        return {
+            "id": application.case_type_id,
+        }
+
+    def get_organisation(self, application):
+        return {
+            "id": application.organisation_id,
+        }
+
+    def get_submitted_by(self, application):
+        return (
+            f"{application.submitted_by.first_name} {application.submitted_by.last_name}"
+            if application.submitted_by
+            else ""
+        )
+
+    def get_superseded_by(self, application):
+        if not application.superseded_by:
+            return None
+        return str(application.superseded_by.pk)
+
+    def get_amendment_of(self, application):
+        if not application.amendment_of_id:
+            return None
+        return str(application.amendment_of_id)
 
 
 class StandardApplicationCreateSerializer(GenericApplicationCreateSerializer):
