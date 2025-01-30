@@ -162,6 +162,9 @@ class StandardApplicationDataWorkspaceSerializer(serializers.ModelSerializer):
     case_type = serializers.SerializerMethodField()
     status = serializers.SerializerMethodField()
     organisation = serializers.SerializerMethodField()
+    submitted_by = serializers.SerializerMethodField()
+    superseded_by = serializers.SerializerMethodField()
+    amendment_of = serializers.SerializerMethodField()
 
     class Meta:
         model = StandardApplication
@@ -248,6 +251,23 @@ class StandardApplicationDataWorkspaceSerializer(serializers.ModelSerializer):
         return {
             "id": application.organisation_id,
         }
+
+    def get_submitted_by(self, application):
+        return (
+            f"{application.submitted_by.first_name} {application.submitted_by.last_name}"
+            if application.submitted_by
+            else ""
+        )
+
+    def get_superseded_by(self, application):
+        if not application.superseded_by:
+            return None
+        return str(application.superseded_by.pk)
+
+    def get_amendment_of(self, application):
+        if not application.amendment_of:
+            return None
+        return str(application.amendment_of.pk)
 
 
 class StandardApplicationCreateSerializer(GenericApplicationCreateSerializer):
