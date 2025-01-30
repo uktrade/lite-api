@@ -3,10 +3,17 @@ from api.core.serializers import KeyValueChoiceField
 from api.survey.models import SurveyResponse
 from api.teams.models import Department
 from api.cases.models import CaseAssignment, EcjuQuery, DepartmentSLA
+from api.goods.enums import (
+    GoodControlled,
+    GoodStatus,
+    ItemCategory,
+)
+from api.goods.models import Good
 from api.licences.enums import LicenceStatus
 from api.licences.models import Licence
-from api.queues.models import Queue
 from api.organisations.models import Site
+from api.queues.models import Queue
+from api.staticdata.control_list_entries.serializers import ControlListEntrySerializer
 from rest_framework import serializers
 import api.cases.serializers as cases_serializers
 
@@ -163,3 +170,25 @@ class SiteSerializer(serializers.ModelSerializer):
     class Meta:
         model = Site
         fields = "__all__"
+
+
+class GoodSerializer(serializers.ModelSerializer):
+    control_list_entries = ControlListEntrySerializer(many=True)
+    is_good_controlled = KeyValueChoiceField(choices=GoodControlled.choices)
+    status = KeyValueChoiceField(choices=GoodStatus.choices)
+    item_category = KeyValueChoiceField(choices=ItemCategory.choices)
+
+    class Meta:
+        model = Good
+        fields = (
+            "id",
+            "name",
+            "description",
+            "part_number",
+            "control_list_entries",
+            "is_good_controlled",
+            "status",
+            "item_category",
+            "is_pv_graded",
+            "report_summary",
+        )

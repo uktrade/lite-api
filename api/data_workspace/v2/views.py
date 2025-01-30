@@ -70,7 +70,15 @@ class LicenceDecisionViewSet(BaseViewSet):
     queryset = (
         LicenceDecision.objects.filter(previous_decision__isnull=True)
         .exclude(excluded_from_statistics_reason__isnull=False)
-        .prefetch_related("case__licence_decisions", "case__licence_decisions__licence")
+        .prefetch_related(
+            Prefetch(
+                "case__licence_decisions",
+                queryset=LicenceDecision.objects.exclude(excluded_from_statistics_reason__isnull=False)
+                .select_related("licence")
+                .order_by("-created_at"),
+                to_attr="unexcluded_licence_decisions",
+            ),
+        )
         .select_related("case")
         .order_by("-case__reference_code")
     )
