@@ -491,6 +491,18 @@ class Case(TimestampableModel):
         )
         return super().delete(*args, **kwargs)
 
+    def get_application_manifest(self):
+        from api.cases.application_manifest import application_manifest_registry
+
+        application_manifest = application_manifest_registry.get_manifest(self.case_type.sub_type)
+        return application_manifest
+
+    def get_application(self):
+        application_manifest = self.get_application_manifest()
+        model_class = application_manifest.model_class
+
+        return model_class.objects.get_prepared_object(pk=self.pk)
+
 
 class CaseQueue(TimestampableModel):
     case = models.ForeignKey(Case, related_name="casequeues", on_delete=models.DO_NOTHING)
