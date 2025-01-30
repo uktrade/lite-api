@@ -30,7 +30,6 @@ from api.goods.models import Good
 from api.goods.serializers import (
     GoodSerializerInternal,
     FirearmDetailsSerializer,
-    GoodSerializerInternalIncludingPrecedents,
 )
 from api.gov_users.serializers import GovUserSimpleSerializer
 from api.licences.models import GoodOnLicence
@@ -172,28 +171,46 @@ class GoodOnApplicationViewSerializer(serializers.ModelSerializer):
         return super().update(instance, validated_data)
 
 
-class GoodOnApplicationDataWorkspaceSerializer(GoodOnApplicationViewSerializer):
-    good = GoodSerializerInternalIncludingPrecedents(read_only=True)
-    good_application_documents = serializers.SerializerMethodField()
-    good_application_internal_documents = serializers.SerializerMethodField()
+class GoodOnApplicationDataWorkspaceSerializer(serializers.ModelSerializer):
+    unit = serializers.SerializerMethodField()
+    good = serializers.SerializerMethodField()
+    firearm_details = serializers.SerializerMethodField()
+    is_good_controlled = serializers.SerializerMethodField()
 
     class Meta:
         model = GoodOnApplication
-        base_fields = list(GoodOnApplicationViewSerializer.Meta.fields)
-        fields = base_fields + [
-            "good_application_documents",
-            "good_application_internal_documents",
-        ]
-
-    def get_good_application_documents(self, instance):
-        documents = GoodOnApplicationDocument.objects.filter(
-            application=instance.application, good=instance.good, safe=True
+        fields = (
+            "id",
+            "created_at",
+            "updated_at",
+            "quantity",
+            "unit",
+            "value",
+            "is_good_incorporated",
+            "application_id",
+            "comment",
+            "report_summary",
+            "end_use_control",
+            "is_precedent",
+            "good",
+            "firearm_details",
+            "is_good_controlled",
+            "is_trigger_list_guidelines_applicable",
+            "is_nca_applicable",
+            "nsg_assessment_note",
         )
-        return GoodOnApplicationDocumentViewSerializer(documents, many=True).data
 
-    def get_good_application_internal_documents(self, instance):
-        documents = GoodOnApplicationInternalDocument.objects.filter(good_on_application=instance.id, safe=True)
-        return GoodOnApplicationInternalDocumentViewSerializer(documents, many=True).data
+    def get_unit(self, instance):
+        return {"key": instance.unit}
+
+    def get_good(self, instance):
+        return {"id": instance.good_id}
+
+    def get_firearm_details(self, instance):
+        return {"id": instance.firearm_details_id}
+
+    def get_is_good_controlled(self, instance):
+        return {"key": instance.is_good_controlled}
 
 
 class GoodOnApplicationCreateSerializer(serializers.ModelSerializer):
