@@ -265,9 +265,9 @@ class StandardApplicationDataWorkspaceSerializer(serializers.ModelSerializer):
         return str(application.superseded_by.pk)
 
     def get_amendment_of(self, application):
-        if not application.amendment_of:
+        if not application.amendment_of_id:
             return None
-        return str(application.amendment_of.pk)
+        return str(application.amendment_of_id)
 
 
 class StandardApplicationCreateSerializer(GenericApplicationCreateSerializer):
