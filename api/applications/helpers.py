@@ -16,7 +16,6 @@ from api.applications.serializers.end_use_details import (
 from api.applications.serializers.standard_application import (
     StandardApplicationCreateSerializer,
     StandardApplicationUpdateSerializer,
-    StandardApplicationViewSerializer,
 )
 from api.applications.serializers.good import GoodOnStandardLicenceSerializer
 from api.cases.enums import CaseTypeSubTypeEnum, CaseTypeEnum, AdviceType, AdviceLevel
@@ -31,15 +30,8 @@ logger = logging.getLogger(__name__)
 
 
 def get_application_view_serializer(application: BaseApplication):
-    if application.case_type.sub_type == CaseTypeSubTypeEnum.STANDARD:
-        return StandardApplicationViewSerializer
-    else:
-        raise BadRequestError(
-            {
-                f"get_application_view_serializer does "
-                f"not support this application type: {application.case_type.sub_type}"
-            }
-        )
+    application_manifest = application.get_application_manifest()
+    return application_manifest.caseworker_serializers["view"]
 
 
 def get_application_create_serializer(case_type):
