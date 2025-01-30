@@ -109,6 +109,25 @@ class AuditUpdatedLicenceStatusSerializer(serializers.ModelSerializer):
         return instance.payload["status"].lower()
 
 
+class AuditBulkApprovalRecommendationSerializer(serializers.ModelSerializer):
+    user = serializers.SerializerMethodField()
+    case = serializers.SerializerMethodField()
+    queue = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Audit
+        fields = ("id", "created_at", "user", "case", "queue")
+
+    def get_user(self, instance):
+        return instance.actor.pk
+
+    def get_case(self, instance):
+        return instance.target_object_id or None
+
+    def get_queue(self, instance):
+        return instance.payload["queue"].lower()
+
+
 class AdviceDenialReasonSerializer(serializers.Serializer):
     id = serializers.IntegerField()
     advice_id = serializers.UUIDField()
