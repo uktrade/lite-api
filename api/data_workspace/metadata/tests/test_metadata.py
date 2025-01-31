@@ -8,6 +8,7 @@ from rest_framework.test import URLPatternsTestCase
 
 
 class MetadataTestCase(URLPatternsTestCase):
+    databases = {"default"}
     urlpatterns = [
         path("api/", include("api.data_workspace.metadata.tests.urls")),
         path("namespaced/", include(("api.data_workspace.metadata.tests.urls", "namespaced"), namespace="namespaced")),
