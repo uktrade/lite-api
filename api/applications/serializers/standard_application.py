@@ -165,6 +165,7 @@ class StandardApplicationDataWorkspaceSerializer(serializers.ModelSerializer):
     submitted_by = serializers.SerializerMethodField()
     superseded_by = serializers.SerializerMethodField()
     amendment_of = serializers.SerializerMethodField()
+    case_officer = serializers.SerializerMethodField()
 
     class Meta:
         model = StandardApplication
@@ -268,6 +269,13 @@ class StandardApplicationDataWorkspaceSerializer(serializers.ModelSerializer):
         if not application.amendment_of_id:
             return None
         return str(application.amendment_of_id)
+
+    def get_case_officer(self, application):
+        if not application.case_officer_id:
+            return None
+        return {
+            "id": application.case_officer_id,
+        }
 
 
 class StandardApplicationCreateSerializer(GenericApplicationCreateSerializer):
