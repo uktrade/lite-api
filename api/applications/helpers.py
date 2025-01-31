@@ -24,6 +24,7 @@ from api.core.exceptions import BadRequestError
 from api.documents.models import Document
 from api.documents.libraries import s3_operations
 from api.external_data.models import SanctionMatch
+from api.f680.exporter.serializers import F680Serializer
 from api.licences.models import GoodOnLicence
 from lite_content.lite_api import strings
 
@@ -33,6 +34,8 @@ logger = logging.getLogger(__name__)
 def get_application_view_serializer(application: BaseApplication):
     if application.case_type.sub_type == CaseTypeSubTypeEnum.STANDARD:
         return StandardApplicationViewSerializer
+    elif application.case_type.sub_type == CaseTypeSubTypeEnum.F680:
+        return F680Serializer
     else:
         raise BadRequestError(
             {
