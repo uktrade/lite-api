@@ -13,11 +13,14 @@ from django.urls import (
     path,
 )
 
+from api.core.authentication import DataWorkspaceOnlyAuthentication
+
 
 class TableMetadataView(APIView):
     _ignore_model_permissions = True
     schema = None  # exclude from schema
     metadata = None
+    authentication_classes = (DataWorkspaceOnlyAuthentication,)
 
     def get(self, request, *args, **kwargs):
         tables = []
