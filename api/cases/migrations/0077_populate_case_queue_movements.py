@@ -10,11 +10,16 @@ from api.audit_trail.enums import AuditType
 def populate_case_queue_movements(apps, schema_editor):
     Audit = apps.get_model("audit_trail", "Audit")
     CaseQueueMovement = apps.get_model("cases", "CaseQueueMovement")
+    Queue = apps.get_model("queues", "Queue")
 
     case_queue_movements = []
 
-    # Some of the early events doesn't have queue_ids in the payload so they are ignored
-    move_case_qs = Audit.objects.filter(verb=AuditType.MOVE_CASE, payload__queue_ids__isnull=False)
+    move_case_qs = Audit.objects.filter(
+        verb=AuditType.MOVE_CASE,
+        action_object_object_id__isnull=False,
+        payload__queue_ids__isnull=False,
+        payload__queues__isnull=False,
+    )
     for event in move_case_qs:
         case_id = event.action_object_object_id
         queue_id = event.payload["queue_ids"][0]
@@ -26,6 +31,27 @@ def populate_case_queue_movements(apps, schema_editor):
                 created_at=event.created_at,
             )
         )
+
+    # Some of the early events only have queue name in the payload so they are processed separately
+    move_case_qs = Audit.objects.filter(
+        verb=AuditType.MOVE_CASE,
+        action_object_object_id__isnull=False,
+        payload__queue_ids__isnull=True,
+        payload__queues__isnull=False,
+    )
+    for event in move_case_qs:
+        case_id = event.action_object_object_id
+        queue_name = event.payload["queues"]
+        if Queue.objects.filter(name=queue_name).exists():
+            queue = Queue.objects.get(name=queue_name)
+
+            case_queue_movements.append(
+                CaseQueueMovement(
+                    case_id=case_id,
+                    queue_id=queue.id,
+                    created_at=event.created_at,
+                )
+            )
 
     CaseQueueMovement.objects.bulk_create(case_queue_movements)
 
