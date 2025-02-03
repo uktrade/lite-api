@@ -42,9 +42,7 @@ from api.staticdata.statuses.models import CaseStatus, CaseSubStatus
 from api.staticdata.statuses.enums import (
     CaseStatusEnum,
 )
-from api.users.enums import SystemUser
-from api.users.models import ExporterUser
-from api.users.tests.factories import BaseUserFactory
+from api.users.tests.factories import SystemUserFactory
 
 
 class TestBaseApplication(DataTestClient):
@@ -603,7 +601,7 @@ class TestPartyOnApplication(DataTestClient):
 @pytest.mark.requires_transactions
 class TestStandardApplicationRaceConditions(TransactionTestCase):
     def test_create_amendment_race_condition_success(self):
-        BaseUserFactory(id=SystemUser.id)
+        SystemUserFactory()
 
         original_application = StandardApplicationFactory()
 
