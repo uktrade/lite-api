@@ -23,6 +23,7 @@ def populate_case_queue_movements(apps, schema_editor):
             CaseQueueMovement(
                 case_id=case_id,
                 queue_id=queue_id,
+                created_at=event.created_at,
             )
         )
 
