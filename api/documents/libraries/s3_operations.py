@@ -21,15 +21,22 @@ def init_s3_client():
     # want to explicitly re-instiate the client e.g. in tests.
     global _client
     additional_s3_params = {}
+
     if settings.AWS_ENDPOINT_URL:
         additional_s3_params["endpoint_url"] = settings.AWS_ENDPOINT_URL
 
-    _client = boto3.client(
-        "s3",
-        region_name=settings.AWS_REGION,
-        config=Config(connect_timeout=settings.S3_CONNECT_TIMEOUT, read_timeout=settings.S3_REQUEST_TIMEOUT),
+    aws_kwargs = {
+        "region_name": settings.AWS_REGION,
+        "config": Config(connect_timeout=settings.S3_CONNECT_TIMEOUT, read_timeout=settings.S3_REQUEST_TIMEOUT),
         **additional_s3_params,
-    )
+    }
+    if hasattr(settings, "AWS_ACCESS_KEY_ID") and hasattr(settings, "AWS_SECRET_ACCESS_KEY"):
+        # PROD Enviroments don't allow setting this value.
+        aws_kwargs["aws_access_key_id"] = settings.AWS_ACCESS_KEY_ID
+        aws_kwargs["aws_secret_access_key"] = settings.AWS_SECRET_ACCESS_KEY
+
+    _client = boto3.client("s3", **aws_kwargs)
+
     return _client
 
 

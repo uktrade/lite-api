@@ -13,6 +13,7 @@ from botocore.exceptions import (
 )
 
 from django.http import FileResponse
+from django.conf import settings
 from django.test import override_settings, SimpleTestCase
 
 from test_helpers.s3 import S3TesterHelper
@@ -30,6 +31,8 @@ from ..s3_operations import (
 @patch("api.documents.libraries.s3_operations.Config")
 @override_settings(
     AWS_ENDPOINT_URL="AWS_ENDPOINT_URL",
+    AWS_ACCESS_KEY_ID="AWS_ACCESS_KEY_ID",
+    AWS_SECRET_ACCESS_KEY="AWS_SECRET_ACCESS_KEY",
     AWS_REGION="AWS_REGION",
     S3_CONNECT_TIMEOUT=22,
     S3_REQUEST_TIMEOUT=44,
@@ -57,11 +60,43 @@ class S3OperationsTests(SimpleTestCase):
         )
         mock_boto3.client.assert_called_with(
             "s3",
+            aws_access_key_id="AWS_ACCESS_KEY_ID",
+            aws_secret_access_key="AWS_SECRET_ACCESS_KEY",
             region_name="AWS_REGION",
             config=config,
         )
 
     def test_get_client_with_aws_endpoint_url(self, mock_Config, mock_boto3):
+        mock_client = Mock()
+        mock_boto3.client.return_value = mock_client
+
+        returned_client = init_s3_client()
+        self.assertEqual(returned_client, mock_client)
+
+        mock_Config.assert_called_with(
+            connect_timeout=22,
+            read_timeout=44,
+        )
+        config = mock_Config(
+            connection_timeout=22,
+            read_timeout=44,
+        )
+        mock_boto3.client.assert_called_with(
+            "s3",
+            aws_access_key_id="AWS_ACCESS_KEY_ID",
+            aws_secret_access_key="AWS_SECRET_ACCESS_KEY",
+            region_name="AWS_REGION",
+            config=config,
+            endpoint_url="AWS_ENDPOINT_URL",
+        )
+
+    @patch("api.documents.libraries.s3_operations._client")
+    def test_get_client_with_no_aws_secret_keys(self, mock_client, mock_Config, mock_boto3):
+
+        # These are only used locally
+        delattr(settings, "AWS_ACCESS_KEY_ID")
+        delattr(settings, "AWS_SECRET_ACCESS_KEY")
+
         mock_client = Mock()
         mock_boto3.client.return_value = mock_client
 
