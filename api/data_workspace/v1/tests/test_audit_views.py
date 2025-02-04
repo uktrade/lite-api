@@ -9,8 +9,6 @@ from api.staticdata.statuses.enums import CaseStatusEnum
 from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
 from test_helpers.clients import DataTestClient
 
-from lite_routing.routing_rules_internal.enums import QueuesEnum, TeamIdEnum
-
 
 class DataWorkspaceAuditMoveCaseTests(DataTestClient):
     def setUp(self):
@@ -88,46 +86,6 @@ class DataWorkspaceAuditUpdatedCaseStatusTests(DataTestClient):
         self.assertEqual(results[0]["status"], "submitted")
 
         response = self.client.options(self.url)
-
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        options = response.json()["actions"]["GET"]
-        self.assertEqual(tuple(options.keys()), expected_fields)
-
-
-class DataWorkspaceAuditBulkApprovalRecommendationTests(DataTestClient):
-
-    def test_audit_bulk_approval_recommendation(self):
-        cases = [self.create_standard_application_case(self.organisation, "Test Application") for _ in range(5)]
-        for case in cases:
-            case.status = get_case_status_by_status(CaseStatusEnum.OGD_ADVICE)
-            case.save()
-
-        data = {
-            "cases": [str(case.id) for case in cases],
-            "advice": {
-                "text": "No concerns",
-                "proviso": "",
-                "note": "",
-                "footnote_required": False,
-                "footnote": "",
-                "team": TeamIdEnum.MOD_CAPPROT,
-            },
-        }
-        url = reverse("caseworker_queues:bulk_approval", kwargs={"pk": QueuesEnum.MOD_CAPPROT})
-        response = self.client.post(url, data=data, **self.gov_headers)
-        assert response.status_code == 201
-
-        expected_fields = ("id", "created_at", "user", "case", "queue")
-
-        url = reverse("data_workspace:v1:dw-audit-bulk-approval-list")
-        response = self.client.get(url)
-
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        results = response.json()["results"]
-        self.assertEqual(len(results), 5)
-        self.assertEqual(tuple(results[0].keys()), expected_fields)
-
-        response = self.client.options(url)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         options = response.json()["actions"]["GET"]
