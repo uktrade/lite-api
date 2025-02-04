@@ -338,6 +338,7 @@ class Case(TimestampableModel):
 
     def move_case_forward(self, queue, user):
         from api.audit_trail import service as audit_trail_service
+        from api.cases.models import CaseQueueMovement
         from api.workflow.user_queue_assignment import user_queue_assignment_workflow
 
         assignments = (
@@ -350,6 +351,10 @@ class Case(TimestampableModel):
 
         # Run routing rules and move the case forward
         user_queue_assignment_workflow([queue], self)
+
+        obj = CaseQueueMovement.objects.get(case=self, queue=queue, exit_date=None)
+        obj.exit_date = timezone.now()
+        obj.save()
 
         audit_trail_service.create(
             actor=user,

@@ -1,7 +1,7 @@
 from api.audit_trail import service as audit_trail_service
 from api.audit_trail.enums import AuditType
 
-from api.cases.models import Case
+from api.cases.models import Case, CaseQueueMovement
 from api.compliance.helpers import compliance_visit_case_complete
 from api.compliance.models import ComplianceVisitCase
 from api.queues.models import Queue
@@ -70,4 +70,7 @@ def user_queue_assignment_workflow(queues: [Queue], case: Case):
                 )
 
     # Move case to next non-terminal state if unassigned from all queues
-    move_case_forward(case)
+    queues_assigned = move_case_forward(case)
+
+    for queue in queues_assigned:
+        CaseQueueMovement.objects.create(case=case, queue_id=queue)
