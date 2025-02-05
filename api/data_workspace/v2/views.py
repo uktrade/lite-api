@@ -140,6 +140,7 @@ def get_closed_statuses():
 
 
 class GoodOnLicenceViewSet(BaseViewSet):
+    pagination_class = CreatedAtCursorPagination
     serializer_class = GoodOnLicenceSerializer
     queryset = GoodOnLicence.objects.exclude(
         licence__case__status__status=CaseStatusEnum.DRAFT,
