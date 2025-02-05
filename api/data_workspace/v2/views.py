@@ -110,6 +110,7 @@ class DestinationViewSet(BaseViewSet):
 
 
 class GoodViewSet(BaseViewSet):
+    pagination_class = CreatedAtCursorPagination
     serializer_class = GoodSerializer
     queryset = GoodOnApplication.objects.exclude(application__status__status=CaseStatusEnum.DRAFT)
 

@@ -645,6 +645,9 @@ class GoodOnApplication(AbstractGoodOnApplication, Clonable):
 
     class Meta:
         ordering = ["created_at"]
+        indexes = [
+            models.Index(fields=["created_at"]),
+        ]
 
     @property
     def name(self):
