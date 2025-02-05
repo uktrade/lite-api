@@ -26,6 +26,7 @@ from api.cases.models import (
     Advice,
     LicenceDecision,
 )
+from api.conf.pagination import CreatedAtCursorPagination
 from api.core.authentication import DataWorkspaceOnlyAuthentication
 from api.core.helpers import str_to_bool
 from api.data_workspace.v2.serializers import (
@@ -96,6 +97,7 @@ class CountryViewSet(BaseViewSet):
 
 
 class DestinationViewSet(BaseViewSet):
+    pagination_class = CreatedAtCursorPagination
     serializer_class = DestinationSerializer
     queryset = (
         PartyOnApplication.objects.filter(deleted_at__isnull=True)

@@ -729,6 +729,11 @@ class PartyOnApplication(TimestampableModel, Clonable):
 
     objects = PartyOnApplicationManager()
 
+    class Meta:
+        indexes = [
+            models.Index(fields=["created_at"]),
+        ]
+
     def __repr__(self):
         return str(
             {
