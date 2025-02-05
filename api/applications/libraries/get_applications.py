@@ -1,4 +1,5 @@
 from api.cases.models import Case
+from api.core.exceptions import NotFoundError
 
 
 def get_application(pk, organisation_id=None):
@@ -6,6 +7,9 @@ def get_application(pk, organisation_id=None):
     if organisation_id:
         kwargs["organisation_id"] = str(organisation_id)
 
-    case = Case.objects.get(pk=pk, **kwargs)
+    try:
+        case = Case.objects.get(pk=pk, **kwargs)
+    except Case.DoesNotExist:
+        raise NotFoundError(f"Case with id {pk} does not exist")
     application = case.get_application()
     return application
