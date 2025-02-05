@@ -152,6 +152,7 @@ class GoodOnLicenceViewSet(BaseViewSet):
 
 
 class ApplicationViewSet(BaseViewSet):
+    pagination_class = CreatedAtCursorPagination
     serializer_class = ApplicationSerializer
     queryset = (
         StandardApplication.objects.exclude(status__status=CaseStatusEnum.DRAFT)

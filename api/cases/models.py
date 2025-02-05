@@ -130,6 +130,11 @@ class Case(TimestampableModel):
 
     objects = CaseManager()
 
+    class Meta:
+        indexes = [
+            models.Index(fields=["created_at"]),
+        ]
+
     def save(self, *args, **kwargs):
         if CaseStatusEnum.is_terminal(self.status.status):
             self.case_officer = None
