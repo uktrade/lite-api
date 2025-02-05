@@ -1,6 +1,6 @@
 import factory
 
-
+from api.core.constants import Roles
 from api.organisations.tests.factories import OrganisationFactory
 from api.users import models
 from api.users.enums import SystemUser, UserType, UserStatuses
@@ -41,6 +41,15 @@ class GovUserFactory(factory.django.DjangoModelFactory):
 
     class Meta:
         model = models.GovUser
+
+    @classmethod
+    def _create(cls, model_class, *args, **kwargs):
+        obj = model_class(*args, **kwargs)
+        if not Role.objects.filter(id=Roles.INTERNAL_DEFAULT_ROLE_ID, type=UserType.INTERNAL.value).exists():
+            obj.role = RoleFactory(
+                id=Roles.INTERNAL_DEFAULT_ROLE_ID, type=UserType.INTERNAL.value, name=Roles.INTERNAL_DEFAULT_ROLE_NAME
+            )
+        return obj
 
 
 class ExporterUserFactory(factory.django.DjangoModelFactory):
