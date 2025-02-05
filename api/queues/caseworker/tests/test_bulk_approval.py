@@ -10,14 +10,17 @@ from api.audit_trail.serializers import AuditSerializer
 from api.cases.enums import AdviceLevel, AdviceType
 from api.cases.models import CaseAssignment
 from api.cases.tests.factories import CaseAssignmentFactory
+from api.core.constants import Roles
 from api.parties.tests.factories import PartyDocumentFactory
 from api.queues.models import Queue
 from api.staticdata.control_list_entries.models import ControlListEntry
 from api.staticdata.statuses.enums import CaseStatusEnum
 from api.staticdata.statuses.models import CaseStatus
 from api.teams.models import Team
+from api.users.enums import UserType
 from api.users.libraries.user_to_token import user_to_token
-from api.users.tests.factories import GovUserFactory
+from api.users.models import Role
+from api.users.tests.factories import GovUserFactory, RoleFactory
 
 from lite_routing.routing_rules_internal.enums import QueuesEnum, TeamIdEnum
 
@@ -32,6 +35,11 @@ pytest_plugins = [
 def team_case_advisor():
     def _team_case_advisor(team_id):
         gov_user = GovUserFactory()
+        if not Role.objects.filter(id=Roles.INTERNAL_DEFAULT_ROLE_ID, type=UserType.INTERNAL.value).exists():
+            gov_user.role = RoleFactory(
+                id=Roles.INTERNAL_DEFAULT_ROLE_ID, type=UserType.INTERNAL.value, name=Roles.INTERNAL_DEFAULT_ROLE_NAME
+            )
+
         gov_user.team = Team.objects.get(id=team_id)
         gov_user.save()
         return gov_user
