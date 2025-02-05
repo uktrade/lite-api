@@ -67,6 +67,7 @@ class BaseViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class LicenceDecisionViewSet(BaseViewSet):
+    pagination_class = CreatedAtCursorPagination
     serializer_class = LicenceDecisionSerializer
     queryset = (
         LicenceDecision.objects.filter(previous_decision__isnull=True)
@@ -81,7 +82,6 @@ class LicenceDecisionViewSet(BaseViewSet):
             ),
         )
         .select_related("case")
-        .order_by("-case__reference_code")
     )
 
     class DataWorkspace:

@@ -868,6 +868,9 @@ class LicenceDecision(TimestampableModel):
 
     class Meta:
         ordering = ("created_at",)
+        indexes = [
+            models.Index(fields=["created_at"]),
+        ]
 
     def __str__(self):
         return f"{self.case.reference_code} - {self.decision} ({self.created_at})"
