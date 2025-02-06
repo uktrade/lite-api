@@ -405,7 +405,7 @@ SANCTION_LIST_SOURCES = env.json(
     {
         "un_sanctions_file": "https://scsanctions.un.org/resources/xml/en/consolidated.xml",
         "office_financial_sanctions_file": "https://ofsistorage.blob.core.windows.net/publishlive/2022format/ConList.xml",
-        "uk_sanctions_file": "https://assets.publishing.service.gov.uk/media/6776a7d49d03f12136308d1c/UK_Sanctions_List.xml",  # /PS-IGNORE
+        "uk_sanctions_file": "https://assets.publishing.service.gov.uk/media/679b8f9eabe77b74cc146c71/UK_Sanctions_List.xml",  # /PS-IGNORE
     },
 )
 LITE_INTERNAL_NOTIFICATION_EMAILS = env.json("LITE_INTERNAL_NOTIFICATION_EMAILS", {})
