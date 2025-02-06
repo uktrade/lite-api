@@ -98,14 +98,12 @@ class AbstractAutoMatchTests:
             self.assertEqual(party_on_application.flags.count(), 0)
 
     @pytest.mark.elasticsearch
-    def test_auto_match_sanctions_match_name_similar(self):
-        """This test exposes the fact that ES tokenization etc. would mean
-        that the following names will be matched to "Jeremy Jackson". There is
-        no simple way around this.
+    def test_auto_match_sanctions_match_name_exact(self):
+        """Sanctions matching uses phrase matching
+        Any name that martches in search term will be returned
         """
         names = [
-            "Jackson, Jeremy",
-            "Jackson Jeremy",
+            "Jeremy Jackson",
             "Mr. Jeremy Jackson",
         ]
 

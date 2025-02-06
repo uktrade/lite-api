@@ -195,7 +195,8 @@ def normalize_address(value):
 
 
 def build_query(name):
-    return Q("match", name=name)
+    # Exact order and terms
+    return Q("match_phrase", name=name)
 
 
 def reset_appeal_deadline(application):
