@@ -9,19 +9,24 @@ from api.organisations.tests.factories import OrganisationFactory
 from api.parties.tests.factories import PartyDocumentFactory
 from api.teams.models import Team
 from api.users.libraries.user_to_token import user_to_token
-from api.users.models import BaseUser, Permission, Role
-from api.users.enums import SystemUser, UserType
+from api.users.models import Permission, Role
+from api.users.enums import UserType
 from api.users.tests.factories import (
-    BaseUserFactory,
     ExporterUserFactory,
     GovUserFactory,
     RoleFactory,
+    SystemUserFactory,
     UserOrganisationRelationshipFactory,
 )
 
 from lite_routing.routing_rules_internal.enums import TeamIdEnum
 
 pytestmark = pytest.mark.django_db
+
+
+@pytest.fixture(autouse=True)
+def django_db(db):
+    return db
 
 
 @pytest.fixture(autouse=True)
@@ -63,10 +68,7 @@ def exporter_headers(exporter_user, organisation):
 
 @pytest.fixture(autouse=True)
 def system_user():
-    if BaseUser.objects.filter(id=SystemUser.id).exists():
-        return BaseUser.objects.get(id=SystemUser.id)
-    else:
-        return BaseUserFactory(id=SystemUser.id)
+    return SystemUserFactory()
 
 
 @pytest.fixture()
@@ -91,6 +93,7 @@ def gov_user():
 @pytest.fixture()
 def lu_case_officer(gov_user_permissions):
     gov_user = GovUserFactory()
+    gov_user.team = Team.objects.get(id=TeamIdEnum.LICENSING_UNIT)
     gov_user.role = RoleFactory(name="Case officer", type=UserType.INTERNAL)
     gov_user.role.permissions.set(
         [
@@ -176,6 +179,15 @@ def draft_standard_application(organisation):
 
 
 @pytest.fixture
+def get_draft_application(organisation):
+
+    def _get_draft_application():
+        return DraftStandardApplicationFactory(organisation=organisation)
+
+    return _get_draft_application
+
+
+@pytest.fixture
 def submit_application(api_client, exporter_headers, mocker):
     def _submit_application(draft_application):
         mocker.patch("api.documents.libraries.s3_operations.upload_bytes_file", return_value=None)
@@ -192,7 +204,7 @@ def submit_application(api_client, exporter_headers, mocker):
             },
             **exporter_headers,
         )
-        assert response.status_code == 200, response.json()["errors"]
+        assert response.status_code == 200, response.json()["errors"]  # nosec
 
         draft_application.refresh_from_db()
         return draft_application
@@ -203,3 +215,8 @@ def submit_application(api_client, exporter_headers, mocker):
 @pytest.fixture
 def standard_case(draft_standard_application, submit_application):
     return submit_application(draft_standard_application)
+
+
+@pytest.fixture
+def final_advice_url(standard_case):
+    return reverse("cases:case_final_advice", kwargs={"pk": standard_case.pk})

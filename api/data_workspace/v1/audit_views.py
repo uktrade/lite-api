@@ -8,6 +8,7 @@ from api.audit_trail.models import Audit
 from api.cases.models import Case
 from api.core.authentication import DataWorkspaceOnlyAuthentication
 from api.data_workspace.v1.serializers import (
+    AuditBulkApprovalRecommendationSerializer,
     AuditMoveCaseSerializer,
     AuditUpdatedCaseStatusSerializer,
     AuditUpdatedLicenceStatusSerializer,
@@ -70,3 +71,14 @@ class AuditUpdatedLicenceStatusListView(viewsets.ReadOnlyModelViewSet):
 
     def get_queryset(self):
         return Audit.objects.filter(verb=AuditType.LICENCE_UPDATED_STATUS).order_by("created_at")
+
+
+class AuditBulkApprovalRecommendationListView(viewsets.ReadOnlyModelViewSet):
+    """Expose 'bulk approval recommendation' audit events to data workspace."""
+
+    authentication_classes = (DataWorkspaceOnlyAuthentication,)
+    serializer_class = AuditBulkApprovalRecommendationSerializer
+    pagination_class = LimitOffsetPagination
+
+    def get_queryset(self):
+        return Audit.objects.filter(verb=AuditType.CREATE_BULK_APPROVAL_RECOMMENDATION).order_by("created_at")
