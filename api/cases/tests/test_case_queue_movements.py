@@ -2,6 +2,7 @@ import pytest
 
 from django.urls import reverse
 from freezegun import freeze_time
+from unittest.mock import patch
 
 from api.cases.models import CaseQueueMovement
 from api.core.constants import Roles
@@ -51,10 +52,10 @@ def team_case_advisor_headers(team_case_advisor):
 @pytest.fixture
 def get_standard_case(get_draft_application, submit_application):
 
-    def _get_standard_case():
+    def _get_standard_case(country_code):
         application = get_draft_application()
         for party_on_application in application.parties.all():
-            party_on_application.party.country = Country.objects.get(id="KR")
+            party_on_application.party.country = Country.objects.get(id=country_code)
             party_on_application.party.save()
 
         case = submit_application(application)
@@ -148,7 +149,133 @@ def test_case_queue_movements(
 ):
     freezer = freeze_time("2025-01-10T12:00:00+00:00")
     freezer.start()
-    case = get_standard_case()
+    case = get_standard_case("KR")
+    freezer.stop()
+
+    for action_time, case_status, team_id, current_queue, next_status, expected_queues in data:
+        case.status = CaseStatus.objects.get(status=case_status)
+        case.save()
+        case.refresh_from_db()
+
+        with freeze_time(action_time):
+            url = reverse("cases:assigned_queues", kwargs={"pk": case.id})
+            headers = team_case_advisor_headers(team_id)
+            response = api_client.put(url, data={"queues": [current_queue]}, **headers)
+            assert response.status_code == 200
+
+            case.refresh_from_db()
+            assert case.status.status == next_status
+
+        # check queue movement instances are created and recorded correctly
+        obj = CaseQueueMovement.objects.get(case=case, queue=current_queue)
+        assert obj.exit_date.isoformat() == action_time
+
+        for queue in expected_queues:
+            assert CaseQueueMovement.objects.get(case=case, queue=queue, exit_date=None)
+
+
+@patch(
+    "lite_routing.routing_rules_internal.routing_rules_criteria.is_all_countersign_advice_approved_by_licensing_manager"
+)
+@pytest.mark.parametrize(
+    "data",
+    (
+        [
+            (
+                "2025-01-10T12:00:00+00:00",
+                CaseStatusEnum.SUBMITTED,
+                TeamIdEnum.LICENSING_RECEPTION,
+                QueuesEnum.LICENSING_RECEPTION_SIEL_APPLICATIONS,
+                CaseStatusEnum.INITIAL_CHECKS,
+                [QueuesEnum.TECHNICAL_ASSESSMENT_UNIT_SIELS_TO_REVIEW, QueuesEnum.ENFORCEMENT_UNIT_CASES_TO_REVIEW],
+            ),
+            (
+                "2025-01-11T12:00:00+00:00",
+                CaseStatusEnum.INITIAL_CHECKS,
+                TeamIdEnum.TECHNICAL_ASSESSMENT_UNIT,
+                QueuesEnum.TECHNICAL_ASSESSMENT_UNIT_SIELS_TO_REVIEW,
+                CaseStatusEnum.INITIAL_CHECKS,
+                [QueuesEnum.ENFORCEMENT_UNIT_CASES_TO_REVIEW],
+            ),
+            (
+                "2025-01-12T12:00:00+00:00",
+                CaseStatusEnum.INITIAL_CHECKS,
+                TeamIdEnum.ENFORCEMENT_UNIT,
+                QueuesEnum.ENFORCEMENT_UNIT_CASES_TO_REVIEW,
+                CaseStatusEnum.UNDER_REVIEW,
+                [QueuesEnum.LU_PRE_CIRC],
+            ),
+            (
+                "2025-01-13T12:00:00+00:00",
+                CaseStatusEnum.UNDER_REVIEW,
+                TeamIdEnum.LICENSING_UNIT,
+                QueuesEnum.LU_PRE_CIRC,
+                CaseStatusEnum.OGD_ADVICE,
+                [QueuesEnum.FCDO, QueuesEnum.MOD_DI_DIRECT],
+            ),
+            (
+                "2025-01-14T12:00:00+00:00",
+                CaseStatusEnum.OGD_ADVICE,
+                TeamIdEnum.FCDO,
+                QueuesEnum.FCDO,
+                CaseStatusEnum.OGD_ADVICE,
+                [QueuesEnum.FCDO_COUNTER_SIGNING],
+            ),
+            (
+                "2025-01-15T12:00:00+00:00",
+                CaseStatusEnum.OGD_ADVICE,
+                TeamIdEnum.FCDO,
+                QueuesEnum.FCDO_COUNTER_SIGNING,
+                CaseStatusEnum.OGD_ADVICE,
+                [QueuesEnum.MOD_DI_DIRECT],
+            ),
+            (
+                "2025-01-16T12:00:00+00:00",
+                CaseStatusEnum.OGD_ADVICE,
+                TeamIdEnum.MOD_DI,
+                QueuesEnum.MOD_DI_DIRECT,
+                CaseStatusEnum.UNDER_FINAL_REVIEW,
+                [QueuesEnum.LU_POST_CIRC],
+            ),
+            (
+                "2025-01-17T12:00:00+00:00",
+                CaseStatusEnum.UNDER_FINAL_REVIEW,
+                TeamIdEnum.LICENSING_UNIT,
+                QueuesEnum.LU_POST_CIRC,
+                CaseStatusEnum.FINAL_REVIEW_COUNTERSIGN,
+                [QueuesEnum.LU_COUNTERSIGN],
+            ),
+            (
+                "2025-01-18T12:00:00+00:00",
+                CaseStatusEnum.FINAL_REVIEW_COUNTERSIGN,
+                TeamIdEnum.LICENSING_UNIT,
+                QueuesEnum.LU_COUNTERSIGN,
+                CaseStatusEnum.FINAL_REVIEW_SECOND_COUNTERSIGN,
+                [QueuesEnum.LU_SECOND_COUNTERSIGN],
+            ),
+            (
+                "2025-01-19T12:00:00+00:00",
+                CaseStatusEnum.FINAL_REVIEW_SECOND_COUNTERSIGN,
+                TeamIdEnum.LICENSING_UNIT,
+                QueuesEnum.LU_SECOND_COUNTERSIGN,
+                CaseStatusEnum.UNDER_FINAL_REVIEW,
+                [QueuesEnum.LU_POST_CIRC],
+            ),
+        ],
+    ),
+)
+def test_case_queue_movements_with_lu_countersigning(
+    mock_lm_countersign_approved,
+    api_client,
+    team_case_advisor_headers,
+    get_standard_case,
+    data,
+):
+    mock_lm_countersign_approved.return_value = True
+
+    freezer = freeze_time("2025-01-10T12:00:00+00:00")
+    freezer.start()
+    case = get_standard_case("HK")
     freezer.stop()
 
     for action_time, case_status, team_id, current_queue, next_status, expected_queues in data:
