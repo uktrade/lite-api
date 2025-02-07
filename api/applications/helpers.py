@@ -158,6 +158,7 @@ def delete_uploaded_document(data):
 
 def auto_match_sanctions(application):
     parties = []
+
     if application.end_user:
         parties.append(application.end_user.party)
 
@@ -178,16 +179,16 @@ def auto_match_sanctions(application):
             pass
         else:
             for match in matches:
-                if match.meta.score > 0.5:
-                    party_on_application = application.parties.get(party=party)
-                    reference = match["reference"][0]
-                    if not party_on_application.sanction_matches.filter(elasticsearch_reference=reference).exists():
-                        SanctionMatch.objects.create(
-                            party_on_application=party_on_application,
-                            elasticsearch_reference=reference,
-                            name=match["name"],
-                            flag_uuid=match["flag_uuid"],
-                        )
+                party_on_application = application.parties.get(party=party)
+                reference = match["reference"][0]
+
+                if not party_on_application.sanction_matches.filter(elasticsearch_reference=reference).exists():
+                    SanctionMatch.objects.create(
+                        party_on_application=party_on_application,
+                        elasticsearch_reference=reference,
+                        name=match["name"],
+                        flag_uuid=match["flag_uuid"],
+                    )
 
 
 def normalize_address(value):
@@ -195,8 +196,7 @@ def normalize_address(value):
 
 
 def build_query(name):
-    # Exact order and terms
-    return Q("match_phrase", name=name)
+    return Q("term", name=name)
 
 
 def reset_appeal_deadline(application):

@@ -1,4 +1,5 @@
 import pytest
+from parameterized import parameterized
 
 from api.applications import helpers
 from api.flags.enums import SystemFlags
@@ -59,79 +60,77 @@ class AbstractAutoMatchTests:
         self.assertEqual(party_on_application.sanction_matches.first().elasticsearch_reference, "123")
         self.assertEqual(str(party_on_application.flags.first().pk), SystemFlags.SANCTION_UK_MATCH)
 
-    @pytest.mark.elasticsearch
-    def test_auto_match_sanctions_avoid_false_positives(self):
-        names = [
-            "Jeremy Thompson",
-            "Fred Jackson",
-            "Jack Jeremyson",
-            "Jeremy Jacks",
-            "JeremyJackson",
-            "J Jackson",
-            "J. Jackson",
-            "Mr. J Jackson",
-            "Mr. Jackson",
+    @parameterized.expand(
+        [
+            (
+                [
+                    "Jeremy Jackson",
+                    "Jeremy - Jackson",
+                    "Jeremy  Jackson",
+                    "Jeremy . Jackson",
+                    "Jeremy",
+                    "Jeremy Jackson John",
+                ],
+                "Jeremy Jackson",
+                [0, 1, 2, 3],
+            ),
+            (["Jeremy Jackson", "John", "Jeremy . Jackson", "Jeremy Jackson John"], "John ", [1]),
+            (["Jerémy"], "Jeremy", [0]),
+            (["Jeremy"], "Jerémy", [0]),
+            (["Jerémy", "jeremy", "JEREMY"], "JerEmY", [0, 1, 2]),
+            (["Jeremy A. Jackson"], "Jeremy A Jackson", [0]),
+            (["Jeremy A Jackson", "Jeremy A. Jackson"], "Jeremy A. Jackson", [0, 1]),
+            (["Jeremy - Jackson", "Jeremy -. Jackson", "Jeremy .. Jackson"], "Jeremy Jackson", [0, 1, 2]),
+            (["Jeremy Jackson", "Jeremy - Jackson"], "Jeremy - Jackson", [0, 1]),
+            (["Jeremy Jackson", "Jeremy, Jackson"], "Jeremy, Jackson", [0, 1]),
+            (["Jeremy,, Jackson,"], "Jeremy Jackson", [0]),
+            (["John O' Cafferty", "John O Cafferty"], "John O Cafferty", [0, 1]),
+            (["John O' Cafferty", "John O Cafferty"], "John O' Cafferty", [0, 1]),
+            (["Jeremy Jackson", "Jeremy A", "Jeremy Jeremy"], "Jeremy", []),
+            (["Jeremy   Jackson", "Jeremy A", "Jeremy    Jeremy"], "Jeremy  Jackson", [0]),
+            (
+                [
+                    "Fred Jackson",
+                    "Jack Jeremyson",
+                    "Fred Jackson",
+                    "Jeremy Jacks",
+                    "J Jackson",
+                    "Mr. J Jackson",
+                    "Mr. Jackson",
+                ],
+                "Jeremy Jackson",
+                [],
+            ),
         ]
-        for name_variant in names:
-            prepare_index()
-
-            application = self.create_application()
-            party = self.get_party(application)
-            party.signatory_name_euu = "Jeremy Jackson"
-            party.address = "123 Plank Street, London, E19 8NX"
-            party.save()
-
-            document = SanctionDocumentType(
-                name=name_variant,
-                address="123 Plank Street, London, E19 8NX",
-                flag_uuid=SystemFlags.SANCTION_UK_MATCH,
-                reference="123",
-            )
-            document.save()
-            SanctionDocumentType._index.refresh()
-
-            helpers.auto_match_sanctions(application)
-
-            party_on_application = application.parties.get(party=party)
-
-            self.assertEqual(party_on_application.sanction_matches.count(), 0)
-            self.assertEqual(party_on_application.flags.count(), 0)
-
+    )
     @pytest.mark.elasticsearch
-    def test_auto_match_sanctions_match_name_exact(self):
-        """Sanctions matching uses phrase matching
-        Any name that martches in search term will be returned
-        """
-        names = [
-            "Jeremy Jackson",
-            "Mr. Jeremy Jackson",
-        ]
+    def test_auto_match_sanctions_match(self, name_variants, signatory_name, expected_indices):
+        """Sanctions matching uses exact matching"""
+        prepare_index()
+        application = self.create_application()
+        party = self.get_party(application)
+        party.signatory_name_euu = signatory_name
+        party.address = "123 Fake Street, London, E14 9IX"
+        party.save()
 
-        for name_variant in names:
-            prepare_index()
-
-            application = self.create_application()
-            party = self.get_party(application)
-            party.signatory_name_euu = "Jeremy Jackson"
-            party.address = "123 Fake Street, London, E14 9IX"
-            party.save()
-
+        for i, name_variant in enumerate(name_variants):
             document = SanctionDocumentType(
                 name=name_variant,
                 address="123 Fake Street, London, E14 9IX",
                 postcode="E14 9IX",
                 flag_uuid=SystemFlags.SANCTION_UK_MATCH,
-                reference="123",
+                reference=str(i),
             )
             document.save()
-            SanctionDocumentType._index.refresh()
 
-            helpers.auto_match_sanctions(application)
+        SanctionDocumentType._index.refresh()
 
-            party_on_application = application.parties.get(party=party)
+        helpers.auto_match_sanctions(application)
+        party_on_application = application.parties.get(party=party)
 
-            self.assertEqual(party_on_application.sanction_matches.count(), 1, msg=f'tried "{name_variant}"')
-            self.assertEqual(str(party_on_application.flags.first().pk), SystemFlags.SANCTION_UK_MATCH)
+        expected_names = [name_variants[i] for i in expected_indices]
+        sanction_matches = list(party_on_application.sanction_matches.all().values_list("name", flat=True))
+        self.assertEqual(expected_names, sanction_matches)
 
 
 class AutoMatchStandardApplicationTests(AbstractAutoMatchTests, DataTestClient):

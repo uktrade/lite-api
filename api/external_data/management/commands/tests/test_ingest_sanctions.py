@@ -99,11 +99,11 @@ class PopulateSanctionsTests(DataTestClient):
                         "monthofbirth": None,
                         "name1": "Haji",
                         "name2": "Agha",
-                        "name3": None,
-                        "name4": None,
+                        "name3": "Abdul",
+                        "name4": "Manan",
                         "name5": None,
-                        "name6": "Abdul Manan",
-                        "nametitle": "Haji",
+                        "name6": None,
+                        "nametitle": "",
                         "nationalidnumber": None,
                         "nationality": None,
                         "orgtype": None,
@@ -186,27 +186,20 @@ class PopulateSanctionsTests(DataTestClient):
 
         search = Search(index=documents.SanctionDocumentType.Index.name)
 
-        results_one = search.query("match", name="RI WON HO").execute()
+        results_one = search.query("term", name="RI WON HO").execute()
         self.assertEqual(len(results_one.hits), 1)
         self.assertEqual(results_one.hits[0]["name"], "RI WON HO")
         self.assertEqual(results_one.hits[0]["flag_uuid"], "00000000-0000-0000-0000-000000000039")
         self.assertEqual(results_one.hits[0]["reference"], "6908555")
 
-        results_two = search.query("match", name="PROPAGANDA AND AGITATION DEPARTMENT").execute()
-        self.assertEqual(len(results_two.hits), 1)
-        self.assertEqual(results_two.hits[0]["name"], "PROPAGANDA AND AGITATION DEPARTMENT (PAD)")
-        self.assertEqual(results_two.hits[0]["flag_uuid"], "00000000-0000-0000-0000-000000000039")
-        self.assertEqual(results_two.hits[0]["reference"], "6908629")
+        results_two = search.query("term", name="PROPAGANDA AND AGITATION DEPARTMENT").execute()
+        self.assertEqual(len(results_two.hits), 0)
 
-        results_three = search.query("match", name="Haji Agha Abdul Manan").execute()
-        self.assertEqual(len(results_three.hits), 2)
+        results_three = search.query("term", name="Haji Agha Abdul Manan").execute()
+        self.assertEqual(len(results_three.hits), 1)
         self.assertEqual(results_three.hits[0]["name"], "Haji Agha Abdul Manan")
         self.assertEqual(results_three.hits[0]["flag_uuid"], "00000000-0000-0000-0000-000000000040")
         self.assertEqual(results_three.hits[0]["reference"], "6897")
-
-        self.assertEqual(results_three.hits[1]["name"], "HAJI KHAIRULLAH HAJI SATTAR MONEY EXCHANGE")
-        self.assertEqual(results_three.hits[1]["flag_uuid"], "00000000-0000-0000-0000-000000000041")
-        self.assertEqual(results_three.hits[1]["reference"], "1234")
 
     @pytest.mark.elasticsearch
     @mock.patch.object(ingest_sanctions, "get_un_sanctions")
@@ -476,7 +469,7 @@ class PopulateSanctionsTests(DataTestClient):
                         "lengthofvessel": None,
                         "listingtype": "UK and UN",
                         "monthofbirth": None,
-                        "name1": "Haji",
+                        "name1": "Haji Agha Abdul Manan",
                         "name2": "Agha",
                         "name3": None,
                         "name4": None,
@@ -571,7 +564,7 @@ class PopulateSanctionsTests(DataTestClient):
             "2020-12-10T00:00:00",
         )
 
-        doc = documents.SanctionDocumentType.get("ofs:28f40249140f9c08d1d0172fb834dea1")  # /PS-IGNORE
+        doc = documents.SanctionDocumentType.get("ofs:4fabaa6acac29b31d18aa0a5e7847b70")  # /PS-IGNORE
         self.assertEqual(
             doc.data.lastupdated,
             "2020-12-31T00:00:00",

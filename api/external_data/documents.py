@@ -22,6 +22,26 @@ name_analyzer = analysis.analyzer(
     filter=["lowercase", "trim", custom_ascii_folding_filter],
 )
 
+
+name_filter = analysis.char_filter(
+    "name_filter",
+    type="pattern_replace",
+    pattern="[\\s+]|[-]|[.]|[,]|[']",
+    replacement="",
+)
+
+
+name_normalizer = analysis.normalizer(
+    "name_normalizer",
+    type="custom",
+    char_filter=[name_filter],
+    filter=[
+        "trim",
+        "lowercase",
+        "asciifolding",
+    ],
+)
+
 postcode_filter = analysis.char_filter(
     "postcode_filter",
     type="pattern_replace",
@@ -137,7 +157,7 @@ class SanctionDocumentType(Document):
 
     flag_uuid = fields.Keyword()
     reference = fields.Keyword()
-    name = fields.Text(analyzer=name_analyzer)
+    name = fields.Keyword(normalizer=name_normalizer)
     address = fields.Text(analyzer=address_analyzer)
     postcode = fields.Keyword(normalizer=postcode_normalizer)
 
