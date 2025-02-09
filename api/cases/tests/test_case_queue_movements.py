@@ -60,6 +60,7 @@ def get_standard_case(get_draft_application, submit_application):
 
         case = submit_application(application)
 
+        # Regimes are required to ensure it gets countersigning flags
         cle = ControlListEntry.objects.get(rating="6A003b4c")
         subject = ReportSummarySubject.objects.get(name="imaging cameras")
         rs = ReportSummary.objects.get(prefix=None, subject=subject)
@@ -83,6 +84,9 @@ def get_standard_case(get_draft_application, submit_application):
     (
         [
             (
+                # Instead of freezing time for whole test it is modified for each iteration because
+                # the fallback routing rule incorrectly determining that it didn't go through OGD queues
+                # when all the instances have same time
                 "2025-01-10T12:00:00+00:00",
                 CaseStatusEnum.SUBMITTED,
                 TeamIdEnum.LICENSING_RECEPTION,
@@ -152,6 +156,9 @@ def test_case_queue_movements(
     case = get_standard_case("KR")
     freezer.stop()
 
+    # This is processed in a loop instead of using parametrize because we want to retain
+    # CaseQueueMovement instances for assertions. With parametrize they get cleared
+    # during teardown at the end of each iteration
     for action_time, case_status, team_id, current_queue, next_status, expected_queues in data:
         case.status = CaseStatus.objects.get(status=case_status)
         case.save()
@@ -271,6 +278,7 @@ def test_case_queue_movements_with_lu_countersigning(
     get_standard_case,
     data,
 ):
+    # this is mocked to avoid creating final advice and corresponding countersignatures
     mock_lm_countersign_approved.return_value = True
 
     freezer = freeze_time("2025-01-10T12:00:00+00:00")
