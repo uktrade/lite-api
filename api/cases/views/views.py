@@ -2,7 +2,6 @@ from django.core.exceptions import PermissionDenied
 from django.contrib.contenttypes.models import ContentType
 from django.db import transaction
 from django.http.response import JsonResponse, HttpResponse
-from django.utils import timezone
 
 from rest_framework import status
 from rest_framework.exceptions import ParseError
@@ -821,10 +820,7 @@ class FinaliseView(UpdateAPIView):
 
         # When a case is finalised we don't move it forward from post-circ queue,
         # hence record the exit date after finalising it.
-        if CaseQueueMovement.objects.filter(case=case, queue=QueuesEnum.LU_POST_CIRC, exit_date=None).exists():
-            obj = CaseQueueMovement.objects.get(case=case, queue=QueuesEnum.LU_POST_CIRC, exit_date=None)
-            obj.exit_date = timezone.now()
-            obj.save()
+        CaseQueueMovement.record_exit_date(case, QueuesEnum.LU_POST_CIRC)
 
         return JsonResponse({"case": pk, "licence": licence_id}, status=status.HTTP_201_CREATED)
 

@@ -1,6 +1,5 @@
 from django.db import transaction
 from django.http import JsonResponse
-from django.utils import timezone
 from rest_framework import status
 from rest_framework.views import APIView
 
@@ -74,10 +73,7 @@ class AssignedQueues(APIView):
 
             # Record queue unassigned date
             for queue in queues:
-                if CaseQueueMovement.objects.filter(case=case, queue=queue, exit_date=None).count() == 1:
-                    obj = CaseQueueMovement.objects.get(case=case, queue=queue, exit_date=None)
-                    obj.exit_date = timezone.now()
-                    obj.save()
+                CaseQueueMovement.record_exit_date(case, queue)
 
             return JsonResponse(data={"queues_removed": queue_names}, status=status.HTTP_200_OK)
         else:

@@ -239,10 +239,7 @@ class Case(TimestampableModel):
             # Change in status also changes the queues when routing rules are executed
             # so record the exit date for the current queues
             for queue in self.queues.all():
-                if CaseQueueMovement.objects.filter(case=self, queue=queue, exit_date=None).count() == 1:
-                    obj = CaseQueueMovement.objects.get(case=self, queue=queue, exit_date=None)
-                    obj.exit_date = timezone.now()
-                    obj.save()
+                CaseQueueMovement.record_exit_date(self, queue)
 
             queues_assigned = run_routing_rules(case=self, keep_status=True)
             created_at = timezone.now()
@@ -364,10 +361,7 @@ class Case(TimestampableModel):
         # Run routing rules and move the case forward
         user_queue_assignment_workflow([queue], self)
 
-        if CaseQueueMovement.objects.filter(case=self, queue=queue, exit_date=None).count() == 1:
-            obj = CaseQueueMovement.objects.get(case=self, queue=queue, exit_date=None)
-            obj.exit_date = timezone.now()
-            obj.save()
+        CaseQueueMovement.record_exit_date(self, queue)
 
         audit_trail_service.create(
             actor=user,
@@ -896,3 +890,10 @@ class CaseQueueMovement(TimestampableModel):
     case = models.ForeignKey(Case, related_name="casequeuemovements", on_delete=models.DO_NOTHING)
     queue = models.ForeignKey(Queue, related_name="casequeuemovements", on_delete=models.DO_NOTHING)
     exit_date = models.DateTimeField(blank=True, null=True)
+
+    @classmethod
+    def record_exit_date(cls, case, queue):
+        if cls.objects.filter(case=case, queue=queue, exit_date=None).count() == 1:
+            obj = cls.objects.get(case=case, queue=queue, exit_date=None)
+            obj.exit_date = timezone.now()
+            obj.save()
