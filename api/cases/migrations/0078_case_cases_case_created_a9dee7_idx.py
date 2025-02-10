@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("cases", "0076_licencedecision_cases_licen_created_850df1_idx"),
+        ("cases", "0077_populate_case_queue_movements"),
     ]
 
     operations = [
