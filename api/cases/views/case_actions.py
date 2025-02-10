@@ -74,7 +74,7 @@ class AssignedQueues(APIView):
 
             # Record queue unassigned date
             for queue in queues:
-                if CaseQueueMovement.objects.filter(case=case, queue=queue, exit_date=None).exists():
+                if CaseQueueMovement.objects.filter(case=case, queue=queue, exit_date=None).count() == 1:
                     obj = CaseQueueMovement.objects.get(case=case, queue=queue, exit_date=None)
                     obj.exit_date = timezone.now()
                     obj.save()
