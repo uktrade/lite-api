@@ -306,3 +306,146 @@ def test_case_queue_movements_with_lu_countersigning(
 
         for queue in expected_queues:
             assert CaseQueueMovement.objects.get(case=case, queue=queue, exit_date=None)
+
+
+@pytest.mark.parametrize(
+    "data",
+    (
+        [
+            (
+                # Instead of freezing time for whole test it is modified for each iteration because
+                # the fallback routing rule incorrectly determining that it didn't go through OGD queues
+                # when all the instances have same time
+                "2025-01-10T12:00:00+00:00",
+                CaseStatusEnum.SUBMITTED,
+                TeamIdEnum.LICENSING_RECEPTION,
+                QueuesEnum.LICENSING_RECEPTION_SIEL_APPLICATIONS,
+                CaseStatusEnum.INITIAL_CHECKS,
+                [QueuesEnum.TECHNICAL_ASSESSMENT_UNIT_SIELS_TO_REVIEW, QueuesEnum.ENFORCEMENT_UNIT_CASES_TO_REVIEW],
+            ),
+            (
+                "2025-01-11T12:00:00+00:00",
+                CaseStatusEnum.INITIAL_CHECKS,
+                TeamIdEnum.ENFORCEMENT_UNIT,
+                QueuesEnum.ENFORCEMENT_UNIT_CASES_TO_REVIEW,
+                CaseStatusEnum.INITIAL_CHECKS,
+                [QueuesEnum.TECHNICAL_ASSESSMENT_UNIT_SIELS_TO_REVIEW],
+            ),
+            (
+                "2025-01-12T12:00:00+00:00",
+                CaseStatusEnum.INITIAL_CHECKS,
+                TeamIdEnum.TECHNICAL_ASSESSMENT_UNIT,
+                QueuesEnum.TECHNICAL_ASSESSMENT_UNIT_SIELS_TO_REVIEW,
+                CaseStatusEnum.UNDER_REVIEW,
+                [QueuesEnum.LU_PRE_CIRC],
+            ),
+            (
+                "2025-01-13T12:00:00+00:00",
+                CaseStatusEnum.UNDER_REVIEW,
+                TeamIdEnum.LICENSING_UNIT,
+                QueuesEnum.LU_PRE_CIRC,
+                CaseStatusEnum.OGD_ADVICE,
+                [QueuesEnum.FCDO, QueuesEnum.MOD_DI_DIRECT],
+            ),
+            (
+                "2025-01-14T12:00:00+00:00",
+                CaseStatusEnum.OGD_ADVICE,
+                TeamIdEnum.FCDO,
+                QueuesEnum.FCDO,
+                CaseStatusEnum.OGD_ADVICE,
+                [QueuesEnum.FCDO_COUNTER_SIGNING],
+            ),
+            (
+                "2025-01-15T12:00:00+00:00",
+                CaseStatusEnum.OGD_ADVICE,
+                TeamIdEnum.FCDO,
+                QueuesEnum.FCDO_COUNTER_SIGNING,
+                CaseStatusEnum.OGD_ADVICE,
+                [QueuesEnum.MOD_DI_DIRECT],
+            ),
+            (
+                "2025-01-16T12:00:00+00:00",
+                CaseStatusEnum.OGD_ADVICE,
+                TeamIdEnum.MOD_DI,
+                QueuesEnum.MOD_DI_DIRECT,
+                CaseStatusEnum.UNDER_FINAL_REVIEW,
+                [QueuesEnum.LU_POST_CIRC],
+            ),
+        ],
+    ),
+)
+def test_case_queue_movements_when_case_sent_back_to_tau(
+    api_client,
+    team_case_advisor_headers,
+    get_standard_case,
+    data,
+):
+    freezer = freeze_time("2025-01-10T12:00:00+00:00")
+    freezer.start()
+    case = get_standard_case("KR")
+    freezer.stop()
+
+    # This is processed in a loop instead of using parametrize because we want to retain
+    # CaseQueueMovement instances for assertions. With parametrize they get cleared
+    # during teardown at the end of each iteration
+    for action_date, case_status, team_id, current_queue, next_status, expected_queues in data:
+        case.status = CaseStatus.objects.get(status=case_status)
+        case.save()
+        case.refresh_from_db()
+
+        with freeze_time(action_date):
+            url = reverse("cases:assigned_queues", kwargs={"pk": case.id})
+            headers = team_case_advisor_headers(team_id)
+            response = api_client.put(url, data={"queues": [current_queue]}, **headers)
+            assert response.status_code == 200
+
+            case.refresh_from_db()
+            assert case.status.status == next_status
+
+        # check queue movement instances are created and recorded correctly
+        obj = CaseQueueMovement.objects.get(case=case, queue=current_queue)
+        assert obj.exit_date.isoformat() == action_date
+
+        for queue in expected_queues:
+            assert CaseQueueMovement.objects.get(case=case, queue=queue, exit_date=None)
+
+    # Now we send the case back to TAU
+    with freeze_time("2025-01-20T12:00:00+00:00"):
+        url = reverse("caseworker_applications:change_status", kwargs={"pk": str(case.id)})
+        headers = team_case_advisor_headers(TeamIdEnum.LICENSING_UNIT)
+        response = api_client.post(url, data={"status": CaseStatusEnum.INITIAL_CHECKS}, **headers)
+        assert response.status_code == 200
+        case.refresh_from_db()
+
+    assert case.status == CaseStatus.objects.get(status=CaseStatusEnum.INITIAL_CHECKS)
+    assert [str(item) for item in case.queues.values_list("id", flat=True)] == [
+        QueuesEnum.ENFORCEMENT_UNIT_CASES_TO_REVIEW,
+        QueuesEnum.TECHNICAL_ASSESSMENT_UNIT_SIELS_TO_REVIEW,
+    ]
+
+    # Assume TAU have made few changes
+    # The same flow repeats but from Enforcement unit and TAU stage in the 'data'
+    return_date = 20
+    for _, case_status, team_id, current_queue, next_status, expected_queues in data[1:]:
+        case.status = CaseStatus.objects.get(status=case_status)
+        case.save()
+        case.refresh_from_db()
+
+        action_date = f"2025-01-{return_date}T12:00:00+00:00"
+        return_date += 1
+
+        with freeze_time(action_date):
+            url = reverse("cases:assigned_queues", kwargs={"pk": case.id})
+            headers = team_case_advisor_headers(team_id)
+            response = api_client.put(url, data={"queues": [current_queue]}, **headers)
+            assert response.status_code == 200
+
+            case.refresh_from_db()
+            assert case.status.status == next_status
+
+        # check queue movement instances are created and recorded correctly
+        obj = CaseQueueMovement.objects.filter(case=case, queue=current_queue).order_by("exit_date").last()
+        assert obj.exit_date.isoformat() == action_date
+
+        for queue in expected_queues:
+            assert CaseQueueMovement.objects.get(case=case, queue=queue, exit_date=None)
