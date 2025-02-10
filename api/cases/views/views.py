@@ -1,13 +1,13 @@
 from django.core.exceptions import PermissionDenied
+from django.contrib.contenttypes.models import ContentType
 from django.db import transaction
 from django.http.response import JsonResponse, HttpResponse
-from django.contrib.contenttypes.models import ContentType
+from django.utils import timezone
 
 from rest_framework import status
 from rest_framework.exceptions import ParseError
 from rest_framework.generics import ListCreateAPIView, UpdateAPIView, ListAPIView, RetrieveAPIView
 from rest_framework.views import APIView
-
 
 from api.applications.models import GoodOnApplication
 from api.users.models import BaseNotification, ExporterUser
@@ -38,6 +38,7 @@ from api.cases.libraries.post_advice import (
 from api.cases.models import (
     Case,
     CaseDocument,
+    CaseQueueMovement,
     EcjuQuery,
     EcjuQueryDocument,
     Advice,
@@ -78,6 +79,8 @@ from api.staticdata.statuses.enums import CaseStatusEnum
 from api.users.libraries.get_user import get_user_by_pk
 from lite_content.lite_api import strings
 from lite_content.lite_api.strings import Documents, Cases
+
+from lite_routing.routing_rules_internal.enums import QueuesEnum
 
 
 class CaseDetail(APIView):
@@ -815,6 +818,13 @@ class FinaliseView(UpdateAPIView):
 
         # finalises case, grants licence and publishes decision documents
         licence_id = case.finalise(request.user, required_decisions, request.data.get("note"))
+
+        # When a case is finalised we don't move it forward from post-circ queue,
+        # hence record the exit date after finalising it.
+        if CaseQueueMovement.objects.filter(case=case, queue=QueuesEnum.LU_POST_CIRC, exit_date=None).exists():
+            obj = CaseQueueMovement.objects.get(case=case, queue=QueuesEnum.LU_POST_CIRC, exit_date=None)
+            obj.exit_date = timezone.now()
+            obj.save()
 
         return JsonResponse({"case": pk, "licence": licence_id}, status=status.HTTP_201_CREATED)
 
