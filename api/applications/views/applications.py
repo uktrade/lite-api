@@ -344,8 +344,9 @@ class ApplicationSubmission(APIView):
                     request.build_absolute_uri(),
                 )
                 queues_assigned = run_routing_rules(application)
+                created_at = timezone.now()
                 for queue in queues_assigned:
-                    CaseQueueMovement.objects.create(case=application.case_ptr, queue_id=queue)
+                    CaseQueueMovement.objects.create(case=application.case_ptr, queue_id=queue, created_at=created_at)
 
                 # Set the sites on this application as used so their name/site records located at are no longer editable
                 sites_on_application = SiteOnApplication.objects.filter(application=application)

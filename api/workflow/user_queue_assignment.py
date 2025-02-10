@@ -1,3 +1,5 @@
+from django.utils import timezone
+
 from api.audit_trail import service as audit_trail_service
 from api.audit_trail.enums import AuditType
 
@@ -75,5 +77,6 @@ def user_queue_assignment_workflow(queues: [Queue], case: Case):
     # Move case to next non-terminal state if unassigned from all queues
     queues_assigned = move_case_forward(case)
 
+    created_at = timezone.now()
     for queue in queues_assigned:
-        CaseQueueMovement.objects.create(case=case, queue_id=queue)
+        CaseQueueMovement.objects.create(case=case, queue_id=queue, created_at=created_at)
