@@ -2,6 +2,7 @@ from django.core.exceptions import PermissionDenied
 from django.contrib.contenttypes.models import ContentType
 from django.db import transaction
 from django.http.response import JsonResponse, HttpResponse
+from django.utils import timezone
 
 from rest_framework import status
 from rest_framework.exceptions import ParseError
@@ -43,7 +44,7 @@ from api.cases.models import (
     Advice,
     CaseAssignment,
 )
-from api.cases.models import CountersignAdvice
+from api.cases.models import CaseQueueMovement, CountersignAdvice
 
 from api.cases.serializers import (
     CaseDocumentViewSerializer,
@@ -197,6 +198,9 @@ class SetQueues(APIView):
                 target=case,
                 payload={"queues": sorted([queue.name for queue in removed_queues]), "additional_text": note},
             )
+            for queue in removed_queues:
+                CaseQueueMovement.record_exit_date(case, queue)
+
         if new_queues:
             # Be careful when editing this audit trail event; we depend on it for
             # the flagging rule lite_routing.routing_rules_internal.flagging_rules_criteria:mod_consolidation_required_flagging_rule_criteria()
@@ -211,6 +215,11 @@ class SetQueues(APIView):
                     "case_status": case.status.status,
                 },
             )
+
+            created_at = timezone.now()
+            for queue in new_queues:
+                CaseQueueMovement.objects.create(case=case, queue=queue, created_at=created_at)
+
         return JsonResponse(data={"queues": list(request_queues)}, status=status.HTTP_200_OK)
 
 

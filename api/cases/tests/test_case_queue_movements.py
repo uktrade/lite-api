@@ -449,3 +449,61 @@ def test_case_queue_movements_when_case_sent_back_to_tau(
 
         for queue in expected_queues:
             assert CaseQueueMovement.objects.get(case=case, queue=queue, exit_date=None)
+
+
+@freeze_time("2025-01-10T12:00:00+00:00")
+@pytest.mark.parametrize(
+    "queues_to_retain, updated_queues",
+    (
+        (
+            [QueuesEnum.TECHNICAL_ASSESSMENT_UNIT_SIELS_TO_REVIEW],
+            [QueuesEnum.ENFORCEMENT_UNIT_CASES_TO_REVIEW],
+        ),
+        (
+            [QueuesEnum.ENFORCEMENT_UNIT_CASES_TO_REVIEW],
+            [QueuesEnum.TECHNICAL_ASSESSMENT_UNIT_SIELS_TO_REVIEW],
+        ),
+        (
+            [QueuesEnum.ENFORCEMENT_UNIT_CASES_TO_REVIEW, QueuesEnum.TECHNICAL_ASSESSMENT_UNIT_SIELS_TO_REVIEW],
+            [],
+        ),
+    ),
+)
+def test_case_queues_updated_manually(
+    api_client,
+    team_case_advisor_headers,
+    get_standard_case,
+    queues_to_retain,
+    updated_queues,
+):
+    case = get_standard_case("KR")
+    assert case.status == CaseStatus.objects.get(status=CaseStatusEnum.SUBMITTED)
+
+    url = reverse("cases:assigned_queues", kwargs={"pk": case.id})
+    headers = team_case_advisor_headers(TeamIdEnum.LICENSING_RECEPTION)
+    response = api_client.put(url, data={"queues": [QueuesEnum.LICENSING_RECEPTION_SIEL_APPLICATIONS]}, **headers)
+    assert response.status_code == 200
+
+    case.refresh_from_db()
+    assert case.status == CaseStatus.objects.get(status=CaseStatusEnum.INITIAL_CHECKS)
+
+    # check queue movement instances are created and recorded correctly
+    obj = CaseQueueMovement.objects.get(case=case, queue=QueuesEnum.LICENSING_RECEPTION_SIEL_APPLICATIONS)
+    assert obj.exit_date.isoformat() == "2025-01-10T12:00:00+00:00"
+
+    for queue in [QueuesEnum.ENFORCEMENT_UNIT_CASES_TO_REVIEW, QueuesEnum.TECHNICAL_ASSESSMENT_UNIT_SIELS_TO_REVIEW]:
+        assert CaseQueueMovement.objects.get(case=case, queue=queue, exit_date=None)
+
+    # Now manually remove specified queue(s)
+    url = reverse("cases:queues", kwargs={"pk": case.id})
+    headers = team_case_advisor_headers(TeamIdEnum.TECHNICAL_ASSESSMENT_UNIT)
+    response = api_client.put(url, data={"queues": queues_to_retain}, **headers)
+    assert response.status_code == 200
+
+    for queue_id in queues_to_retain:
+        obj = CaseQueueMovement.objects.get(case=case, queue_id=queue_id)
+        assert obj.exit_date is None
+
+    for queue_id in updated_queues:
+        obj = CaseQueueMovement.objects.get(case=case, queue_id=queue_id)
+        assert obj.exit_date.isoformat() == "2025-01-10T12:00:00+00:00"
