@@ -28,4 +28,4 @@ class MaxFiftyPageSizePaginator(MaxPageNumberPagination):
 
 
 class CreatedAtCursorPagination(pagination.CursorPagination):
-    ordering = "-created_at"
+    ordering = "created_at"
