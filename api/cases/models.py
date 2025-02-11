@@ -909,6 +909,9 @@ class CaseQueueMovement(TimestampableModel):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     case = models.ForeignKey(Case, related_name="casequeuemovements", on_delete=models.DO_NOTHING)
     queue = models.ForeignKey(Queue, related_name="casequeuemovements", on_delete=models.DO_NOTHING)
+    user = models.ForeignKey(
+        BaseUser, on_delete=models.DO_NOTHING, related_name="casequeuemovements", blank=True, null=True
+    )
     exit_date = models.DateTimeField(blank=True, null=True)
 
     @classmethod
