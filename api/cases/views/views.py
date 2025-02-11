@@ -36,15 +36,15 @@ from api.cases.libraries.post_advice import (
     case_advice_contains_refusal,
 )
 from api.cases.models import (
+    Advice,
     Case,
+    CaseAssignment,
     CaseDocument,
     CaseQueueMovement,
+    CountersignAdvice,
     EcjuQuery,
     EcjuQueryDocument,
-    Advice,
-    CaseAssignment,
 )
-from api.cases.models import CaseQueueMovement, CountersignAdvice
 
 from api.cases.serializers import (
     CaseDocumentViewSerializer,
