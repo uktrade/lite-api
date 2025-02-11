@@ -179,6 +179,15 @@ def draft_standard_application(organisation):
 
 
 @pytest.fixture
+def get_draft_application(organisation):
+
+    def _get_draft_application():
+        return DraftStandardApplicationFactory(organisation=organisation)
+
+    return _get_draft_application
+
+
+@pytest.fixture
 def submit_application(api_client, exporter_headers, mocker):
     def _submit_application(draft_application):
         mocker.patch("api.documents.libraries.s3_operations.upload_bytes_file", return_value=None)

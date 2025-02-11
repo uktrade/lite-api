@@ -645,6 +645,9 @@ class GoodOnApplication(AbstractGoodOnApplication, Clonable):
 
     class Meta:
         ordering = ["created_at"]
+        indexes = [
+            models.Index(fields=["created_at"]),
+        ]
 
     @property
     def name(self):
@@ -728,6 +731,11 @@ class PartyOnApplication(TimestampableModel, Clonable):
     flags = models.ManyToManyField(Flag, related_name="parties_on_application")
 
     objects = PartyOnApplicationManager()
+
+    class Meta:
+        indexes = [
+            models.Index(fields=["created_at"]),
+        ]
 
     def __repr__(self):
         return str(

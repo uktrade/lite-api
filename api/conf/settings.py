@@ -120,6 +120,7 @@ INSTALLED_APPS = [
     "api.data_workspace",
     "api.external_data",
     "api.support",
+    "api.f680",
     "health_check",
     "health_check.cache",
     "health_check.contrib.celery",

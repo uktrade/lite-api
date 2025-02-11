@@ -80,6 +80,11 @@ router_v1.register(
     "audit-updated-status", audit_views.AuditUpdatedCaseStatusListView, basename="dw-audit-updated-status"
 )
 router_v1.register(
+    "audit-bulk-approval-recommendations",
+    audit_views.AuditBulkApprovalRecommendationListView,
+    basename="dw-audit-bulk-approval",
+)
+router_v1.register(
     "audit-licence-updated-status",
     audit_views.AuditUpdatedLicenceStatusListView,
     basename="dw-audit-licence-updated-status",
