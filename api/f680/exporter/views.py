@@ -7,14 +7,14 @@ from api.organisations.filters import CurrentExporterUserOrganisationFilter
 from api.staticdata.statuses.enums import CaseStatusEnum
 from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
 
-from api.f680.models import F680Application  # /PS-IGNORE
-from api.f680.exporter.serializers import F680ApplicationSerializer  # /PS-IGNORE
+from api.f680.models import F680Application
+from api.f680.exporter.serializers import F680ApplicationSerializer
 
 
-class F680ApplicationViewSet(viewsets.ModelViewSet):  # /PS-IGNORE
+class F680ApplicationViewSet(viewsets.ModelViewSet):
     authentication_classes = (ExporterAuthentication,)
-    serializer_class = F680ApplicationSerializer  # /PS-IGNORE
-    queryset = F680Application.objects.all()  # /PS-IGNORE
+    serializer_class = F680ApplicationSerializer
+    queryset = F680Application.objects.all()
     lookup_url_kwarg = "f680_application_id"
     filter_backends = [CurrentExporterUserOrganisationFilter]
 

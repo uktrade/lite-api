@@ -130,6 +130,11 @@ class Case(TimestampableModel):
 
     objects = CaseManager()
 
+    class Meta:
+        indexes = [
+            models.Index(fields=["created_at"]),
+        ]
+
     def save(self, *args, **kwargs):
         if CaseStatusEnum.is_terminal(self.status.status):
             self.case_officer = None
@@ -868,6 +873,16 @@ class LicenceDecision(TimestampableModel):
 
     class Meta:
         ordering = ("created_at",)
+        indexes = [
+            models.Index(fields=["created_at"]),
+        ]
 
     def __str__(self):
         return f"{self.case.reference_code} - {self.decision} ({self.created_at})"
+
+
+class CaseQueueMovement(TimestampableModel):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    case = models.ForeignKey(Case, related_name="casequeuemovements", on_delete=models.DO_NOTHING)
+    queue = models.ForeignKey(Queue, related_name="casequeuemovements", on_delete=models.DO_NOTHING)
+    exit_date = models.DateTimeField(blank=True, null=True)
