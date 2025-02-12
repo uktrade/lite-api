@@ -96,7 +96,9 @@ from api.staticdata.statuses.libraries.get_case_status import get_case_status_by
 from api.staticdata.statuses.serializers import CaseSubStatusSerializer
 from api.staticdata.statuses.models import CaseSubStatus
 from api.users.libraries.notifications import get_case_notifications
-from api.users.models import ExporterUser
+from api.users.enums import SystemUser
+from api.users.models import BaseUser, ExporterUser
+
 from lite_routing.routing_rules_internal.flagging_engine import apply_flagging_rules_to_case
 
 from lite_routing.routing_rules_internal.routing_engine import run_routing_rules
@@ -345,8 +347,11 @@ class ApplicationSubmission(APIView):
                 )
                 queues_assigned = run_routing_rules(application)
                 created_at = timezone.now()
+                system_user = BaseUser.objects.get(id=SystemUser.id)
                 for queue in queues_assigned:
-                    CaseQueueMovement.objects.create(case=application.case_ptr, queue_id=queue, created_at=created_at)
+                    CaseQueueMovement.objects.create(
+                        case=application.case_ptr, queue_id=queue, user=system_user, created_at=created_at
+                    )
 
                 # Set the sites on this application as used so their name/site records located at are no longer editable
                 sites_on_application = SiteOnApplication.objects.filter(application=application)
