@@ -1,13 +1,13 @@
 from django.core.exceptions import PermissionDenied
+from django.contrib.contenttypes.models import ContentType
 from django.db import transaction
 from django.http.response import JsonResponse, HttpResponse
-from django.contrib.contenttypes.models import ContentType
+from django.utils import timezone
 
 from rest_framework import status
 from rest_framework.exceptions import ParseError
 from rest_framework.generics import ListCreateAPIView, UpdateAPIView, ListAPIView, RetrieveAPIView
 from rest_framework.views import APIView
-
 
 from api.applications.models import GoodOnApplication
 from api.users.models import BaseNotification, ExporterUser
@@ -36,14 +36,15 @@ from api.cases.libraries.post_advice import (
     case_advice_contains_refusal,
 )
 from api.cases.models import (
+    Advice,
     Case,
+    CaseAssignment,
     CaseDocument,
+    CaseQueueMovement,
+    CountersignAdvice,
     EcjuQuery,
     EcjuQueryDocument,
-    Advice,
-    CaseAssignment,
 )
-from api.cases.models import CountersignAdvice
 
 from api.cases.serializers import (
     CaseDocumentViewSerializer,
@@ -78,6 +79,8 @@ from api.staticdata.statuses.enums import CaseStatusEnum
 from api.users.libraries.get_user import get_user_by_pk
 from lite_content.lite_api import strings
 from lite_content.lite_api.strings import Documents, Cases
+
+from lite_routing.routing_rules_internal.enums import QueuesEnum
 
 
 class CaseDetail(APIView):
@@ -195,6 +198,9 @@ class SetQueues(APIView):
                 target=case,
                 payload={"queues": sorted([queue.name for queue in removed_queues]), "additional_text": note},
             )
+            for queue in removed_queues:
+                CaseQueueMovement.record_exit_date(case, queue)
+
         if new_queues:
             # Be careful when editing this audit trail event; we depend on it for
             # the flagging rule lite_routing.routing_rules_internal.flagging_rules_criteria:mod_consolidation_required_flagging_rule_criteria()
@@ -209,6 +215,11 @@ class SetQueues(APIView):
                     "case_status": case.status.status,
                 },
             )
+
+            created_at = timezone.now()
+            for queue in new_queues:
+                CaseQueueMovement.objects.create(case=case, queue=queue, created_at=created_at)
+
         return JsonResponse(data={"queues": list(request_queues)}, status=status.HTTP_200_OK)
 
 
@@ -815,6 +826,10 @@ class FinaliseView(UpdateAPIView):
 
         # finalises case, grants licence and publishes decision documents
         licence_id = case.finalise(request.user, required_decisions, request.data.get("note"))
+
+        # When a case is finalised we don't move it forward from post-circ queue,
+        # hence record the exit date after finalising it.
+        CaseQueueMovement.record_exit_date(case, QueuesEnum.LU_POST_CIRC)
 
         return JsonResponse({"case": pk, "licence": licence_id}, status=status.HTTP_201_CREATED)
 
