@@ -6,8 +6,10 @@ from api.audit_trail.serializers import AuditSerializer
 from parameterized import parameterized
 
 from api.applications.tests.factories import StandardApplicationFactory
-from api.cases.models import BadSubStatus
+from api.cases.application_manifest import StandardApplicationManifest, F680ApplicationManifest
+from api.cases.models import BadSubStatus, Case
 from api.cases.tests.factories import CaseFactory
+from api.f680.tests.factories import SubmittedF680ApplicationFactory
 from api.staticdata.statuses.enums import CaseStatusEnum, CaseSubStatusIdEnum
 from api.staticdata.statuses.models import CaseStatus, CaseSubStatus
 from api.users.models import ExporterUser
@@ -170,3 +172,27 @@ class CaseTests(DataTestClient):
         assert case.status == new_status
         mock_remove_flags_from_audit_trail.assert_called_with(case)
         mock_remove_flags_on_finalisation.assert_called_with(case)
+
+    @parameterized.expand(
+        [
+            (StandardApplicationFactory, StandardApplicationManifest),
+            (SubmittedF680ApplicationFactory, F680ApplicationManifest),
+        ]
+    )
+    def test_get_application_manifest(self, create_application, expected_manifest_class):
+        application = create_application()
+        case = Case.objects.get(id=application.id)
+        manifest = case.get_application_manifest()
+        assert manifest.__class__ == expected_manifest_class
+
+    @parameterized.expand(
+        [
+            (StandardApplicationFactory,),
+            (SubmittedF680ApplicationFactory,),
+        ]
+    )
+    def test_get_application(self, create_application):
+        application = create_application()
+        case = Case.objects.get(id=application.id)
+        retrieved_application = case.get_application()
+        assert retrieved_application == application

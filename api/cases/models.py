@@ -218,6 +218,7 @@ class Case(TimestampableModel):
         from api.applications.notify import notify_exporter_case_opened_for_editing
         from api.audit_trail import service as audit_trail_service
         from api.cases.libraries.finalise import remove_flags_on_finalisation, remove_flags_from_audit_trail
+        from api.cases.models import CaseQueueMovement
         from api.licences.helpers import update_licence_status
         from lite_routing.routing_rules_internal.routing_engine import run_routing_rules
 
@@ -240,7 +241,15 @@ class Case(TimestampableModel):
         )
 
         if old_status != self.status.status:
-            run_routing_rules(case=self, keep_status=True)
+            # Change in status also changes the queues when routing rules are executed
+            # so record the exit date for the current queues
+            for queue in self.queues.all():
+                CaseQueueMovement.record_exit_date(self, queue)
+
+            queues_assigned = run_routing_rules(case=self, keep_status=True)
+            created_at = timezone.now()
+            for queue in queues_assigned:
+                CaseQueueMovement.objects.create(case=self, queue_id=queue, created_at=created_at)
 
             if status.status == CaseStatusEnum.APPLICANT_EDITING:
                 notify_exporter_case_opened_for_editing(self)
@@ -343,6 +352,7 @@ class Case(TimestampableModel):
 
     def move_case_forward(self, queue, user):
         from api.audit_trail import service as audit_trail_service
+        from api.cases.models import CaseQueueMovement
         from api.workflow.user_queue_assignment import user_queue_assignment_workflow
 
         assignments = (
@@ -355,6 +365,8 @@ class Case(TimestampableModel):
 
         # Run routing rules and move the case forward
         user_queue_assignment_workflow([queue], self)
+
+        CaseQueueMovement.record_exit_date(self, queue)
 
         audit_trail_service.create(
             actor=user,
@@ -490,6 +502,18 @@ class Case(TimestampableModel):
             target_object_id=None,
         )
         return super().delete(*args, **kwargs)
+
+    def get_application_manifest(self):
+        from api.cases.application_manifest import application_manifest_registry
+
+        application_manifest = application_manifest_registry.get_manifest(self.case_type.sub_type)
+        return application_manifest
+
+    def get_application(self):
+        application_manifest = self.get_application_manifest()
+        model_class = application_manifest.model_class
+
+        return model_class.objects.get_prepared_object(pk=self.pk)
 
 
 class CaseQueue(TimestampableModel):
@@ -886,3 +910,10 @@ class CaseQueueMovement(TimestampableModel):
     case = models.ForeignKey(Case, related_name="casequeuemovements", on_delete=models.DO_NOTHING)
     queue = models.ForeignKey(Queue, related_name="casequeuemovements", on_delete=models.DO_NOTHING)
     exit_date = models.DateTimeField(blank=True, null=True)
+
+    @classmethod
+    def record_exit_date(cls, case, queue):
+        if cls.objects.filter(case=case, queue=queue, exit_date=None).count() == 1:
+            obj = cls.objects.get(case=case, queue=queue, exit_date=None)
+            obj.exit_date = timezone.now()
+            obj.save()
