@@ -4,20 +4,34 @@ from django.urls import reverse
 from rest_framework.test import APIClient
 
 from api.applications.tests.factories import DraftStandardApplicationFactory
-from api.core.constants import ExporterPermissions, GovPermissions
+from api.core.constants import ExporterPermissions, GovPermissions, Roles
 from api.organisations.tests.factories import OrganisationFactory
 from api.parties.tests.factories import PartyDocumentFactory
+from api.teams.models import Team
 from api.users.libraries.user_to_token import user_to_token
-from api.users.models import Permission
+from api.users.models import Permission, Role
 from api.users.enums import UserType
 from api.users.tests.factories import (
     ExporterUserFactory,
     GovUserFactory,
     RoleFactory,
+    SystemUserFactory,
     UserOrganisationRelationshipFactory,
 )
 
+from lite_routing.routing_rules_internal.enums import TeamIdEnum
+
 pytestmark = pytest.mark.django_db
+
+
+@pytest.fixture(autouse=True)
+def django_db(db):
+    return db
+
+
+@pytest.fixture(autouse=True)
+def setup(gov_user):
+    pass
 
 
 @pytest.fixture()
@@ -52,6 +66,11 @@ def exporter_headers(exporter_user, organisation):
     }
 
 
+@pytest.fixture(autouse=True)
+def system_user():
+    return SystemUserFactory()
+
+
 @pytest.fixture()
 def gov_headers(gov_user):
     return {"HTTP_GOV_USER_TOKEN": user_to_token(gov_user.baseuser_ptr)}
@@ -59,12 +78,22 @@ def gov_headers(gov_user):
 
 @pytest.fixture()
 def gov_user():
-    return GovUserFactory()
+    gov_user = GovUserFactory()
+    if Role.objects.filter(id=Roles.INTERNAL_DEFAULT_ROLE_ID, type=UserType.INTERNAL.value).exists():
+        return gov_user
+
+    gov_user.role = RoleFactory(
+        id=Roles.INTERNAL_DEFAULT_ROLE_ID, type=UserType.INTERNAL.value, name=Roles.INTERNAL_DEFAULT_ROLE_NAME
+    )
+    gov_user.save()
+
+    return gov_user
 
 
 @pytest.fixture()
 def lu_case_officer(gov_user_permissions):
     gov_user = GovUserFactory()
+    gov_user.team = Team.objects.get(id=TeamIdEnum.LICENSING_UNIT)
     gov_user.role = RoleFactory(name="Case officer", type=UserType.INTERNAL)
     gov_user.role.permissions.set(
         [
@@ -80,6 +109,51 @@ def lu_case_officer(gov_user_permissions):
 @pytest.fixture()
 def lu_case_officer_headers(lu_case_officer):
     return {"HTTP_GOV_USER_TOKEN": user_to_token(lu_case_officer.baseuser_ptr)}
+
+
+@pytest.fixture()
+def fcdo_officer():
+    gov_user = GovUserFactory()
+    gov_user.team = Team.objects.get(name="FCDO")
+    gov_user.save()
+    return gov_user
+
+
+@pytest.fixture()
+def fcdo_officer_headers(fcdo_officer):
+    return {"HTTP_GOV_USER_TOKEN": user_to_token(fcdo_officer.baseuser_ptr)}
+
+
+@pytest.fixture()
+def fcdo_countersigner(gov_user_permissions):
+    gov_user = GovUserFactory()
+    gov_user.team = Team.objects.get(name="FCDO")
+    gov_user.role = RoleFactory(name="FCDO Countersigner", type=UserType.INTERNAL)
+    gov_user.role.permissions.set(
+        [
+            GovPermissions.MANAGE_TEAM_ADVICE.name,
+        ]
+    )
+    gov_user.save()
+    return gov_user
+
+
+@pytest.fixture()
+def fcdo_countersigner_headers(fcdo_countersigner):
+    return {"HTTP_GOV_USER_TOKEN": user_to_token(fcdo_countersigner.baseuser_ptr)}
+
+
+@pytest.fixture()
+def mod_officer():
+    gov_user = GovUserFactory()
+    gov_user.team = Team.objects.get(id=TeamIdEnum.MOD_CAPPROT)
+    gov_user.save()
+    return gov_user
+
+
+@pytest.fixture()
+def mod_officer_headers(mod_officer):
+    return {"HTTP_GOV_USER_TOKEN": user_to_token(mod_officer.baseuser_ptr)}
 
 
 @pytest.fixture()
@@ -105,6 +179,15 @@ def draft_standard_application(organisation):
 
 
 @pytest.fixture
+def get_draft_application(organisation):
+
+    def _get_draft_application():
+        return DraftStandardApplicationFactory(organisation=organisation)
+
+    return _get_draft_application
+
+
+@pytest.fixture
 def submit_application(api_client, exporter_headers, mocker):
     def _submit_application(draft_application):
         mocker.patch("api.documents.libraries.s3_operations.upload_bytes_file", return_value=None)
@@ -121,7 +204,7 @@ def submit_application(api_client, exporter_headers, mocker):
             },
             **exporter_headers,
         )
-        assert response.status_code == 200, response.json()["errors"]
+        assert response.status_code == 200, response.json()["errors"]  # nosec
 
         draft_application.refresh_from_db()
         return draft_application

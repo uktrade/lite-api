@@ -196,6 +196,7 @@ class Good(TimestampableModel, Trackable):
     class Meta:
         db_table = "good"
         ordering = ["-created_at"]
+        indexes = [models.Index(fields=["created_at"])]
 
     def get_precedents(self):
         if self.status != GoodStatus.VERIFIED:
