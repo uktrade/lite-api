@@ -249,7 +249,7 @@ class Case(TimestampableModel):
             queues_assigned = run_routing_rules(case=self, keep_status=True)
             created_at = timezone.now()
             for queue in queues_assigned:
-                CaseQueueMovement.objects.create(case=self, queue_id=queue, created_at=created_at)
+                CaseQueueMovement.objects.create(case=self, queue_id=queue, user=user, created_at=created_at)
 
             if status.status == CaseStatusEnum.APPLICANT_EDITING:
                 notify_exporter_case_opened_for_editing(self)

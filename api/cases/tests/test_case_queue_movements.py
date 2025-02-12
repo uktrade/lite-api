@@ -149,6 +149,7 @@ def test_case_queue_movements(
     api_client,
     team_case_advisor_headers,
     get_standard_case,
+    system_user,
     data,
 ):
     freezer = freeze_time("2025-01-10T12:00:00+00:00")
@@ -178,7 +179,7 @@ def test_case_queue_movements(
         assert obj.exit_date.isoformat() == action_time
 
         for queue in expected_queues:
-            assert CaseQueueMovement.objects.get(case=case, queue=queue, exit_date=None)
+            assert CaseQueueMovement.objects.get(case=case, queue=queue, user=system_user, exit_date=None)
 
 
 @patch(
@@ -276,6 +277,7 @@ def test_case_queue_movements_with_lu_countersigning(
     api_client,
     team_case_advisor_headers,
     get_standard_case,
+    system_user,
     data,
 ):
     # this is mocked to avoid creating final advice and corresponding countersignatures
@@ -305,7 +307,7 @@ def test_case_queue_movements_with_lu_countersigning(
         assert obj.exit_date.isoformat() == action_time
 
         for queue in expected_queues:
-            assert CaseQueueMovement.objects.get(case=case, queue=queue, exit_date=None)
+            assert CaseQueueMovement.objects.get(case=case, queue=queue, user=system_user, exit_date=None)
 
 
 @pytest.mark.parametrize(
@@ -376,8 +378,10 @@ def test_case_queue_movements_with_lu_countersigning(
 )
 def test_case_queue_movements_when_case_sent_back_to_tau(
     api_client,
+    team_case_advisor,
     team_case_advisor_headers,
     get_standard_case,
+    system_user,
     data,
 ):
     freezer = freeze_time("2025-01-10T12:00:00+00:00")
@@ -407,14 +411,25 @@ def test_case_queue_movements_when_case_sent_back_to_tau(
         assert obj.exit_date.isoformat() == action_date
 
         for queue in expected_queues:
-            assert CaseQueueMovement.objects.get(case=case, queue=queue, exit_date=None)
+            assert CaseQueueMovement.objects.get(case=case, queue=queue, user=system_user, exit_date=None)
 
     # Now we send the case back to TAU
     with freeze_time("2025-01-20T12:00:00+00:00"):
         url = reverse("caseworker_applications:change_status", kwargs={"pk": str(case.id)})
-        headers = team_case_advisor_headers(TeamIdEnum.LICENSING_UNIT)
+        case_advisor = team_case_advisor(TeamIdEnum.LICENSING_UNIT)
+        headers = {"HTTP_GOV_USER_TOKEN": user_to_token(case_advisor.baseuser_ptr)}
         response = api_client.post(url, data={"status": CaseStatusEnum.INITIAL_CHECKS}, **headers)
         assert response.status_code == 200
+
+        assert CaseQueueMovement.objects.get(
+            case=case, queue=QueuesEnum.ENFORCEMENT_UNIT_CASES_TO_REVIEW, user=case_advisor.baseuser_ptr, exit_date=None
+        )
+        assert CaseQueueMovement.objects.get(
+            case=case,
+            queue=QueuesEnum.TECHNICAL_ASSESSMENT_UNIT_SIELS_TO_REVIEW,
+            user=case_advisor.baseuser_ptr,
+            exit_date=None,
+        )
         case.refresh_from_db()
 
     assert case.status == CaseStatus.objects.get(status=CaseStatusEnum.INITIAL_CHECKS)
@@ -473,6 +488,7 @@ def test_case_queues_updated_manually(
     api_client,
     team_case_advisor_headers,
     get_standard_case,
+    system_user,
     queues_to_retain,
     updated_queues,
 ):
@@ -492,7 +508,7 @@ def test_case_queues_updated_manually(
     assert obj.exit_date.isoformat() == "2025-01-10T12:00:00+00:00"
 
     for queue in [QueuesEnum.ENFORCEMENT_UNIT_CASES_TO_REVIEW, QueuesEnum.TECHNICAL_ASSESSMENT_UNIT_SIELS_TO_REVIEW]:
-        assert CaseQueueMovement.objects.get(case=case, queue=queue, exit_date=None)
+        assert CaseQueueMovement.objects.get(case=case, queue=queue, user=system_user, exit_date=None)
 
     # Now manually remove specified queue(s)
     url = reverse("cases:queues", kwargs={"pk": case.id})

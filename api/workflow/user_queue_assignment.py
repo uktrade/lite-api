@@ -59,7 +59,7 @@ def user_queue_assignment_workflow(queues: [Queue], case: Case):
             if not remaining_feeder_queues:
                 case.queues.add(queue.countersigning_queue_id)
 
-                CaseQueueMovement.objects.create(case=case, queue_id=queue.countersigning_queue_id)
+                CaseQueueMovement.objects.create(case=case, queue_id=queue.countersigning_queue_id, user=system_user)
 
                 # Be careful when editing this audit trail event; we depend on it for
                 # the flagging rule lite_routing.routing_rules_internal.flagging_rules_criteria:mod_consolidation_required_flagging_rule_criteria()
@@ -79,4 +79,4 @@ def user_queue_assignment_workflow(queues: [Queue], case: Case):
 
     created_at = timezone.now()
     for queue in queues_assigned:
-        CaseQueueMovement.objects.create(case=case, queue_id=queue, created_at=created_at)
+        CaseQueueMovement.objects.create(case=case, queue_id=queue, user=system_user, created_at=created_at)

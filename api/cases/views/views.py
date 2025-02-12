@@ -218,7 +218,7 @@ class SetQueues(APIView):
 
             created_at = timezone.now()
             for queue in new_queues:
-                CaseQueueMovement.objects.create(case=case, queue=queue, created_at=created_at)
+                CaseQueueMovement.objects.create(case=case, queue=queue, user=request.user, created_at=created_at)
 
         return JsonResponse(data={"queues": list(request_queues)}, status=status.HTTP_200_OK)
 
