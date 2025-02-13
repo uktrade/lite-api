@@ -298,7 +298,7 @@ class MakeAssessmentsViewTests(DataTestClient):
 
         good = good_on_application.good
         assert good.status == GoodStatus.VERIFIED
-        assert [cle.rating for cle in good.control_list_entries.all()] == ["ML3", "ML1"]
+        assert sorted([cle.rating for cle in good.control_list_entries.all()]) == sorted(["ML3", "ML1"])
         assert good_on_application.report_summary == f"{report_summary_prefix.name} {report_summary_subject.name}"
         assert good.report_summary_prefix_id == report_summary_prefix.id
         assert good.report_summary_subject_id == report_summary_subject.id

@@ -3,7 +3,7 @@ from typing import List
 
 from django.apps import apps
 from django.db import models, transaction
-from django.db.models import Prefetch, Q, Sum
+from django.db.models import Prefetch, Q, Sum, Subquery, OuterRef
 from django.utils import timezone
 
 from queryable_properties.managers import (
@@ -308,6 +308,7 @@ class CaseManager(QueryablePropertiesManager):
         Search for a user's available cases given a set of search parameters.
         """
         from api.applications.models import PartyOnApplication
+        from api.cases.models import CaseQueueMovement
 
         case_qs = (
             self.submitted()
@@ -323,6 +324,7 @@ class CaseManager(QueryablePropertiesManager):
                 "licence_decisions",
                 "queues",
                 "queues__team",
+                "casequeuemovements",
                 "baseapplication__licences",
                 "flags",
                 Prefetch(
@@ -333,6 +335,12 @@ class CaseManager(QueryablePropertiesManager):
                         party__type__in=["end_user", "ultimate_end_user"],
                     ),
                 ),
+            )
+        ).annotate(
+            time_on_queue=Subquery(
+                CaseQueueMovement.objects.filter(case_id=OuterRef("pk"), queue=queue_id)
+                .values("created_at")
+                .order_by("-created_at")[:1]
             )
         )
 
