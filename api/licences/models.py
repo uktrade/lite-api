@@ -161,3 +161,6 @@ class GoodOnLicence(TimestampableModel):
 
     class Meta:
         unique_together = ("licence", "good")
+        indexes = [
+            models.Index(fields=["created_at"]),
+        ]

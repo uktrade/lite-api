@@ -898,9 +898,9 @@ class CaseOrderingOnQueueTests(DataTestClient):
 
         actual_case_order_ids = [case["id"] for case in response.json()["results"]["cases"]]
         expected_case_order_ids = [
-            str(clc_query_1.id),
-            str(standard_app.id),
             str(clc_query_2.id),
+            str(standard_app.id),
+            str(clc_query_1.id),
         ]
         self.assertEqual(actual_case_order_ids, expected_case_order_ids)
 
