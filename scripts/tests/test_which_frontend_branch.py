@@ -1,11 +1,11 @@
-from django.test import SimpleTestCase
+from test_helpers.clients import DataTestClient
 
 from parameterized import parameterized
 
 from ..which_frontend_branch import get_frontend_branch
 
 
-class WhichFrontendBranchTest(SimpleTestCase):
+class WhichFrontendBranchTest(DataTestClient):
 
     @parameterized.expand(
         [
