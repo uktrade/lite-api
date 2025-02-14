@@ -19,7 +19,7 @@ class AddressSerializer(serializers.ModelSerializer):
     )
     postcode = serializers.CharField(max_length=10, required=False, error_messages={"blank": Addresses.POSTCODE})
     city = serializers.CharField(max_length=50, required=False, error_messages={"blank": Addresses.CITY})
-    region = serializers.CharField(max_length=50, required=False, error_messages={"blank": Addresses.REGION})
+    region = serializers.CharField(max_length=50, required=False, allow_blank=True, allow_null=True)
     country = CountrySerializerField(required=False)
 
     def validate_postcode(self, value):
