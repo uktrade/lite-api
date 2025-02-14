@@ -406,12 +406,14 @@ jobs:
       - run:
           name: Create temporary branch and commit on lite-frontend
           command: |
+            git clone -b $CIRCLE_BRANCH git@github.com:uktrade/lite-api.git
             TEMPORARY_BRANCH_NAME="lite-api-ci-tmp-"
             TEMPORARY_BRANCH_NAME+=$(cat /proc/sys/kernel/random/uuid)
             git clone git@github.com:uktrade/lite-frontend.git
             cd lite-frontend
             git config user.email $GIT_EMAIL
             git config user.name "LITE CI"
+            git checkout $(python ../lite-api/scripts/which_frontend_branch.py $CIRCLE_BRANCH)
             git checkout -b $TEMPORARY_BRANCH_NAME
             git commit --allow-empty -m "Testing lite-api"
             git push origin $TEMPORARY_BRANCH_NAME
