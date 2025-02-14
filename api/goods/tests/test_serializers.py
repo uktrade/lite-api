@@ -182,6 +182,12 @@ class GoodSerializerInternalTests(DataTestClient):
             error_message,
         )
 
+    @parameterized.expand([None, True, False])
+    def test_has_declared_at_customs(self, has_declared_at_customs):
+        self.good.has_declared_at_customs = has_declared_at_customs
+        serialized_data = GoodSerializerInternal(self.good).data
+        self.assertEqual(serialized_data["has_declared_at_customs"], has_declared_at_customs)
+
 
 class GoodSerializerExporterFullDetailTests(DataTestClient):
 
