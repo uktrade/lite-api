@@ -249,7 +249,7 @@ class Case(TimestampableModel):
             queues_assigned = run_routing_rules(case=self, keep_status=True)
             created_at = timezone.now()
             for queue in queues_assigned:
-                CaseQueueMovement.objects.create(case=self, queue_id=queue, created_at=created_at)
+                CaseQueueMovement.objects.create(case=self, queue_id=queue, user=user, created_at=created_at)
 
             if status.status == CaseStatusEnum.APPLICANT_EDITING:
                 notify_exporter_case_opened_for_editing(self)
@@ -909,6 +909,9 @@ class CaseQueueMovement(TimestampableModel):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     case = models.ForeignKey(Case, related_name="casequeuemovements", on_delete=models.DO_NOTHING)
     queue = models.ForeignKey(Queue, related_name="casequeuemovements", on_delete=models.DO_NOTHING)
+    user = models.ForeignKey(
+        BaseUser, on_delete=models.DO_NOTHING, related_name="casequeuemovements", blank=True, null=True
+    )
     exit_date = models.DateTimeField(blank=True, null=True)
 
     @classmethod
