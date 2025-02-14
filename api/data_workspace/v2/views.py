@@ -26,6 +26,7 @@ from api.cases.models import (
     Advice,
     LicenceDecision,
 )
+from api.conf.pagination import CreatedAtCursorPagination
 from api.core.authentication import DataWorkspaceOnlyAuthentication
 from api.core.helpers import str_to_bool
 from api.data_workspace.v2.serializers import (
@@ -66,6 +67,7 @@ class BaseViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class LicenceDecisionViewSet(BaseViewSet):
+    pagination_class = CreatedAtCursorPagination
     serializer_class = LicenceDecisionSerializer
     queryset = (
         LicenceDecision.objects.filter(previous_decision__isnull=True)
@@ -80,7 +82,6 @@ class LicenceDecisionViewSet(BaseViewSet):
             ),
         )
         .select_related("case")
-        .order_by("-case__reference_code")
     )
 
     class DataWorkspace:
@@ -96,6 +97,7 @@ class CountryViewSet(BaseViewSet):
 
 
 class DestinationViewSet(BaseViewSet):
+    pagination_class = CreatedAtCursorPagination
     serializer_class = DestinationSerializer
     queryset = (
         PartyOnApplication.objects.filter(deleted_at__isnull=True)
@@ -108,6 +110,7 @@ class DestinationViewSet(BaseViewSet):
 
 
 class GoodViewSet(BaseViewSet):
+    pagination_class = CreatedAtCursorPagination
     serializer_class = GoodSerializer
     queryset = GoodOnApplication.objects.exclude(application__status__status=CaseStatusEnum.DRAFT)
 
@@ -137,6 +140,7 @@ def get_closed_statuses():
 
 
 class GoodOnLicenceViewSet(BaseViewSet):
+    pagination_class = CreatedAtCursorPagination
     serializer_class = GoodOnLicenceSerializer
     queryset = GoodOnLicence.objects.exclude(
         licence__case__status__status=CaseStatusEnum.DRAFT,
@@ -148,6 +152,7 @@ class GoodOnLicenceViewSet(BaseViewSet):
 
 
 class ApplicationViewSet(BaseViewSet):
+    pagination_class = CreatedAtCursorPagination
     serializer_class = ApplicationSerializer
     queryset = (
         StandardApplication.objects.exclude(status__status=CaseStatusEnum.DRAFT)
