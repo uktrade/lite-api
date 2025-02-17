@@ -20,5 +20,4 @@ RUN pyenv global 3.9.18
 RUN pip3 install pipenv
 ADD Pipfile* /app/
 RUN pipenv install --dev --deploy
-RUN pipenv install endesive==1.5.9
 ADD . /app

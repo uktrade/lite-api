@@ -38,7 +38,7 @@ Service for handling backend calls in LITE.
     - `git submodule init`
     - `git submodule update`
 
-  - Ensure Docker Desktop (Docker daemon) is running
+  - Ensure Docker Desktop (Docker Daemon) is running
 
   - Build and start Docker images:
 
