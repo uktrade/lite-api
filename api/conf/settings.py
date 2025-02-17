@@ -14,7 +14,6 @@ from dbt_copilot_python.utility import is_copilot
 
 import dj_database_url
 
-from django_log_formatter_ecs import ECSFormatter
 from django_log_formatter_asim import ASIMFormatter
 
 
@@ -57,7 +56,6 @@ ENV = env("ENV")
 VCAP_SERVICES = env.json("VCAP_SERVICES", {})
 
 IS_ENV_DBT_PLATFORM = is_copilot()
-IS_ENV_GOV_PAAS = bool(VCAP_SERVICES)
 
 # Please use this to Enable/Disable the Admin site
 ADMIN_ENABLED = env("ADMIN_ENABLED", default=False)
@@ -516,69 +514,6 @@ if IS_ENV_DBT_PLATFORM:
     LOGGING.update({"formatters": {"asim_formatter": {"()": ASIMFormatter}}})
     LOGGING["handlers"].update({"asim": {"class": "logging.StreamHandler", "formatter": "asim_formatter"}})
     LOGGING.update({"root": {"handlers": ["asim"], "level": env("LOG_LEVEL").upper()}})
-
-elif IS_ENV_GOV_PAAS:
-    # This has repeating code as this section can be deleted once migrated to DBT Platform
-    # Database
-    DATABASES = {"default": env.db()}  # https://docs.djangoproject.com/en/2.1/ref/settings/#databases
-    # redis
-    REDIS_BASE_URL = VCAP_SERVICES["redis"][0]["credentials"]["uri"]
-
-    if REDIS_BASE_URL:
-        # Give celery tasks their own redis DB - future uses of redis should use a different DB
-        REDIS_CELERY_DB = env("REDIS_CELERY_DB", default=0)
-        is_redis_ssl = REDIS_BASE_URL.startswith("rediss://")
-        url_args = {"ssl_cert_reqs": "CERT_REQUIRED"} if is_redis_ssl else {}
-
-        CELERY_BROKER_URL = _build_redis_url(REDIS_BASE_URL, REDIS_CELERY_DB, **url_args)
-        CELERY_RESULT_BACKEND = CELERY_BROKER_URL
-
-    # Elasticsearch configuration
-    LITE_API_ENABLE_ES = env.bool("LITE_API_ENABLE_ES", False)
-    if LITE_API_ENABLE_ES:
-        ELASTICSEARCH_DSL = {
-            "default": {"hosts": env.str("ELASTICSEARCH_HOST")},
-        }
-
-        ENABLE_SPIRE_SEARCH = env.bool("ENABLE_SPIRE_SEARCH", False)
-
-        ELASTICSEARCH_PRODUCT_INDEXES = {"LITE": ELASTICSEARCH_PRODUCT_INDEX_ALIAS}
-        ELASTICSEARCH_APPLICATION_INDEXES = {"LITE": ELASTICSEARCH_APPLICATION_INDEX_ALIAS}
-        SPIRE_APPLICATION_INDEX_NAME = env.str("SPIRE_APPLICATION_INDEX_NAME", "spire-application-alias")
-        SPIRE_PRODUCT_INDEX_NAME = env.str("SPIRE_PRODUCT_INDEX_NAME", "spire-products-alias")
-
-        if ENABLE_SPIRE_SEARCH:
-            ELASTICSEARCH_APPLICATION_INDEXES["SPIRE"] = SPIRE_APPLICATION_INDEX_NAME
-            ELASTICSEARCH_PRODUCT_INDEXES["SPIRE"] = SPIRE_PRODUCT_INDEX_NAME
-
-        INSTALLED_APPS += [
-            "django_elasticsearch_dsl",
-            "django_elasticsearch_dsl_drf",
-        ]
-    # AWS
-    if "aws-s3-bucket" not in VCAP_SERVICES:
-        raise Exception("S3 Bucket not bound to environment")
-
-    for bucket_details in VCAP_SERVICES["aws-s3-bucket"]:
-        if S3_BUCKET_TAG_FILE_UPLOADS in bucket_details["tags"]:
-            aws_credentials = bucket_details["credentials"]
-            AWS_ENDPOINT_URL = None
-            AWS_ACCESS_KEY_ID = aws_credentials["aws_access_key_id"]
-            AWS_SECRET_ACCESS_KEY = aws_credentials["aws_secret_access_key"]
-            AWS_REGION = aws_credentials["aws_region"]
-            AWS_STORAGE_BUCKET_NAME = aws_credentials["bucket_name"]
-
-        if S3_BUCKET_TAG_ANONYMISER_DESTINATION in bucket_details["tags"]:
-            aws_credentials = bucket_details["credentials"]
-            DB_ANONYMISER_AWS_ENDPOINT_URL = None
-            DB_ANONYMISER_AWS_ACCESS_KEY_ID = aws_credentials["aws_access_key_id"]
-            DB_ANONYMISER_AWS_SECRET_ACCESS_KEY = aws_credentials["aws_secret_access_key"]
-            DB_ANONYMISER_AWS_REGION = aws_credentials["aws_region"]
-            DB_ANONYMISER_AWS_STORAGE_BUCKET_NAME = aws_credentials["bucket_name"]
-
-    LOGGING.update({"formatters": {"ecs_formatter": {"()": ECSFormatter}}})
-    LOGGING["handlers"].update({"ecs": {"class": "logging.StreamHandler", "formatter": "ecs_formatter"}})
-    LOGGING.update({"root": {"handlers": ["ecs"], "level": env("LOG_LEVEL").upper()}})
 
 else:
     # Local configurations and CircleCI
