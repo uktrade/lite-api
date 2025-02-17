@@ -49,6 +49,7 @@ class F680ApplicationViewSet(viewsets.ModelViewSet):
         application.sla_days = 0
         application.submitted_by = request.user.exporteruser
         application.save()
+        application.on_submit()
 
         apply_flagging_rules_to_case(application)
         queues_assigned = run_routing_rules(application)
