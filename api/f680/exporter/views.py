@@ -17,6 +17,7 @@ from lite_routing.routing_rules_internal.routing_engine import run_routing_rules
 
 from api.f680.models import F680Application
 from api.f680.exporter.serializers import F680ApplicationSerializer
+from api.f680.exporter.filters import DraftApplicationFilter
 
 
 class F680ApplicationViewSet(viewsets.ModelViewSet):
@@ -24,7 +25,7 @@ class F680ApplicationViewSet(viewsets.ModelViewSet):
     serializer_class = F680ApplicationSerializer
     queryset = F680Application.objects.all()
     lookup_url_kwarg = "f680_application_id"
-    filter_backends = [CurrentExporterUserOrganisationFilter]
+    filter_backends = [CurrentExporterUserOrganisationFilter, DraftApplicationFilter]
 
     def get_serializer_context(self):
         serializer_context = super().get_serializer_context()
