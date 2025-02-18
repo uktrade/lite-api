@@ -38,12 +38,12 @@ class F680ApplicationViewSet(viewsets.ModelViewSet):
     def submit(self, request, **kwargs):
         # TODO: What follows is a lean slice of applications.views.applications.ApplicationSubmission.
         #   We should review exactly how best to structure application submission; it could be better
-        #   to depend on a model method, a library utility, or something else
+        #   to depend on a model method, a library utility, or something else.  We should also think about
+        #   commonality with StandardApplication
         application = self.get_object()
 
         # TODO: some sort of validation that we have everything we need on the application -
         #   this may duplicate frontend validation in some way so needs some consideration.
-
         application.status = get_case_status_by_status(CaseStatusEnum.SUBMITTED)
         application.submitted_at = timezone.now()
         application.sla_remaining_days = get_application_target_sla(application.case_type.sub_type)
