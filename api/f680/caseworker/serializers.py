@@ -22,5 +22,6 @@ class F680ApplicationSerializer(serializers.ModelSerializer):  # /PS-IGNORE
             "organisation",
             "submitted_at",
             "submitted_by",
+            "name",
         ]
         read_only_fields = ["id", "status", "reference_code", "organisation", "submitted_at", "submitted_by"]
