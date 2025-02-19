@@ -13,6 +13,7 @@ from botocore.exceptions import (
 )
 
 from django.http import FileResponse
+from django.conf import settings
 from django.test import override_settings, SimpleTestCase
 
 from test_helpers.s3 import S3TesterHelper
@@ -89,10 +90,13 @@ class S3OperationsTests(SimpleTestCase):
             endpoint_url="AWS_ENDPOINT_URL",
         )
 
-    @patch("api.documents.libraries.s3_operations.is_copilot")
     @patch("api.documents.libraries.s3_operations._client")
-    def test_get_client_with_is_copilot(self, mock_client, mock_is_copilot, mock_Config, mock_boto3):
-        mock_is_copilot.return_value = True
+    def test_get_client_with_no_aws_secret_keys(self, mock_client, mock_Config, mock_boto3):
+
+        # These are only used locally
+        delattr(settings, "AWS_ACCESS_KEY_ID")
+        delattr(settings, "AWS_SECRET_ACCESS_KEY")
+
         mock_client = Mock()
         mock_boto3.client.return_value = mock_client
 

@@ -1,17 +1,18 @@
 import pytest
 
+from unittest.mock import patch
+
+from django.contrib.contenttypes.models import ContentType
 from django.urls import reverse
 
 from api.applications.models import StandardApplication
-from api.applications.tests.factories import DraftStandardApplicationFactory
 from api.audit_trail.enums import AuditType
 from api.audit_trail.models import Audit
 from api.audit_trail.serializers import AuditSerializer
 from api.cases.enums import AdviceLevel, AdviceType
-from api.cases.models import CaseAssignment
+from api.cases.models import Case, CaseAssignment, CaseQueueMovement
 from api.cases.tests.factories import CaseAssignmentFactory
 from api.core.constants import Roles
-from api.parties.tests.factories import PartyDocumentFactory
 from api.queues.models import Queue
 from api.staticdata.control_list_entries.models import ControlListEntry
 from api.staticdata.statuses.enums import CaseStatusEnum
@@ -57,43 +58,72 @@ def team_case_advisor_headers(team_case_advisor):
 
 
 @pytest.fixture
-def get_cases_with_ogd_queue_assigned(organisation, submit_application, team_case_advisor):
+def get_cases_with_ogd_queue_assigned(get_draft_application, submit_application, team_case_advisor):
+    """Returns list of cases with the given OGD queue assigned"""
 
     def _get_cases_with_ogd_queue_assigned(queue_id, count=5):
-        applications = [DraftStandardApplicationFactory(organisation=organisation) for i in range(count)]
-        _ = [
-            PartyDocumentFactory(
-                party=application.end_user.party,
-                s3_key="party-document",
-                safe=True,
-            )
-            for application in applications
-        ]
+        applications = [get_draft_application() for _ in range(count)]
         cases = [submit_application(application) for application in applications]
 
-        cle = ControlListEntry.objects.get(rating="ML2a")
-        gov_user = team_case_advisor(TeamIdEnum.LICENSING_UNIT)
-        queue = Queue.objects.get(id=QueuesEnum.LU_PRE_CIRC)
-
+        cle = ControlListEntry.objects.get(rating="6A003b4c")
         for application in applications:
             for good_on_application in application.goods.all():
                 good_on_application.is_good_controlled = True
                 good_on_application.save()
                 good_on_application.control_list_entries.add(*[cle])
+                good_on_application.good.is_good_controlled = True
                 good_on_application.good.control_list_entries.add(*[cle])
 
         for case in cases:
             case.status = CaseStatus.objects.get(status=CaseStatusEnum.UNDER_REVIEW)
             case.save()
+
+            # As part of the test here we are manually setting the queues hence we need
+            # to create CaseQueueMovement instance as well as that gets updated when
+            # this is moved forward in the next step
             case.queues.set([QueuesEnum.LU_PRE_CIRC])
+            CaseQueueMovement.objects.create(case=case, queue_id=QueuesEnum.LU_PRE_CIRC)
             case.refresh_from_db()
 
             # Circulate to OGDs
-            queue = Queue.objects.get(id=QueuesEnum.LU_PRE_CIRC)
-            case.move_case_forward(queue, gov_user)
+            # When moved forward from Pre-circulation the OGDs it is going to be routed to depends on
+            # the case attributes, however for the purpose of this test we want it to be routed to a
+            # given OGD queue hence mock moving forward in this instance.
+            with patch("api.workflow.user_queue_assignment.move_case_forward") as mock_move_case_forward:
+                mock_move_case_forward.return_value = [queue_id]
 
-            # Reset queue with the specified OGD queue only
+                gov_user = team_case_advisor(TeamIdEnum.LICENSING_UNIT)
+                queue = Queue.objects.get(id=QueuesEnum.LU_PRE_CIRC)
+                case.move_case_forward(queue, gov_user)
+                case.status = CaseStatus.objects.get(status=CaseStatusEnum.OGD_ADVICE)
+                case.save()
+
+            # We need this event to avoid triggering of fallback routing rule.
+            # We are routing to a specific OGD queue_id for bulk approval.
+            # After multiple cases are approved and moved forward then fallback rule gets triggered
+            # as fallback rule doesn't consider bulk approval and routes to fallback OGD queues.
+            # This makes it difficult to test the next queues after bulk approval. By creating this
+            # event we ensure fallback is not triggered and we can determine the next queue as per
+            # routing rules and assert the same in the tests
+            #
+            # In reality this won't be an issue as cases definitely gets routed to atleast one
+            # other OGD
+            obj = Audit.objects.create(
+                actor=gov_user,
+                verb=AuditType.MOVE_CASE,
+                action_object=case,
+                payload={
+                    "queues": "FCDO Cases to Review",
+                    "queue_ids": [QueuesEnum.FCDO],
+                    "case_status": case.status.status,
+                },
+            )
+            obj.action_object_content_type = ContentType.objects.get_for_model(Case)
+            obj.save()
+
+            # Reset queue with the specified OGD queue only because move case forward is mocked
             case.refresh_from_db()
+
             target_queue = Queue.objects.get(id=queue_id)
             case.queues.set([target_queue])
 

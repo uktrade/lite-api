@@ -14,10 +14,10 @@ from api.applications.enums import (
     SecurityClassifiedApprovalsType,
     NSGListType,
 )
-from api.appeals.models import Appeal
 from api.applications.exceptions import AmendmentError
-from api.applications.managers import BaseApplicationManager
+from api.applications.managers import BaseApplicationManager, StandardApplicationQuerySet
 from api.applications.libraries.application_helpers import create_submitted_audit
+from api.appeals.models import Appeal
 from api.audit_trail.models import AuditType
 from api.audit_trail import service as audit_trail_service
 from api.cases.enums import CaseTypeEnum
@@ -47,7 +47,6 @@ from api.staticdata.units.enums import Units
 from api.users.enums import SystemUser
 from api.users.models import ExporterUser, GovUser, BaseUser
 from lite_content.lite_api.strings import PartyErrors
-
 from lite_routing.routing_rules_internal.enums import QueuesEnum
 
 
@@ -274,6 +273,8 @@ class BaseApplication(ApplicationPartyMixin, Case):
 
 # Licence     Applications
 class StandardApplication(BaseApplication, Clonable):
+    objects = StandardApplicationQuerySet.as_manager()
+
     GB = "GB"
     NI = "NI"
     GOODS_STARTING_POINT_CHOICES = [
@@ -645,6 +646,9 @@ class GoodOnApplication(AbstractGoodOnApplication, Clonable):
 
     class Meta:
         ordering = ["created_at"]
+        indexes = [
+            models.Index(fields=["created_at"]),
+        ]
 
     @property
     def name(self):
@@ -728,6 +732,11 @@ class PartyOnApplication(TimestampableModel, Clonable):
     flags = models.ManyToManyField(Flag, related_name="parties_on_application")
 
     objects = PartyOnApplicationManager()
+
+    class Meta:
+        indexes = [
+            models.Index(fields=["created_at"]),
+        ]
 
     def __repr__(self):
         return str(

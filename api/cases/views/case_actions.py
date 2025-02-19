@@ -6,7 +6,7 @@ from rest_framework.views import APIView
 from api.audit_trail import service as audit_trail_service
 from api.audit_trail.enums import AuditType
 from api.cases.libraries.get_case import get_case
-from api.cases.models import CaseAssignment
+from api.cases.models import CaseAssignment, CaseQueueMovement
 from api.core.authentication import GovAuthentication
 from lite_content.lite_api.strings import Cases
 from api.queues.models import Queue
@@ -70,6 +70,11 @@ class AssignedQueues(APIView):
                 audit_trail_service.create(
                     actor=request.user, verb=AuditType.UNASSIGNED, target=case, payload={"additional_text": note}
                 )
+
+            # Record queue unassigned date
+            for queue in queues:
+                CaseQueueMovement.record_exit_date(case, queue)
+
             return JsonResponse(data={"queues_removed": queue_names}, status=status.HTTP_200_OK)
         else:
             return JsonResponse(
