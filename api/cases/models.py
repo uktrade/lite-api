@@ -910,6 +910,13 @@ class CaseQueueMovement(TimestampableModel):
     case = models.ForeignKey(Case, related_name="casequeuemovements", on_delete=models.DO_NOTHING)
     queue = models.ForeignKey(Queue, related_name="casequeuemovements", on_delete=models.DO_NOTHING)
     exit_date = models.DateTimeField(blank=True, null=True)
+    user = models.ForeignKey(
+        BaseUser,
+        on_delete=models.DO_NOTHING,
+        related_name="casequeuemovements",
+        blank=True,
+        null=True,
+    )
 
     @classmethod
     def record_exit_date(cls, case, queue):
