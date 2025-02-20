@@ -13,3 +13,5 @@ router_v2.register(views.UnitViewSet)
 router_v2.register(views.FootnoteViewSet)
 router_v2.register(views.AssessmentViewSet)
 router_v2.register(views.LicenceRefusalCriteriaViewSet)
+
+urlpatterns = router_v2.urls
