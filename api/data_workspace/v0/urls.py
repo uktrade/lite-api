@@ -9,3 +9,5 @@ router_v0.register(
     licence_views.LicencesListDW,
     basename="dw-licences-only",
 )
+
+urlpatterns = router_v0.urls
