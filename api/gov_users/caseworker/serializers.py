@@ -100,3 +100,14 @@ class GovUserViewSerializer(serializers.ModelSerializer):
             "default_queue",
         )
         extra_kwargs = {"first_name": {"read_only": True}, "last_name": {"read_only": True}}
+
+
+class GovUserListSerializer(serializers.ModelSerializer):
+    id = serializers.ReadOnlyField(source="baseuser_ptr_id")
+
+    class Meta:
+        model = GovUser
+        fields = (
+            "id",
+            "email",
+        )
