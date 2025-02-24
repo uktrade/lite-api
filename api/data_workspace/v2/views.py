@@ -11,7 +11,10 @@ from django.db.models.aggregates import (
 )
 from django.db.models.lookups import GreaterThan
 from rest_framework import viewsets
-from rest_framework.pagination import LimitOffsetPagination
+from rest_framework.pagination import (
+    CursorPagination,
+    LimitOffsetPagination,
+)
 from rest_framework.settings import api_settings
 from rest_framework_csv.renderers import PaginatedCSVRenderer
 
@@ -44,7 +47,6 @@ from api.data_workspace.v2.serializers import (
 )
 from api.licences.enums import LicenceStatus
 from api.licences.models import GoodOnLicence
-from api.staticdata.control_list_entries.models import ControlListEntry
 from api.staticdata.countries.models import Country
 from api.staticdata.denial_reasons.models import DenialReason
 from api.staticdata.report_summaries.models import ReportSummary
@@ -199,17 +201,16 @@ class FootnoteViewSet(BaseViewSet):
         table_name = "footnotes"
 
 
-class AssessmentViewSet(BaseViewSet):
-    serializer_class = AssessmentSerializer
+class AssessedAtCursorPagination(CursorPagination):
+    ordering = "assessment_date"
 
-    def get_queryset(self):
-        return (
-            ControlListEntry.objects.annotate(
-                good_id=F("goodonapplication__id"),
-            )
-            .exclude(good_id__isnull=True)
-            .order_by("rating")
-        )
+
+class AssessmentViewSet(BaseViewSet):
+    pagination_class = AssessedAtCursorPagination
+    serializer_class = AssessmentSerializer
+    queryset = GoodOnApplication.objects.exclude(control_list_entries__isnull=True).annotate(
+        rating=F("control_list_entries__rating")
+    )
 
     class DataWorkspace:
         table_name = "goods_ratings"
