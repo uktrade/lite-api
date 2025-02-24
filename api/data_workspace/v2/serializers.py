@@ -151,7 +151,7 @@ class FootnoteSerializer(serializers.Serializer):
     type = serializers.CharField()
 
 
-class AssessmentSerializer(serializers.Serializer):
+class GoodRatingSerializer(serializers.Serializer):
     good_id = serializers.UUIDField(source="id")
     rating = serializers.CharField()
 

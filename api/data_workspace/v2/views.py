@@ -34,12 +34,12 @@ from api.core.authentication import DataWorkspaceOnlyAuthentication
 from api.core.helpers import str_to_bool
 from api.data_workspace.v2.serializers import (
     ApplicationSerializer,
-    AssessmentSerializer,
     CountrySerializer,
     DestinationSerializer,
     FootnoteSerializer,
     GoodDescriptionSerializer,
     GoodOnLicenceSerializer,
+    GoodRatingSerializer,
     GoodSerializer,
     LicenceDecisionSerializer,
     LicenceRefusalCriteriaSerializer,
@@ -201,13 +201,13 @@ class FootnoteViewSet(BaseViewSet):
         table_name = "footnotes"
 
 
-class AssessedAtCursorPagination(CursorPagination):
+class AssessmentDateCursorPagination(CursorPagination):
     ordering = "assessment_date"
 
 
-class AssessmentViewSet(BaseViewSet):
-    pagination_class = AssessedAtCursorPagination
-    serializer_class = AssessmentSerializer
+class GoodRatingViewSet(BaseViewSet):
+    pagination_class = AssessmentDateCursorPagination
+    serializer_class = GoodRatingSerializer
     queryset = GoodOnApplication.objects.exclude(control_list_entries__isnull=True).annotate(
         rating=F("control_list_entries__rating")
     )
