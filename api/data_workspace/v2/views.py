@@ -31,7 +31,6 @@ from api.cases.models import (
 )
 from api.conf.pagination import CreatedAtCursorPagination
 from api.core.authentication import DataWorkspaceOnlyAuthentication
-from api.core.helpers import str_to_bool
 from api.data_workspace.v2.serializers import (
     ApplicationSerializer,
     CountrySerializer,
@@ -53,17 +52,8 @@ from api.staticdata.statuses.enums import CaseStatusEnum
 from api.staticdata.units.enums import Units
 
 
-class DisableableLimitOffsetPagination(LimitOffsetPagination):
-    def paginate_queryset(self, queryset, request, view=None):
-        if str_to_bool(request.GET.get("disable_pagination", False)):
-            return  # pragma: no cover
-
-        return super().paginate_queryset(queryset, request, view)
-
-
 class BaseViewSet(viewsets.ReadOnlyModelViewSet):
     authentication_classes = (DataWorkspaceOnlyAuthentication,)
-    pagination_class = DisableableLimitOffsetPagination
     renderer_classes = tuple(api_settings.DEFAULT_RENDERER_CLASSES) + (PaginatedCSVRenderer,)
 
 
@@ -90,6 +80,7 @@ class LicenceDecisionViewSet(BaseViewSet):
 
 
 class CountryViewSet(BaseViewSet):
+    pagination_class = LimitOffsetPagination
     serializer_class = CountrySerializer
     queryset = Country.objects.all().order_by("id", "name")
 
@@ -182,6 +173,7 @@ class ApplicationViewSet(BaseViewSet):
 
 
 class UnitViewSet(BaseViewSet):
+    pagination_class = LimitOffsetPagination
     serializer_class = UnitSerializer
     queryset = [{"code": code, "description": description} for code, description in Units.choices]
 
@@ -190,6 +182,7 @@ class UnitViewSet(BaseViewSet):
 
 
 class FootnoteViewSet(BaseViewSet):
+    pagination_class = LimitOffsetPagination
     serializer_class = FootnoteSerializer
     queryset = (
         Advice.objects.exclude(Q(footnote="") | Q(footnote__isnull=True))
@@ -214,6 +207,7 @@ class GoodRatingViewSet(BaseViewSet):
 
 
 class LicenceRefusalCriteriaViewSet(BaseViewSet):
+    pagination_class = LimitOffsetPagination
     serializer_class = LicenceRefusalCriteriaSerializer
     queryset = DenialReason.objects.exclude(licencedecision__denial_reasons__isnull=True).annotate(
         licence_decision_id=F("licencedecision__id")
