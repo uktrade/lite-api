@@ -14,7 +14,6 @@ from api.cases.models import LicenceDecision
 from api.licences.models import GoodOnLicence
 from api.staticdata.countries.models import Country
 from api.staticdata.denial_reasons.models import DenialReason
-from api.staticdata.report_summaries.models import ReportSummary
 
 
 class LicenceDecisionSerializer(serializers.ModelSerializer):
@@ -83,16 +82,18 @@ class GoodSerializer(serializers.ModelSerializer):
         )
 
 
-class GoodDescriptionSerializer(serializers.ModelSerializer):
-    description = serializers.CharField(source="name")
-    good_id = serializers.UUIDField()
+class GoodDescriptionSerializer(serializers.Serializer):
+    description = serializers.SerializerMethodField()
+    good_id = serializers.UUIDField(source="id")
 
-    class Meta:
-        model = ReportSummary
-        fields = (
-            "description",
-            "good_id",
-        )
+    def get_description(self, instance) -> str:
+        prefix = instance.report_summary_prefix_name
+        subject = instance.report_summary_subject_name
+
+        if prefix:
+            return f"{prefix} {subject}"
+
+        return subject
 
 
 class GoodOnLicenceSerializer(serializers.ModelSerializer):

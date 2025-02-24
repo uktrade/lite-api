@@ -49,7 +49,6 @@ from api.licences.enums import LicenceStatus
 from api.licences.models import GoodOnLicence
 from api.staticdata.countries.models import Country
 from api.staticdata.denial_reasons.models import DenialReason
-from api.staticdata.report_summaries.models import ReportSummary
 from api.staticdata.statuses.enums import CaseStatusEnum
 from api.staticdata.units.enums import Units
 
@@ -120,14 +119,16 @@ class GoodViewSet(BaseViewSet):
         table_name = "goods"
 
 
+class AssessmentDateCursorPagination(CursorPagination):
+    ordering = "assessment_date"
+
+
 class GoodDescriptionViewSet(BaseViewSet):
+    pagination_class = AssessmentDateCursorPagination
     serializer_class = GoodDescriptionSerializer
-    queryset = (
-        ReportSummary.objects.select_related("prefix", "subject")
-        .prefetch_related("goods_on_application")
-        .exclude(goods_on_application__isnull=True)
-        .annotate(good_id=F("goods_on_application__id"))
-        .order_by("good_id", "prefix", "subject")
+    queryset = GoodOnApplication.objects.exclude(report_summaries__isnull=True).annotate(
+        report_summary_prefix_name=F("report_summaries__prefix__name"),
+        report_summary_subject_name=F("report_summaries__subject__name"),
     )
 
     class DataWorkspace:
@@ -199,10 +200,6 @@ class FootnoteViewSet(BaseViewSet):
 
     class DataWorkspace:
         table_name = "footnotes"
-
-
-class AssessmentDateCursorPagination(CursorPagination):
-    ordering = "assessment_date"
 
 
 class GoodRatingViewSet(BaseViewSet):
