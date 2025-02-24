@@ -1,6 +1,8 @@
 from parameterized import parameterized
 from uuid import uuid4
 
+from freezegun import freeze_time
+
 from django.urls import reverse
 from django.utils import timezone
 from rest_framework import status
@@ -26,11 +28,14 @@ class F680ApplicationViewSetTests(DataTestClient):  # /PS-IGNORE
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data, {"count": 0, "total_pages": 1, "results": []})
 
+    def test_GET_list_submitted_only_no_results_success(self):
+        f680_application = SubmittedF680ApplicationFactory(organisation=self.organisation)
+        response = self.client.get(self.f680_url, **self.exporter_headers)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data, {"count": 0, "total_pages": 1, "results": []})
+
     def test_GET_list_success(self):
-        f680_application = SubmittedF680ApplicationFactory(  # /PS-IGNORE
-            organisation=self.organisation,
-            submitted_by=self.exporter_user,
-        )
+        f680_application = F680ApplicationFactory(organisation=self.organisation)
         response = self.client.get(self.f680_url, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         expected_result = {
@@ -47,21 +52,15 @@ class F680ApplicationViewSetTests(DataTestClient):  # /PS-IGNORE
                         "type": self.organisation.type,
                         "status": self.organisation.status,
                     },
-                    "submitted_at": f680_application.submitted_at.strftime("%Y-%m-%dT%H:%M:%S.%fZ"),
-                    "submitted_by": {
-                        "email": self.exporter_user.email,
-                        "first_name": self.exporter_user.first_name,
-                        "id": str(self.exporter_user.baseuser_ptr_id),
-                        "last_name": self.exporter_user.last_name,
-                        "pending": self.exporter_user.pending,
-                    },
+                    "submitted_at": None,
+                    "submitted_by": None,
                 }
             ],
         }
         self.assertEqual(response.data, expected_result)
 
     def test_GET_list_different_organisation_empty_results(self):
-        _ = SubmittedF680ApplicationFactory()  # /PS-IGNORE
+        _ = F680ApplicationFactory()
         response = self.client.get(self.f680_url, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         expected_result = {
@@ -72,15 +71,18 @@ class F680ApplicationViewSetTests(DataTestClient):  # /PS-IGNORE
         self.assertEqual(response.data, expected_result)
 
     def test_GET_single_empty_data_not_found(self):
+        f680_application = SubmittedF680ApplicationFactory(organisation=self.organisation)
+        url = reverse("exporter_f680:application", kwargs={"f680_application_id": f680_application.id})
+        response = self.client.get(url, **self.exporter_headers)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_GET_single_submitted_application_not_found(self):
         url = reverse("exporter_f680:application", kwargs={"f680_application_id": uuid4()})
         response = self.client.get(url, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_GET_single_success(self):
-        f680_application = SubmittedF680ApplicationFactory(  # /PS-IGNORE
-            organisation=self.organisation,
-            submitted_by=self.exporter_user,
-        )
+        f680_application = F680ApplicationFactory(organisation=self.organisation)
         url = reverse("exporter_f680:application", kwargs={"f680_application_id": f680_application.id})
         response = self.client.get(url, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -94,19 +96,13 @@ class F680ApplicationViewSetTests(DataTestClient):  # /PS-IGNORE
                 "type": self.organisation.type,
                 "status": self.organisation.status,
             },
-            "submitted_at": f680_application.submitted_at.strftime("%Y-%m-%dT%H:%M:%S.%fZ"),
-            "submitted_by": {
-                "email": self.exporter_user.email,
-                "first_name": self.exporter_user.first_name,
-                "id": str(self.exporter_user.baseuser_ptr_id),
-                "last_name": self.exporter_user.last_name,
-                "pending": self.exporter_user.pending,
-            },
+            "submitted_at": None,
+            "submitted_by": None,
         }
         self.assertEqual(response.data, expected_result)
 
     def test_GET_single_different_organisation_not_found(self):
-        f680_application = SubmittedF680ApplicationFactory()  # /PS-IGNORE
+        f680_application = F680ApplicationFactory()
         url = reverse("exporter_f680:application", kwargs={"f680_application_id": f680_application.id})
         response = self.client.get(url, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
@@ -191,10 +187,15 @@ class F680ApplicationViewSetTests(DataTestClient):  # /PS-IGNORE
         response = self.client.patch(url, {"application": {"new": "new value"}}, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
+    def test_PATCH_partial_update_submitted_application_not_found(self):
+        f680_application = SubmittedF680ApplicationFactory(organisation=self.organisation)
+        url = reverse("exporter_f680:application", kwargs={"f680_application_id": f680_application.id})
+        response = self.client.patch(url, {"application": {"new": "new value"}}, **self.exporter_headers)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
     def test_PATCH_partial_update_success(self):
-        f680_application = SubmittedF680ApplicationFactory(  # /PS-IGNORE
+        f680_application = F680ApplicationFactory(
             organisation=self.organisation,
-            submitted_by=self.exporter_user,
             application={"old key": "old value"},
         )
         url = reverse("exporter_f680:application", kwargs={"f680_application_id": f680_application.id})
@@ -211,14 +212,8 @@ class F680ApplicationViewSetTests(DataTestClient):  # /PS-IGNORE
                 "type": self.organisation.type,
                 "status": self.organisation.status,
             },
-            "submitted_at": f680_application.submitted_at.strftime("%Y-%m-%dT%H:%M:%S.%fZ"),
-            "submitted_by": {
-                "email": self.exporter_user.email,
-                "first_name": self.exporter_user.first_name,
-                "id": str(self.exporter_user.baseuser_ptr_id),
-                "last_name": self.exporter_user.last_name,
-                "pending": self.exporter_user.pending,
-            },
+            "submitted_at": None,
+            "submitted_by": None,
         }
         self.assertEqual(response.data, expected_result)
 
@@ -270,3 +265,58 @@ class F680ApplicationViewSetTests(DataTestClient):  # /PS-IGNORE
             "submitted_by": None,
         }
         self.assertEqual(response.data, expected_result)
+
+    def test_POST_submit_empty_data_not_found(self):
+        url = reverse("exporter_f680:application_submit", kwargs={"f680_application_id": uuid4()})
+        response = self.client.post(url, **self.exporter_headers)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_POST_submit_submitted_application_not_found(self):
+        f680_application = SubmittedF680ApplicationFactory(organisation=self.organisation)
+        url = reverse("exporter_f680:application_submit", kwargs={"f680_application_id": f680_application.id})
+        response = self.client.post(url, **self.exporter_headers)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    @freeze_time("2025-01-01 12:00:01")
+    def test_POST_submit_success(self):
+        f680_application = F680ApplicationFactory(
+            organisation=self.organisation,
+            application={"old key": "old value"},
+            reference_code=None,
+        )
+        url = reverse("exporter_f680:application_submit", kwargs={"f680_application_id": f680_application.id})
+        response = self.client.post(url, **self.exporter_headers)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        f680_application.refresh_from_db()
+        assert f680_application.status.status == "submitted"
+        assert f680_application.submitted_at == timezone.now()
+        assert f680_application.sla_days == 0
+        assert f680_application.submitted_by == self.exporter_user
+        assert f680_application.reference_code.startswith("F680")
+
+        expected_result = {
+            "id": str(f680_application.id),
+            "application": {"old key": "old value"},
+            "reference_code": f680_application.reference_code,
+            "organisation": {
+                "id": str(self.organisation.id),
+                "name": self.organisation.name,
+                "type": self.organisation.type,
+                "status": self.organisation.status,
+            },
+            "submitted_at": timezone.now().strftime("%Y-%m-%dT%H:%M:%SZ"),
+            "submitted_by": {
+                "email": self.exporter_user.email,
+                "first_name": self.exporter_user.first_name,
+                "id": str(self.exporter_user.baseuser_ptr_id),
+                "last_name": self.exporter_user.last_name,
+                "pending": self.exporter_user.pending,
+            },
+        }
+        self.assertEqual(response.data, expected_result)
+
+    def test_POST_submit_different_organisation_not_found(self):
+        f680_application = SubmittedF680ApplicationFactory()
+        url = reverse("exporter_f680:application_submit", kwargs={"f680_application_id": f680_application.id})
+        response = self.client.post(url, {"application": {"new": "new value"}}, **self.exporter_headers)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
