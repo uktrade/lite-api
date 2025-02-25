@@ -453,6 +453,15 @@ class FinalAdviceDocuments(APIView):
         return latest_documents
 
 
+class F680FinalAdviceDocuments(APIView):
+    authentication_classes = (GovAuthentication,)
+
+    def get(self, request, pk):
+        doc = GeneratedCaseDocument.objects.filter(case__id=pk).order_by("-created_at").first()
+        doc_data = AdviceDocumentGovSerializer(doc).data
+        return JsonResponse(data={"document": doc_data}, status=status.HTTP_200_OK)
+
+
 class FinalAdvice(APIView):
     authentication_classes = (GovAuthentication,)
     permission_classes = [CanCaseworkersIssueLicence]

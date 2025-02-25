@@ -1,0 +1,26 @@
+{% extends "letter_templates/dbt_letter_base.html" %}
+{% load static custom_tags %}
+
+{% block title %}F680 Approval{% endblock %}
+{% block css %}
+  <link href="{% static 'css/f680_approval.css' %}" rel="stylesheet" type="text/css" />
+{% endblock %}
+
+{% block body %}
+
+  <h2 class="govuk-heading-l">Products</h3>
+  <div class="govuk-body">We Approved Your F680 Application</div>
+  <ul class="govuk-list govuk-list--bullet">
+    {% for good in goods.refuse %}
+      <li>
+        {{good.good.name}}
+      </li>
+    {% endfor %}
+  </ul>
+  <h2 class="govuk-heading-l">Strategic Export Licensing Criteria</h3>
+  {% for dr in goods.refuse.0.denial_reasons %}
+    <h3 class="govuk-heading-m">Criterion {{dr.display_value}}</h3>
+    <div class="govuk-body">{{ dr.description | linebreaks }}</div>
+  {% endfor %}
+
+{% endblock %}
