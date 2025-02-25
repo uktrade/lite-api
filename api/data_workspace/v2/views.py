@@ -56,6 +56,17 @@ class BaseViewSet(viewsets.ReadOnlyModelViewSet):
     authentication_classes = (DataWorkspaceOnlyAuthentication,)
     renderer_classes = tuple(api_settings.DEFAULT_RENDERER_CLASSES) + (PaginatedCSVRenderer,)
 
+    @property
+    def pagination_class(self):
+        # Your pagination class should be a cursor pagination based class.
+        # This is to avoid the issue where DW ends up losing or duplicating data
+        # when a query doesn't return consistent results across pages.
+        #
+        # It is also highly recommended that you read the DRF documentation
+        # about cursor based pagination so that you correctly pick the correct
+        # type of field to order on.
+        raise NotImplementedError("You must provide a pagination class that is ideally a cursor paginator.")
+
 
 class LicenceDecisionViewSet(BaseViewSet):
     pagination_class = CreatedAtCursorPagination
