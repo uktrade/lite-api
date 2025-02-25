@@ -117,12 +117,15 @@ jobs:
     parallelism: 10
     steps:
       - setup
+      - run: mkdir test_results
       - run:
           name: Run tests
           command: |
-            pipenv run pytest --circleci-parallelize --cov=. --cov-report xml --cov-config=.coveragerc --ignore lite_routing --ignore api/anonymised_db_dumps -k "not seeding and not elasticsearch and not performance and not migration and not db_anonymiser and not requires_transactions"
+            pipenv run pytest --circleci-parallelize --cov=. --cov-report xml --cov-config=.coveragerc --junit-xml=test_results/results.xml --ignore lite_routing --ignore api/anonymised_db_dumps -k "not seeding and not elasticsearch and not performance and not migration and not db_anonymiser and not requires_transactions"
       - upload_code_coverage:
           alias: tests
+      - store_test_results:
+          path: test_results
 
   seeding_tests:
     docker:
