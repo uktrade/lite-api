@@ -11,7 +11,10 @@ from django.db.models.aggregates import (
 )
 from django.db.models.lookups import GreaterThan
 from rest_framework import viewsets
-from rest_framework.pagination import LimitOffsetPagination
+from rest_framework.pagination import (
+    CursorPagination,
+    LimitOffsetPagination,
+)
 from rest_framework.settings import api_settings
 from rest_framework_csv.renderers import PaginatedCSVRenderer
 
@@ -28,15 +31,14 @@ from api.cases.models import (
 )
 from api.conf.pagination import CreatedAtCursorPagination
 from api.core.authentication import DataWorkspaceOnlyAuthentication
-from api.core.helpers import str_to_bool
 from api.data_workspace.v2.serializers import (
     ApplicationSerializer,
-    AssessmentSerializer,
     CountrySerializer,
     DestinationSerializer,
     FootnoteSerializer,
     GoodDescriptionSerializer,
     GoodOnLicenceSerializer,
+    GoodRatingSerializer,
     GoodSerializer,
     LicenceDecisionSerializer,
     LicenceRefusalCriteriaSerializer,
@@ -44,26 +46,26 @@ from api.data_workspace.v2.serializers import (
 )
 from api.licences.enums import LicenceStatus
 from api.licences.models import GoodOnLicence
-from api.staticdata.control_list_entries.models import ControlListEntry
 from api.staticdata.countries.models import Country
 from api.staticdata.denial_reasons.models import DenialReason
-from api.staticdata.report_summaries.models import ReportSummary
 from api.staticdata.statuses.enums import CaseStatusEnum
 from api.staticdata.units.enums import Units
 
 
-class DisableableLimitOffsetPagination(LimitOffsetPagination):
-    def paginate_queryset(self, queryset, request, view=None):
-        if str_to_bool(request.GET.get("disable_pagination", False)):
-            return  # pragma: no cover
-
-        return super().paginate_queryset(queryset, request, view)
-
-
 class BaseViewSet(viewsets.ReadOnlyModelViewSet):
     authentication_classes = (DataWorkspaceOnlyAuthentication,)
-    pagination_class = DisableableLimitOffsetPagination
     renderer_classes = tuple(api_settings.DEFAULT_RENDERER_CLASSES) + (PaginatedCSVRenderer,)
+
+    @property
+    def pagination_class(self):
+        # Your pagination class should be a cursor pagination based class.
+        # This is to avoid the issue where DW ends up losing or duplicating data
+        # when a query doesn't return consistent results across pages.
+        #
+        # It is also highly recommended that you read the DRF documentation
+        # about cursor based pagination so that you correctly pick the correct
+        # type of field to order on.
+        raise NotImplementedError("You must provide a pagination class that is ideally a cursor paginator.")
 
 
 class LicenceDecisionViewSet(BaseViewSet):
@@ -89,6 +91,7 @@ class LicenceDecisionViewSet(BaseViewSet):
 
 
 class CountryViewSet(BaseViewSet):
+    pagination_class = LimitOffsetPagination
     serializer_class = CountrySerializer
     queryset = Country.objects.all().order_by("id", "name")
 
@@ -118,14 +121,16 @@ class GoodViewSet(BaseViewSet):
         table_name = "goods"
 
 
+class AssessmentDateCursorPagination(CursorPagination):
+    ordering = "assessment_date"
+
+
 class GoodDescriptionViewSet(BaseViewSet):
+    pagination_class = AssessmentDateCursorPagination
     serializer_class = GoodDescriptionSerializer
-    queryset = (
-        ReportSummary.objects.select_related("prefix", "subject")
-        .prefetch_related("goods_on_application")
-        .exclude(goods_on_application__isnull=True)
-        .annotate(good_id=F("goods_on_application__id"))
-        .order_by("good_id", "prefix", "subject")
+    queryset = GoodOnApplication.objects.exclude(report_summaries__isnull=True).annotate(
+        report_summary_prefix_name=F("report_summaries__prefix__name"),
+        report_summary_subject_name=F("report_summaries__subject__name"),
     )
 
     class DataWorkspace:
@@ -179,6 +184,7 @@ class ApplicationViewSet(BaseViewSet):
 
 
 class UnitViewSet(BaseViewSet):
+    pagination_class = LimitOffsetPagination
     serializer_class = UnitSerializer
     queryset = [{"code": code, "description": description} for code, description in Units.choices]
 
@@ -187,6 +193,7 @@ class UnitViewSet(BaseViewSet):
 
 
 class FootnoteViewSet(BaseViewSet):
+    pagination_class = LimitOffsetPagination
     serializer_class = FootnoteSerializer
     queryset = (
         Advice.objects.exclude(Q(footnote="") | Q(footnote__isnull=True))
@@ -199,23 +206,19 @@ class FootnoteViewSet(BaseViewSet):
         table_name = "footnotes"
 
 
-class AssessmentViewSet(BaseViewSet):
-    serializer_class = AssessmentSerializer
-
-    def get_queryset(self):
-        return (
-            ControlListEntry.objects.annotate(
-                good_id=F("goodonapplication__id"),
-            )
-            .exclude(good_id__isnull=True)
-            .order_by("rating")
-        )
+class GoodRatingViewSet(BaseViewSet):
+    pagination_class = AssessmentDateCursorPagination
+    serializer_class = GoodRatingSerializer
+    queryset = GoodOnApplication.objects.exclude(control_list_entries__isnull=True).annotate(
+        rating=F("control_list_entries__rating")
+    )
 
     class DataWorkspace:
         table_name = "goods_ratings"
 
 
 class LicenceRefusalCriteriaViewSet(BaseViewSet):
+    pagination_class = LimitOffsetPagination
     serializer_class = LicenceRefusalCriteriaSerializer
     queryset = DenialReason.objects.exclude(licencedecision__denial_reasons__isnull=True).annotate(
         licence_decision_id=F("licencedecision__id")

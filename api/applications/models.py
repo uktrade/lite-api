@@ -648,6 +648,7 @@ class GoodOnApplication(AbstractGoodOnApplication, Clonable):
         ordering = ["created_at"]
         indexes = [
             models.Index(fields=["created_at"]),
+            models.Index(fields=["assessment_date"]),
         ]
 
     @property

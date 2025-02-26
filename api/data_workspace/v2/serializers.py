@@ -12,10 +12,8 @@ from api.applications.models import (
 from api.cases.enums import LicenceDecisionType
 from api.cases.models import LicenceDecision
 from api.licences.models import GoodOnLicence
-from api.staticdata.control_list_entries.models import ControlListEntry
 from api.staticdata.countries.models import Country
 from api.staticdata.denial_reasons.models import DenialReason
-from api.staticdata.report_summaries.models import ReportSummary
 
 
 class LicenceDecisionSerializer(serializers.ModelSerializer):
@@ -84,16 +82,18 @@ class GoodSerializer(serializers.ModelSerializer):
         )
 
 
-class GoodDescriptionSerializer(serializers.ModelSerializer):
-    description = serializers.CharField(source="name")
-    good_id = serializers.UUIDField()
+class GoodDescriptionSerializer(serializers.Serializer):
+    description = serializers.SerializerMethodField()
+    good_id = serializers.UUIDField(source="id")
 
-    class Meta:
-        model = ReportSummary
-        fields = (
-            "description",
-            "good_id",
-        )
+    def get_description(self, instance) -> str:
+        prefix = instance.report_summary_prefix_name
+        subject = instance.report_summary_subject_name
+
+        if prefix:
+            return f"{prefix} {subject}"
+
+        return subject
 
 
 class GoodOnLicenceSerializer(serializers.ModelSerializer):
@@ -152,15 +152,9 @@ class FootnoteSerializer(serializers.Serializer):
     type = serializers.CharField()
 
 
-class AssessmentSerializer(serializers.ModelSerializer):
-    good_id = serializers.UUIDField()
-
-    class Meta:
-        model = ControlListEntry
-        fields = (
-            "good_id",
-            "rating",
-        )
+class GoodRatingSerializer(serializers.Serializer):
+    good_id = serializers.UUIDField(source="id")
+    rating = serializers.CharField()
 
 
 class LicenceRefusalCriteriaSerializer(serializers.ModelSerializer):
