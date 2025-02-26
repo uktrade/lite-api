@@ -1,0 +1,14 @@
+{% extends "letter_templates/dbt_letter_base.html" %}
+{% load static custom_tags %}
+
+{% block title %}F680 Approval{% endblock %}
+{% block css %}
+  <link href="{% static 'css/f680_approval.css' %}" rel="stylesheet" type="text/css" />
+{% endblock %}
+
+{% block body %}
+
+  <div class="govuk-body">We Have Approved Your F680 Application</div>
+  <h2 class="govuk-heading-l">Strategic Export Licensing Criteria</h3>
+
+{% endblock %}
