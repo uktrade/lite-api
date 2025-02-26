@@ -11,7 +11,7 @@ router_v2.register(views.GoodOnLicenceViewSet)
 router_v2.register(views.ApplicationViewSet)
 router_v2.register(views.UnitViewSet)
 router_v2.register(views.FootnoteViewSet)
-router_v2.register(views.AssessmentViewSet)
+router_v2.register(views.GoodRatingViewSet)
 router_v2.register(views.LicenceRefusalCriteriaViewSet)
 
 urlpatterns = router_v2.urls
