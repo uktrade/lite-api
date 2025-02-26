@@ -9,8 +9,8 @@ from rest_framework import status
 
 from test_helpers.clients import DataTestClient
 
+from api.f680.tests.factories import SubmittedF680ApplicationFactory
 from api.staticdata.statuses.enums import CaseStatusEnum
-from api.staticdata.statuses.factories import CaseStatusFactory
 from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
 from api.staticdata.statuses.models import CaseStatus, CaseSubStatus
 
@@ -142,7 +142,15 @@ class ApplicationSubStatusesTests(DataTestClient):
         self.standard_application.save()
         self.url = reverse("applications:application_sub_statuses", kwargs={"pk": self.standard_application.id})
 
-    def test_get_sub_statuses(self):
+        # F680 application so that we can test different application types as manage sub status endpoint accepts
+        # BaseApplication
+        self.f680_application = SubmittedF680ApplicationFactory(organisation=self.organisation)
+        self.f680_application_status = CaseStatus.objects.get(status="initial_checks")
+        self.f680_application.status = self.f680_application_status
+        self.f680_application.save()
+        self.f680_url = reverse("applications:application_sub_statuses", kwargs={"pk": self.f680_application.id})
+
+    def test_get_sub_statuses_standard_application(self):
 
         test_sub_status = CaseSubStatus.objects.create(
             name="test_sub_status",
@@ -164,6 +172,39 @@ class ApplicationSubStatusesTests(DataTestClient):
         )
 
         response = self.client.get(self.url, **self.gov_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(
+            response.json(),
+            [
+                {"id": str(lowest_order_sub_status.pk), "name": "lowest_order_sub_status"},
+                {"id": str(test_sub_status.pk), "name": "test_sub_status"},
+                {"id": str(another_test_sub_status.pk), "name": "another_test_sub_status"},
+            ],
+        )
+
+    def test_get_sub_statuses_f680_application(self):
+
+        test_sub_status = CaseSubStatus.objects.create(
+            name="test_sub_status",
+            parent_status=self.f680_application_status,
+            order=1,
+        )
+        another_test_sub_status = CaseSubStatus.objects.create(
+            name="another_test_sub_status",
+            parent_status=self.f680_application_status,  # Order defaults to 100, so expect this last
+        )
+        CaseSubStatus.objects.create(
+            name="other_test_sub_status",
+            parent_status=CaseStatus.objects.get(status="under_final_review"),
+        )
+        lowest_order_sub_status = CaseSubStatus.objects.create(
+            name="lowest_order_sub_status",
+            parent_status=self.f680_application_status,
+            order=0,
+        )
+
+        response = self.client.get(self.f680_url, **self.gov_headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(
