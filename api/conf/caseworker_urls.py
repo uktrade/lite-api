@@ -6,4 +6,5 @@ urlpatterns = [
     path("organisations/", include("api.organisations.caseworker.urls")),
     path("static/", include("api.staticdata.caseworker.urls")),
     path("gov_users/", include("api.gov_users.caseworker.urls")),
+    path("letter_templates/", include("api.letter_templates.caseworker.urls")),
 ]

@@ -1,9 +1,7 @@
 from api.letter_templates.models import LetterTemplate
-from api.staticdata import decisions
 from api.staticdata.letter_layouts.models import LetterLayout
 from rest_framework import status
 from rest_framework.reverse import reverse
-from django.test import override_settings
 
 from api.cases.enums import AdviceType, CaseTypeReferenceEnum
 from api.cases.enums import CaseTypeSubTypeEnum, CaseTypeEnum
