@@ -1,6 +1,11 @@
+import logging
+
 from django.http import StreamingHttpResponse
 from mohawk import Receiver
 from mohawk.util import prepare_header_val, utc_now
+
+
+logger = logging.getLogger(__name__)
 
 
 class HawkSigningMiddleware:
@@ -34,5 +39,23 @@ class HawkSigningMiddleware:
             )
 
             response["Server-Authorization"] = response_header
+
+        return response
+
+
+class BadRequestDebugMiddleware:
+    def __init__(self, get_response=None):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        response = self.get_response(request)
+
+        if response.status_code != 400:
+            return response
+
+        if hasattr(response, "data"):
+            logger.debug(response.data)
+        else:
+            logger.debug(response.content)
 
         return response
