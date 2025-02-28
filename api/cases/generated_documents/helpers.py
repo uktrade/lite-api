@@ -6,7 +6,7 @@ from weasyprint.fonts import FontConfiguration
 from rest_framework.exceptions import ParseError, ValidationError
 
 from api.staticdata.statuses.enums import CaseStatusEnum
-from api.cases.enums import CaseDocumentState, AdviceType
+from api.cases.enums import CaseDocumentState, AdviceType, ApplicationFeatures
 from api.cases.libraries.get_case import get_case
 from api.cases.models import CaseDocument
 from api.core.exceptions import NotFoundError
@@ -105,8 +105,12 @@ def get_decision_type(advice_type, template):
 
 
 def get_draft_licence(case, advice_type):
-    licence = None
+    # TODO: This helper may be better located on the Case object
+    application_manifest = case.get_application_manifest()
+    if not application_manifest.has_feature(ApplicationFeatures.LICENCE_ISSUE):
+        return None
 
+    licence = None
     # this is the case of regenerating document which can happen after
     # finalising the Case so there won't be any draft licences in this case
     if case.status.status == CaseStatusEnum.FINALISED:
