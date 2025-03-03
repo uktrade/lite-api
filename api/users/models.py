@@ -212,6 +212,9 @@ class GovUser(models.Model, BaseUserCompatMixin):
         user_permissions = self.role.permissions.values_list("id", flat=True)
         return permission.name in user_permissions
 
+    def __str__(self):
+        return f"{self.email} ({self.team.name}: {self.role.name})"
+
 
 class UserOrganisationRelationship(TimestampableModel):
     user = models.ForeignKey(ExporterUser, on_delete=models.CASCADE)

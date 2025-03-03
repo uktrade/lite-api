@@ -13,6 +13,7 @@ from api.users.models import Role
 from test_helpers.clients import DataTestClient
 from test_helpers.helpers import generate_key_value_pair
 from api.users.libraries.get_user import get_user_organisation_relationship
+from api.users.models import GovUser
 from api.users.tests.factories import GovUserFactory
 from parameterized import parameterized
 
@@ -85,7 +86,7 @@ class UserCaseWorkerTests(DataTestClient):
         self.gov_user.save()
 
         self.data = {
-            "email": "update@update.me",
+            "email": "update@update.me",  # /PS-IGNORE
             "role": str(Roles.INTERNAL_DEFAULT_ROLE_ID),
             "team": str(self.team.id),
             "default_queue": str(MY_TEAMS_QUEUES_CASES_ID),
@@ -96,19 +97,12 @@ class UserCaseWorkerTests(DataTestClient):
     def test_gov_user_list_all(self):
         url = reverse("caseworker_gov_users:list")
         response = self.client.get(url, **self.gov_headers, data={})
-        response_json = response.json()
         assert response.status_code == 200
-        assert response_json["count"] == 3
-        assert list(response_json["results"][0].keys()) == [
-            "id",
-            "email",
-            "first_name",
-            "last_name",
-            "status",
-            "team",
-            "role",
-            "default_queue",
-        ]
+        assert response.json() == {
+            "count": GovUser.objects.count(),
+            "total_pages": 1,
+            "results": [{"id": str(u.pk), "email": u.email} for u in GovUser.objects.order_by("baseuser_ptr__email")],
+        }
 
     def test_gov_user_list_no_permission(self):
         url = reverse("caseworker_gov_users:list")
@@ -116,7 +110,6 @@ class UserCaseWorkerTests(DataTestClient):
         assert response.status_code == 403
 
     def test_gov_user_update_sucessfull(self):
-
         response = self.client.patch(self.update_url, **self.gov_headers, data=self.data)
         assert response.status_code == 200
 
@@ -127,7 +120,7 @@ class UserCaseWorkerTests(DataTestClient):
             assert gov_user_response[key] == value
 
     def test_gov_user_update_queue_non_exist(self):
-        self.data["default_queue"] = "35cf631f-bf84-43ce-b029-e3f51ba43349"
+        self.data["default_queue"] = "35cf631f-bf84-43ce-b029-e3f51ba43349"  # /PS-IGNORE
 
         response = self.client.patch(self.update_url, **self.gov_headers, data=self.data)
 
@@ -159,7 +152,7 @@ class UserCaseWorkerTests(DataTestClient):
 
     @parameterized.expand(
         [
-            (Roles.INTERNAL_SUPER_USER_ROLE_ID, {"email": "update@update.me"}, 200),
+            (Roles.INTERNAL_SUPER_USER_ROLE_ID, {"email": "update@update.me"}, 200),  # /PS-IGNORE
             (Roles.INTERNAL_SUPER_USER_ROLE_ID, {"role": Roles.INTERNAL_SUPER_USER_ROLE_ID}, 200),
             (Roles.INTERNAL_SUPER_USER_ROLE_ID, {"default_queue": str(MY_TEAMS_QUEUES_CASES_ID)}, 200),
             (Roles.INTERNAL_DEFAULT_ROLE_ID, {"default_queue": str(MY_TEAMS_QUEUES_CASES_ID)}, 403),

@@ -4,7 +4,6 @@ from django.utils import timezone
 from api.goods import models
 from api.goods.enums import ItemCategory, Component, MilitaryUse, FirearmGoodType, GoodPvGraded
 from api.organisations.tests.factories import OrganisationFactory
-from api.staticdata.control_list_entries.helpers import get_control_list_entry
 from api.staticdata.control_list_entries.models import ControlListEntry
 
 
@@ -58,6 +57,7 @@ class GoodFactory(factory.django.DjangoModelFactory):
     report_summary_subject = None
     report_summary = None
     comment = None
+    has_declared_at_customs = None
 
     class Meta:
         model = models.Good

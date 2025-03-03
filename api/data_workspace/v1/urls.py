@@ -92,3 +92,5 @@ router_v1.register(
 router_v1.register("survey-response", views.SurveyResponseListView, basename="dw-survey-reponse")
 router_v1.register("address", address_views.AddressView, basename="dw-address")
 router_v1.register("site", organisations_views.SiteView, basename="dw-site")
+
+urlpatterns = router_v1.urls
