@@ -13,6 +13,7 @@ from api.users.enums import UserType
 from queryable_properties.managers import QueryablePropertiesManager
 from queryable_properties.properties import queryable_property
 
+from api.application_manifests.registry import application_manifest_registry
 from api.audit_trail.enums import AuditType
 from api.cases.enums import (
     AdviceType,
@@ -504,8 +505,6 @@ class Case(TimestampableModel):
         return super().delete(*args, **kwargs)
 
     def get_application_manifest(self):
-        from api.cases.application_manifest import application_manifest_registry
-
         application_manifest = application_manifest_registry.get_manifest(self.case_type.sub_type)
         return application_manifest
 
