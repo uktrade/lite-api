@@ -147,6 +147,7 @@ def fcdo_countersigner_headers(fcdo_countersigner):
 def mod_officer():
     gov_user = GovUserFactory()
     gov_user.team = Team.objects.get(id=TeamIdEnum.MOD_CAPPROT)
+    gov_user.role = RoleFactory(name="MOD CapProt officer", type=UserType.INTERNAL)
     gov_user.save()
     return gov_user
 
