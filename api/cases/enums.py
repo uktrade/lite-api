@@ -446,3 +446,7 @@ class LicenceDecisionType:
     @classmethod
     def advice_type_to_decision(cls, advice_type):
         return cls.decision_map[advice_type]
+
+
+class ApplicationFeatures:
+    LICENCE_ISSUE = "licence_issue"
