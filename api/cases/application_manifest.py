@@ -17,13 +17,19 @@ class BaseManifest:
 class StandardApplicationManifest(BaseManifest):
     model_class = StandardApplication
     caseworker_serializers = {"view": StandardApplicationViewSerializer}
-    features = {ApplicationFeatures.LICENCE_ISSUE: True}
+    features = {
+        ApplicationFeatures.LICENCE_ISSUE: True,
+        ApplicationFeatures.CAN_REQUIRE_COUNTERSIGN: True,
+    }
 
 
 class F680ApplicationManifest(BaseManifest):
     model_class = F680Application
     caseworker_serializers = {"view": F680ApplicationSerializer}
-    features = {ApplicationFeatures.LICENCE_ISSUE: False}
+    features = {
+        ApplicationFeatures.LICENCE_ISSUE: False,
+        ApplicationFeatures.CAN_REQUIRE_COUNTERSIGN: False,
+    }
 
 
 # TODO: Make it so that each application django app defines/registers its own
