@@ -3,6 +3,7 @@ from django.utils import timezone
 from api.audit_trail import service as audit_trail_service
 from api.audit_trail.enums import AuditType
 
+from api.cases.enums import ApplicationFeatures
 from api.cases.models import Case, CaseQueueMovement
 from api.compliance.helpers import compliance_visit_case_complete
 from api.compliance.models import ComplianceVisitCase
@@ -44,15 +45,9 @@ def get_next_compliance_visit_status(case):
         return CaseStatus.objects.get(status=CaseStatusEnum.compliance_visit_statuses[current_status_pos + 1])
 
 
-def user_queue_assignment_workflow(queues: [Queue], case: Case):
-
-    # Remove case from queues where all gov users are done with the case
-    queues_without_case_assignments = set(queues) - get_queues_with_case_assignments(case)
-    case.queues.remove(*queues_without_case_assignments)
-
-    system_user = BaseUser.objects.get(id=SystemUser.id)
-
+def look_for_countersign_queues(case, queues_without_case_assignments):
     # This here allows us to look at each queue removed, and assign a countersigning queue for the work queue as needed
+    system_user = BaseUser.objects.get(id=SystemUser.id)
     for queue in queues_without_case_assignments:
         if queue.countersigning_queue_id:
             remaining_feeder_queues = case.queues.filter(countersigning_queue_id=queue.countersigning_queue_id)
@@ -73,6 +68,18 @@ def user_queue_assignment_workflow(queues: [Queue], case: Case):
                         "case_status": case.status.status,
                     },
                 )
+
+
+def user_queue_assignment_workflow(queues: [Queue], case: Case):
+    application_manifest = case.get_application_manifest()
+
+    # Remove case from queues where all gov users are done with the case
+    queues_without_case_assignments = set(queues) - get_queues_with_case_assignments(case)
+    case.queues.remove(*queues_without_case_assignments)
+
+    # Checks whether application type can require countersigning and deals accordingly
+    if application_manifest.has_feature(ApplicationFeatures.CAN_REQUIRE_COUNTERSIGN):
+        look_for_countersign_queues(case, queues_without_case_assignments)
 
     # Move case to next non-terminal state if unassigned from all queues
     queues_assigned = move_case_forward(case)
