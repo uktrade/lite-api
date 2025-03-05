@@ -1,5 +1,6 @@
-from parameterized import parameterized
-
+from api.f680.tests.factories import (
+    F680ApplicationFactory,
+)
 from api.queues.tests.factories import QueueFactory
 from test_helpers.clients import DataTestClient
 from api.workflow.user_queue_assignment import user_queue_assignment_workflow
@@ -11,6 +12,7 @@ class UserQueueAssignmentTests(DataTestClient):
     def setUp(self):
         super().setUp()
         self.case = self.create_standard_application_case(self.organisation)
+        self.f680_case = F680ApplicationFactory(organisation=self.organisation)
         self.new_status = get_next_status_in_workflow_sequence(self.case)
         self.queue = self.create_queue("Abc", self.team)
 
@@ -99,6 +101,22 @@ class UserQueueAssignmentTests(DataTestClient):
         self.assertIn(countersigning_queue, self.case.queues.all())
         self.assertNotIn(self.queue, self.case.queues.all())
         self.assertEqual(self.case.status, old_status)
+
+    def test_unsupported_application_type_skips_countersigning_queue_assignment(self):
+        """
+        Tests that countersigning queues are not assigned when work queue removed if the application type does not
+        support countersigning
+        """
+        old_status = self.f680_case.status
+        countersigning_queue = QueueFactory(name="other", team=self.team)
+        self.queue.countersigning_queue = countersigning_queue
+        self.queue.save()
+        user_queue_assignment_workflow([self.queue], self.f680_case)
+
+        self.case.refresh_from_db()
+        self.assertNotIn(countersigning_queue, self.f680_case.queues.all())
+        self.assertNotIn(self.queue, self.f680_case.queues.all())
+        self.assertEqual(self.f680_case.status, old_status)
 
     def test_countersigning_queue_multiple_feeder_queues(self):
         """
