@@ -5,6 +5,7 @@ from django.contrib.postgres.fields import ArrayField
 from django.db import models, transaction
 from django.utils import timezone
 from django.utils.functional import cached_property
+from api.staticdata.approval_decisions.models import ApprovalCondition
 from rest_framework.exceptions import APIException
 from separatedvaluesfield.models import SeparatedValuesField
 
@@ -464,6 +465,17 @@ class ApplicationDenialReason(models.Model):
     )
     reasons = models.ManyToManyField(DenialReason)
     reason_details = models.TextField(default=None, blank=True, null=True, max_length=2200)
+
+
+class ApplicationPartyApprovalCondition(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    application = models.ForeignKey(
+        BaseApplication,
+        related_name="application_denial_reason",
+        on_delete=models.CASCADE,
+    )
+    party = models.ForeignKey(Party, on_delete=models.DO_NOTHING, related_name="parties")
+    approval_conditions = models.ManyToManyField(ApprovalCondition)
 
 
 class ExternalLocationOnApplication(models.Model, Clonable):
