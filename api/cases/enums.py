@@ -450,4 +450,4 @@ class LicenceDecisionType:
 
 class ApplicationFeatures:
     LICENCE_ISSUE = "licence_issue"
-    CAN_REQUIRE_COUNTERSIGN = "can_require_countersign"
+    ROUTE_TO_COUNTERSIGNING_QUEUES = "route_to_countersigning_queues"

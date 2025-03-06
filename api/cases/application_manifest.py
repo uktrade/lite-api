@@ -19,7 +19,7 @@ class StandardApplicationManifest(BaseManifest):
     caseworker_serializers = {"view": StandardApplicationViewSerializer}
     features = {
         ApplicationFeatures.LICENCE_ISSUE: True,
-        ApplicationFeatures.CAN_REQUIRE_COUNTERSIGN: True,
+        ApplicationFeatures.ROUTE_TO_COUNTERSIGNING_QUEUES: True,
     }
 
 
@@ -28,7 +28,7 @@ class F680ApplicationManifest(BaseManifest):
     caseworker_serializers = {"view": F680ApplicationSerializer}
     features = {
         ApplicationFeatures.LICENCE_ISSUE: False,
-        ApplicationFeatures.CAN_REQUIRE_COUNTERSIGN: False,
+        ApplicationFeatures.ROUTE_TO_COUNTERSIGNING_QUEUES: False,
     }
 
 

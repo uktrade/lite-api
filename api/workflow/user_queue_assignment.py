@@ -78,7 +78,7 @@ def user_queue_assignment_workflow(queues: [Queue], case: Case):
     case.queues.remove(*queues_without_case_assignments)
 
     # Checks whether application type can require countersigning and deals accordingly
-    if application_manifest.has_feature(ApplicationFeatures.CAN_REQUIRE_COUNTERSIGN):
+    if application_manifest.has_feature(ApplicationFeatures.ROUTE_TO_COUNTERSIGNING_QUEUES):
         look_for_countersign_queues(case, queues_without_case_assignments)
 
     # Move case to next non-terminal state if unassigned from all queues
