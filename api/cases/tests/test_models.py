@@ -5,10 +5,11 @@ from api.audit_trail.models import Audit
 from api.audit_trail.serializers import AuditSerializer
 from parameterized import parameterized
 
+from api.applications.application_manifest import StandardApplicationManifest
 from api.applications.tests.factories import StandardApplicationFactory
-from api.cases.application_manifest import StandardApplicationManifest, F680ApplicationManifest
 from api.cases.models import BadSubStatus, Case
 from api.cases.tests.factories import CaseFactory
+from api.f680.application_manifest import F680ApplicationManifest
 from api.f680.tests.factories import SubmittedF680ApplicationFactory
 from api.staticdata.statuses.enums import CaseStatusEnum, CaseSubStatusIdEnum
 from api.staticdata.statuses.models import CaseStatus, CaseSubStatus

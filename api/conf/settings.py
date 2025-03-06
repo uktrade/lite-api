@@ -137,6 +137,7 @@ INSTALLED_APPS = [
     "django_db_anonymiser.db_anonymiser",
     "reversion",
     "drf_spectacular",
+    "api.application_manifests",
 ]
 
 MOCK_VIRUS_SCAN_ACTIVATE_ENDPOINTS = env("MOCK_VIRUS_SCAN_ACTIVATE_ENDPOINTS")
