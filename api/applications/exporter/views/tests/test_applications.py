@@ -2,13 +2,15 @@ import uuid
 from django.utils import timezone
 from pytz import timezone as tz
 
+from api.audit_trail.enums import AuditType
+from api.audit_trail.models import Audit
 from api.cases.tests.factories import EcjuQueryFactory
 from parameterized import parameterized
 
 from django.urls import reverse
 from rest_framework import status
 
-from api.applications.tests.factories import StandardApplicationFactory
+from api.applications.tests.factories import ApplicationDocumentFactory, StandardApplicationFactory
 from api.staticdata.statuses.enums import CaseStatusEnum
 from api.staticdata.statuses.models import CaseStatus
 from api.cases.models import Case, Queue
@@ -173,3 +175,105 @@ class TestApplicationHistory(DataTestClient):
         response = self.client.get(url, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+
+class TestApplicationDocuments(DataTestClient):
+
+    def setUp(self):
+        super().setUp()
+        self.application = StandardApplicationFactory(organisation=self.exporter_user.organisation)
+        self.url = reverse(
+            "exporter_applications:documents",
+            kwargs={
+                "pk": str(self.application.pk),
+            },
+        )
+
+        self.document_data = {
+            "name": "my_file.jpg",
+            "s3_key": "my_file.jpg",
+            "size": 476,
+            "description": "banana cake 1",
+            "application": self.application.id,
+        }
+
+    def test_get_application_documents(self):
+
+        my_doc_1 = ApplicationDocumentFactory(application=self.application)
+        my_doc_2 = ApplicationDocumentFactory(application=self.application)
+        ApplicationDocumentFactory()
+
+        response = self.client.get(self.url, **self.exporter_headers)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        response_json = response.json()
+
+        self.assertEqual(response_json["count"], 2)
+        result_doc_ids = [r["id"] for r in response_json["results"]]
+        result_doc_applications = [r["application"] for r in response_json["results"]]
+
+        self.assertEqual([str(my_doc_1.id), str(my_doc_2.id)], result_doc_ids)
+        self.assertIn(str(self.application.id), result_doc_applications)
+
+    def test_get_application_documents_application_not_found(self):
+
+        url = reverse(
+            "exporter_applications:documents",
+            kwargs={
+                "pk": str(uuid.uuid4()),
+            },
+        )
+        response = self.client.get(url, **self.exporter_headers)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_get_application_documents_wrong_organisation(self):
+        other_application = StandardApplicationFactory(organisation=OrganisationFactory())
+
+        url = reverse(
+            "exporter_applications:documents",
+            kwargs={
+                "pk": str(other_application.pk),
+            },
+        )
+        response = self.client.get(url, **self.exporter_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_post_application_document(self):
+
+        response = self.client.post(self.url, data=self.document_data, **self.exporter_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        response_document = response.json()
+
+        response = self.client.get(self.url, **self.exporter_headers)
+
+        expected = {
+            **self.document_data,
+            "id": response_document["id"],
+            "application": str(self.application.id),
+            "virus_scanned_at": None,
+            "document_type": None,
+            "safe": None,
+            "created_at": response_document["created_at"],
+            "updated_at": response_document["updated_at"],
+        }
+
+        self.assertEqual(response_document, expected)
+
+    def test_post_application_document_create_audit(self):
+
+        response = self.client.post(self.url, data=self.document_data, **self.exporter_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        audit = Audit.objects.get()
+
+        self.assertEqual(audit.actor, self.exporter_user)
+        self.assertEqual(audit.target.id, self.application.id)
+        self.assertEqual(audit.verb, AuditType.UPLOAD_APPLICATION_DOCUMENT)
+        self.assertEqual(
+            audit.payload,
+            {
+                "file_name": self.document_data["name"],
+            },
+        )
