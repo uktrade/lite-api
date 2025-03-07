@@ -32,6 +32,8 @@ class UploadDocumentForTests(APIView):
         try:
             s3.upload_file(file_to_upload_abs_path, settings.AWS_STORAGE_BUCKET_NAME, s3_key)
         except Exception as e:  # noqa
+            if settings.DEBUG:
+                raise
             return JsonResponse(
                 data={"errors": "Error uploading file to S3"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
