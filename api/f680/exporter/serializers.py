@@ -29,3 +29,61 @@ class F680ApplicationSerializer(serializers.ModelSerializer):  # /PS-IGNORE
         validated_data["status"] = self.context["default_status"]
         validated_data["case_type_id"] = self.context["case_type_id"]
         return super().create(validated_data)
+
+
+def required_fields(required_keys, data):
+    missing_keys = set(required_keys)
+    for field in data["fields"]:
+        missing_keys.discard(field["key"])
+    if missing_keys:
+        raise serializers.ValidationError(f"Required fields missing from section; {list(missing_keys)}")
+
+
+class FieldSerializer(serializers.Serializer):
+    key = serializers.SlugField(max_length=50)
+    answer = serializers.JSONField()
+    raw_answer = serializers.JSONField()
+    question = serializers.CharField(max_length=200)
+    datatype = serializers.ChoiceField(choices=["list", "string", "boolean", "date"])
+
+
+class UserItemSerializer(serializers.Serializer):
+    id = serializers.UUIDField()
+    fields = FieldSerializer(many=True)
+
+    def validate(self, data):
+        required_fields(
+            [
+                "entity_type",
+                "end_user_name",
+                "address",
+                "country",
+                "security_classification",
+                "end_user_intended_end_use",
+            ],
+            data,
+        )
+        return data
+
+
+class UserInformationSerializer(serializers.Serializer):
+    type = serializers.ChoiceField(choices=["multiple"])
+    items = UserItemSerializer(many=True)
+
+
+class ProductInformationSerializer(serializers.Serializer):
+    type = serializers.ChoiceField(choices=["single"])
+    fields = FieldSerializer(many=True)
+
+    def validate(self, data):
+        required_fields(["product_name", "product_description"], data)
+        return data
+
+
+class SectionSerializer(serializers.Serializer):
+    product_information = ProductInformationSerializer()
+    user_information = UserInformationSerializer()
+
+
+class SubmittedApplicationJSONSerializer(serializers.Serializer):
+    sections = SectionSerializer()
