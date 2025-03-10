@@ -80,9 +80,19 @@ class ProductInformationSerializer(serializers.Serializer):
         return data
 
 
+class GeneralApplicationDetailsSerializer(serializers.Serializer):
+    type = serializers.ChoiceField(choices=["single"])
+    fields = FieldSerializer(many=True)
+
+    def validate(self, data):
+        required_fields(["name"], data)
+        return data
+
+
 class SectionSerializer(serializers.Serializer):
     product_information = ProductInformationSerializer()
     user_information = UserInformationSerializer()
+    general_application_details = GeneralApplicationDetailsSerializer()
 
 
 class SubmittedApplicationJSONSerializer(serializers.Serializer):

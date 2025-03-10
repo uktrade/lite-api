@@ -1,3 +1,4 @@
+from django.db import transaction
 from django.utils import timezone
 
 from rest_framework import viewsets
@@ -34,6 +35,7 @@ class F680ApplicationViewSet(viewsets.ModelViewSet):
         serializer_context["case_type_id"] = CaseTypeEnum.F680.id
         return serializer_context
 
+    @transaction.atomic
     @action(detail=True)
     def submit(self, request, **kwargs):
         # TODO: What follows is a lean slice of applications.views.applications.ApplicationSubmission.

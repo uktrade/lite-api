@@ -14,19 +14,65 @@ class F680Application(BaseApplication):  # /PS-IGNORE
 
     application = models.JSONField()
 
-    def get_application_field_value(self, section, field_key):
-        # TODO: investigate wrapping up accessing fields on application JSON with some OOP
-        #   we should be able to solve all the chained .gets() with a decent interface
-        section_fields = self.application.get("sections", {}).get(section, {}).get("fields", [])
-        for field in section_fields:
+    def get_field_value(self, fields, field_key, raise_exception=True):
+        for field in fields:
             if field.get("key") == field_key:
                 return field.get("raw_answer")
+        if raise_exception:
+            raise KeyError("Field {field_key} not found in fields for application {self.id}")
         return None
+
+    def get_application_field_value(self, section, field_key):
+        section_fields = self.application["sections"][section]["fields"]
+        return self.get_field_value(section_fields, field_key)
 
     def on_submit(self):
         # TODO: Flesh out field promotion
         self.name = self.get_application_field_value("general_application_details", "name")
         self.save()
+        product = Product.objects.create(
+            name=self.get_application_field_value("product_information", "product_name"),
+            description=self.get_application_field_value("product_information", "product_description"),
+            organisation=self.organisation,
+            security_grading=self.get_application_field_value("product_information", "security_classification"),
+        )
+        for item in self.application["sections"]["user_information"]["items"]:
+            item_fields = item["fields"]
+            extra_kwargs = {}
+
+            role = self.get_field_value(item_fields, "role", raise_exception=False)
+            if role:
+                extra_kwargs["role"] = role
+
+            role_other = self.get_field_value(item_fields, "role_other", raise_exception=False)
+            if role_other:
+                extra_kwargs["role_other"] = role_other
+
+            recipient = Recipient.objects.create(
+                name=self.get_field_value(item_fields, "end_user_name"),
+                address=self.get_field_value(item_fields, "address"),
+                country_id=self.get_field_value(item_fields, "country"),
+                type=self.get_field_value(item_fields, "entity_type"),
+                organisation=self.organisation,
+                **extra_kwargs,
+            )
+
+            extra_kwargs = {}
+            security_grading_other = self.get_field_value(
+                item_fields, "other_security_classification", raise_exception=False
+            )
+            if security_grading_other:
+                extra_kwargs["security_grading_other"] = role
+
+            security_release = SecurityRelease.objects.create(
+                id=item["id"],
+                recipient=recipient,
+                product=product,
+                application=self,
+                security_grading=self.get_field_value(item_fields, "security_classification"),
+                intended_use=self.get_field_value(item_fields, "end_user_intended_end_use"),
+                **extra_kwargs,
+            )
 
 
 # TODO: Eventually we may want to use this model more widely.  We can do that
