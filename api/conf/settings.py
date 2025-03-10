@@ -137,6 +137,7 @@ INSTALLED_APPS = [
     "django_db_anonymiser.db_anonymiser",
     "reversion",
     "drf_spectacular",
+    "api.application_manifests",
 ]
 
 MOCK_VIRUS_SCAN_ACTIVATE_ENDPOINTS = env("MOCK_VIRUS_SCAN_ACTIVATE_ENDPOINTS")
@@ -161,6 +162,9 @@ MIDDLEWARE = [
     "api.conf.middleware.HawkSigningMiddleware",
     "django_audit_log_middleware.AuditLogMiddleware",
 ]
+
+if DEBUG:
+    MIDDLEWARE += ["api.conf.middleware.BadRequestDebugMiddleware"]
 
 ROOT_URLCONF = "api.conf.urls"
 
@@ -569,5 +573,9 @@ else:
     LOGGING.update({"formatters": {"simple": {"format": "{asctime} {levelname} {message}", "style": "{"}}})
     LOGGING["handlers"].update({"stdout": {"class": "logging.StreamHandler", "formatter": "simple"}})
     LOGGING.update({"root": {"handlers": ["stdout"], "level": env("LOG_LEVEL").upper()}})
+
+additional_logger_config = env.json("ADDITIONAL_LOGGER_CONFIG", default=None)
+if additional_logger_config:
+    LOGGING["loggers"].update(additional_logger_config)
 
 ROUTING_DOCS_DIRECTORY = os.path.join(BASE_DIR, "..", "lite_routing", "docs")
