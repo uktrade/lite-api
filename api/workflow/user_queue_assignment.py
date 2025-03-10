@@ -45,8 +45,8 @@ def get_next_compliance_visit_status(case):
         return CaseStatus.objects.get(status=CaseStatusEnum.compliance_visit_statuses[current_status_pos + 1])
 
 
-def look_for_countersign_queues(case, queues_without_case_assignments):
-    # This here allows us to look at each queue removed, and assign a countersigning queue for the work queue as needed
+# This here allows us to look at each queue removed, and assign a countersigning queue for the work queue as needed
+def assign_to_countersign_queues(case, queues_without_case_assignments):
     system_user = BaseUser.objects.get(id=SystemUser.id)
     for queue in queues_without_case_assignments:
         if queue.countersigning_queue_id:
@@ -79,7 +79,7 @@ def user_queue_assignment_workflow(queues: [Queue], case: Case):
 
     # Checks whether application type can require countersigning and deals accordingly
     if application_manifest.has_feature(ApplicationFeatures.ROUTE_TO_COUNTERSIGNING_QUEUES):
-        look_for_countersign_queues(case, queues_without_case_assignments)
+        assign_to_countersign_queues(case, queues_without_case_assignments)
 
     # Move case to next non-terminal state if unassigned from all queues
     queues_assigned = move_case_forward(case)
