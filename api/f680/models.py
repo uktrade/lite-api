@@ -19,7 +19,7 @@ class F680Application(BaseApplication):  # /PS-IGNORE
             if field.get("key") == field_key:
                 return field.get("raw_answer")
         if raise_exception:
-            raise KeyError("Field {field_key} not found in fields for application {self.id}")
+            raise KeyError(f"Field {field_key} not found in fields for application {self.id}")
         return None
 
     def get_application_field_value(self, section, field_key):
@@ -27,26 +27,21 @@ class F680Application(BaseApplication):  # /PS-IGNORE
         return self.get_field_value(section_fields, field_key)
 
     def on_submit(self):
-        # TODO: Flesh out field promotion
         self.name = self.get_application_field_value("general_application_details", "name")
         self.save()
+
+        # Create the Product for this application - F680s just have the one
         product = Product.objects.create(
             name=self.get_application_field_value("product_information", "product_name"),
             description=self.get_application_field_value("product_information", "product_description"),
             organisation=self.organisation,
             security_grading=self.get_application_field_value("product_information", "security_classification"),
         )
+
+        # Create a Recipient and SecurityRelease for each.  In F680s caseworkers
+        #   will advise against SecurityRelease records
         for item in self.application["sections"]["user_information"]["items"]:
             item_fields = item["fields"]
-            extra_kwargs = {}
-
-            role = self.get_field_value(item_fields, "role", raise_exception=False)
-            if role:
-                extra_kwargs["role"] = role
-
-            role_other = self.get_field_value(item_fields, "role_other", raise_exception=False)
-            if role_other:
-                extra_kwargs["role_other"] = role_other
 
             recipient = Recipient.objects.create(
                 name=self.get_field_value(item_fields, "end_user_name"),
@@ -54,24 +49,20 @@ class F680Application(BaseApplication):  # /PS-IGNORE
                 country_id=self.get_field_value(item_fields, "country"),
                 type=self.get_field_value(item_fields, "entity_type"),
                 organisation=self.organisation,
-                **extra_kwargs,
+                role=self.get_field_value(item_fields, "third_party_role", raise_exception=False),
+                role_other=self.get_field_value(item_fields, "third_party_role_other", raise_exception=False),
             )
-
-            extra_kwargs = {}
-            security_grading_other = self.get_field_value(
-                item_fields, "other_security_classification", raise_exception=False
-            )
-            if security_grading_other:
-                extra_kwargs["security_grading_other"] = role
 
             security_release = SecurityRelease.objects.create(
-                id=item["id"],
+                id=item["id"],  # Use the JSON item ID for the security release so we can tally the two easily later
                 recipient=recipient,
                 product=product,
                 application=self,
                 security_grading=self.get_field_value(item_fields, "security_classification"),
                 intended_use=self.get_field_value(item_fields, "end_user_intended_end_use"),
-                **extra_kwargs,
+                security_grading_other=self.get_field_value(
+                    item_fields, "other_security_classification", raise_exception=False
+                ),
             )
 
 
@@ -105,7 +96,7 @@ class SecurityRelease(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     recipient = models.ForeignKey(Recipient, on_delete=models.CASCADE)
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
-    application = models.ForeignKey(F680Application, on_delete=models.CASCADE)
+    application = models.ForeignKey(F680Application, on_delete=models.CASCADE, related_name="security_releases")
     security_grading = models.CharField(choices=enums.SecurityGrading.security_release_choices, max_length=50)
     security_grading_other = models.TextField(null=True, default=None)
     # We need details of the release, this doesn't appear to be in the frontend flows yet..
