@@ -7,6 +7,7 @@ from parameterized import parameterized
 from api.applications.enums import ApplicationExportType, ApplicationExportLicenceOfficialType
 from api.applications.models import ExternalLocationOnApplication, GoodOnApplication
 from api.applications.tests.factories import GoodOnApplicationFactory
+from api.f680.tests.factories import SubmittedF680ApplicationFactory
 from api.cases.enums import AdviceType
 from api.licences.tests.factories import StandardLicenceFactory
 from api.letter_templates.context_generator import EcjuQuerySerializer
@@ -690,6 +691,13 @@ class DocumentContextGenerationTests(DataTestClient):
         self._assert_case_type_details(context["case_type"], case)
         self._assert_base_application_details(context["details"], case)
         self._assert_standard_application_details(context["details"], case)
+
+    def test_generate_context_with_f680_details(self):
+        application = SubmittedF680ApplicationFactory(application={"some": "json"})
+        case = application.case_ptr
+
+        context = get_document_context(case)
+        assert context["details"] == {"application": {"some": "json"}}
 
     def test_generate_context_with_end_user_advisory_query_details(self):
         case = self.create_end_user_advisory(note="abc", reasoning="def", organisation=self.organisation)

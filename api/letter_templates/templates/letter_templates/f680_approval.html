@@ -1,0 +1,33 @@
+{% extends "letter_templates/dbt_letter_base.html" %}
+{% load static custom_tags %}
+
+{% block title %}F680 Approval{% endblock %}
+{% block css %}
+  <link href="{% static 'css/f680_approval.css' %}" rel="stylesheet" type="text/css" />
+{% endblock %}
+
+{% block body %}
+
+  <div class="govuk-body">We Have Approved Your F680 Application</div>
+  <p>{{user_content}}</p>
+  <h2 class="govuk-heading-l">Strategic Export Licensing Criteria</h3>
+  {% for section_key, section in details.application.sections.items %}
+    <h3>{{section.label}}</h3>
+    {% if section.type == "single" %}
+        {% for field in section.fields %}
+            {% if field.answer %}
+            <p>{{field.question}}: {{field.answer}}</p>
+            {% endif %}
+        {% endfor %}
+    {% else %}
+        {% for item in section.items %}
+            {% for field in item.fields %}
+                {% if field.answer %}
+                <p>{{field.question}}: {{field.answer}}</p>
+                {% endif %}
+            {% endfor %}
+        {% endfor %}
+    {% endif %}
+  {% endfor %}
+
+{% endblock %}

@@ -590,6 +590,18 @@ class ComplianceSiteCaseSerializer(serializers.ModelSerializer):
         return ret
 
 
+class F680Serializer(serializers.ModelSerializer):
+    class Meta:
+        model = Case
+        fields = ["application"]
+
+    application = serializers.SerializerMethodField()
+
+    def get_application(self, obj):
+        # Expose the application JSON to the template
+        return obj.get_application().application
+
+
 class ComplianceSiteLicenceSerializer(serializers.ModelSerializer):
     class Meta:
         model = Case
@@ -742,6 +754,8 @@ def get_document_context(case, addressee=None):
     }
 
 
+# TODO: This mapping/serializers business feels nuts - we should just generate a context
+#   dict in a function instead
 SERIALIZER_MAPPING = {
     CaseTypeSubTypeEnum.STANDARD: FlattenedStandardApplicationSerializer,
     CaseTypeSubTypeEnum.EUA: EndUserAdvisoryQuerySerializer,
@@ -749,6 +763,7 @@ SERIALIZER_MAPPING = {
     CaseTypeSubTypeEnum.COMP_SITE: FlattenedComplianceSiteWithVisitReportsSerializer,
     CaseTypeSubTypeEnum.EUA: EndUserAdvisoryQueryCaseSerializer,
     CaseTypeSubTypeEnum.COMP_VISIT: ComplianceVisitSerializer,
+    CaseTypeSubTypeEnum.F680: F680Serializer,
 }
 
 

@@ -94,6 +94,16 @@ services:
     networks:
       - lite
 
+  opensearch-dashboard:
+    build:
+      context: .
+      dockerfile: Dockerfile.opensearch-dashboards
+    container_name: opensearch-dashboard
+    ports:
+      - 5601:5601
+    networks:
+      - lite
+
   redis:
     image: "redis:5-alpine"
     container_name: redis

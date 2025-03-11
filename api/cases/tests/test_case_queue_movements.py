@@ -6,6 +6,7 @@ from unittest.mock import patch
 
 from api.cases.models import CaseQueueMovement
 from api.core.constants import Roles
+from api.f680.tests.factories import F680ApplicationFactory
 from api.staticdata.control_list_entries.models import ControlListEntry
 from api.staticdata.countries.models import Country
 from api.staticdata.report_summaries.models import ReportSummary, ReportSummarySubject
@@ -176,6 +177,64 @@ def test_case_queue_movements(
         # check queue movement instances are created and recorded correctly
         obj = CaseQueueMovement.objects.get(case=case, queue=current_queue)
         assert obj.exit_date.isoformat() == action_time
+
+        for queue in expected_queues:
+            assert CaseQueueMovement.objects.get(case=case, queue=queue, exit_date=None)
+
+
+@pytest.mark.parametrize(
+    "data",
+    (
+        [
+            (
+                CaseStatusEnum.SUBMITTED,
+                TeamIdEnum.MOD_ECJU,
+                [QueuesEnum.MOD_ECJU_F680_CASES_TO_REVIEW],
+                CaseStatusEnum.OGD_ADVICE,
+                [QueuesEnum.MOD_CAPPROT, QueuesEnum.MOD_DSR],
+            ),
+        ],
+        [
+            (
+                CaseStatusEnum.OGD_ADVICE,
+                TeamIdEnum.MOD_CAPPROT,
+                [QueuesEnum.MOD_CAPPROT],
+                CaseStatusEnum.UNDER_FINAL_REVIEW,
+                [QueuesEnum.MOD_ECJU_F680_CASES_UNDER_FINAL_REVIEW],
+            ),
+        ],
+        [
+            (
+                CaseStatusEnum.OGD_ADVICE,
+                TeamIdEnum.MOD_DSR,
+                [QueuesEnum.MOD_DSR],
+                CaseStatusEnum.UNDER_FINAL_REVIEW,
+                [QueuesEnum.MOD_ECJU_F680_CASES_UNDER_FINAL_REVIEW],
+            ),
+        ],
+    ),
+)
+def test_f680_case_queue_movements(
+    api_client,
+    team_case_advisor_headers,
+    data,
+):
+    case = F680ApplicationFactory()
+    # This is processed in a loop instead of using parametrize because we want to retain
+    # CaseQueueMovement instances for assertions. With parametrize they get cleared
+    # during teardown at the end of each iteration
+    for case_status, team_id, current_queues, next_status, expected_queues in data:
+        case.status = CaseStatus.objects.get(status=case_status)
+        case.save()
+        case.refresh_from_db()
+
+        url = reverse("cases:assigned_queues", kwargs={"pk": case.id})
+        headers = team_case_advisor_headers(team_id)
+        response = api_client.put(url, data={"queues": current_queues}, **headers)
+        assert response.status_code == 200
+
+        case.refresh_from_db()
+        assert case.status.status == next_status
 
         for queue in expected_queues:
             assert CaseQueueMovement.objects.get(case=case, queue=queue, exit_date=None)
