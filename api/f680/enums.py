@@ -36,8 +36,8 @@ class SecurityGrading:
     OFFICIAL_SENSITIVE = "official-sensitive"
     RESTRICTED = "restricted"
     CONFIDENTIAL = "confidential"
-    SECRET = "secret"
-    TOP_SECRET = "top-secret"
+    SECRET = "secret"  # noqa
+    TOP_SECRET = "top-secret"  # noqa
     OTHER = "other"
 
     product_choices = [
