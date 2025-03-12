@@ -58,3 +58,21 @@ class SecurityGrading:
         (TOP_SECRET, "Top-secret"),
         (OTHER, "Other"),
     ]
+
+
+class ApprovalTypes:
+    INITIAL_DISCUSSION_OR_PROMOTING = "initial_discussion_or_promoting"
+    DEMONSTRATION_IN_UK = "demonstration_in_uk"
+    DEMONSTRATION_OVERSEAS = "demonstration_overseas"
+    TRAINING = "training"
+    THROUGH_LIFE_SUPPORT = "through_life_support"
+    SUPPLY = "supply"
+
+    choices = [
+        (INITIAL_DISCUSSION_OR_PROMOTING, "Initial discussion or promoting"),
+        (DEMONSTRATION_IN_UK, "Demonstration in UK"),
+        (DEMONSTRATION_OVERSEAS, "Demonstration overseas"),
+        (TRAINING, "Training"),
+        (THROUGH_LIFE_SUPPORT, "Through life support"),
+        (SUPPLY, "Supply"),
+    ]

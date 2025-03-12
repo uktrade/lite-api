@@ -1,5 +1,7 @@
-from django.db import models
 import uuid
+
+from django.db import models
+from django.contrib.postgres.fields import ArrayField
 
 from api.applications.models import BaseApplication
 from api.organisations.models import Organisation
@@ -22,9 +24,9 @@ class F680Application(BaseApplication):  # /PS-IGNORE
             raise KeyError(f"Field {field_key} not found in fields for application {self.id}")
         return None
 
-    def get_application_field_value(self, section, field_key):
+    def get_application_field_value(self, section, field_key, raise_exception=True):
         section_fields = self.application["sections"][section]["fields"]
-        return self.get_field_value(section_fields, field_key)
+        return self.get_field_value(section_fields, field_key, raise_exception=raise_exception)
 
     def on_submit(self):
         self.name = self.get_application_field_value("general_application_details", "name")
@@ -35,7 +37,9 @@ class F680Application(BaseApplication):  # /PS-IGNORE
             name=self.get_application_field_value("product_information", "product_name"),
             description=self.get_application_field_value("product_information", "product_description"),
             organisation=self.organisation,
-            security_grading=self.get_application_field_value("product_information", "security_classification"),
+            security_grading=self.get_application_field_value(
+                "product_information", "security_classification", raise_exception=False
+            ),
         )
 
         # Create a Recipient and SecurityRelease for each.  In F680s caseworkers
@@ -53,7 +57,7 @@ class F680Application(BaseApplication):  # /PS-IGNORE
                 role_other=self.get_field_value(item_fields, "third_party_role_other", raise_exception=False),
             )
 
-            security_release = SecurityRelease.objects.create(
+            SecurityReleaseRequest.objects.create(
                 id=item["id"],  # Use the JSON item ID for the security release so we can tally the two easily later
                 recipient=recipient,
                 product=product,
@@ -63,6 +67,7 @@ class F680Application(BaseApplication):  # /PS-IGNORE
                 security_grading_other=self.get_field_value(
                     item_fields, "other_security_classification", raise_exception=False
                 ),
+                approval_types=self.get_application_field_value("approval_type", "approval_choices"),
             )
 
 
@@ -87,17 +92,20 @@ class Product(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.TextField()
     description = models.TextField()
-    security_grading = models.CharField(choices=enums.SecurityGrading.product_choices, max_length=50)
+    security_grading = models.CharField(
+        choices=enums.SecurityGrading.product_choices, max_length=50, null=True, default=None
+    )
     security_grading_other = models.TextField(null=True, default=None)
     organisation = models.ForeignKey(Organisation, related_name="organisation_product", on_delete=models.CASCADE)
 
 
-class SecurityRelease(models.Model):
+class SecurityReleaseRequest(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     recipient = models.ForeignKey(Recipient, on_delete=models.CASCADE)
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     application = models.ForeignKey(F680Application, on_delete=models.CASCADE, related_name="security_releases")
     security_grading = models.CharField(choices=enums.SecurityGrading.security_release_choices, max_length=50)
     security_grading_other = models.TextField(null=True, default=None)
+    approval_types = ArrayField(models.CharField(choices=enums.ApprovalTypes.choices, max_length=50))
     # We need details of the release, this doesn't appear to be in the frontend flows yet..
     intended_use = models.TextField()

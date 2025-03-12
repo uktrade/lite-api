@@ -2,7 +2,7 @@ import pytest
 
 from .factories import F680ApplicationFactory
 
-from api.f680.models import Product, SecurityRelease
+from api.f680.models import Product, SecurityReleaseRequest
 
 
 pytestmark = pytest.mark.django_db
@@ -588,7 +588,7 @@ class TestF680Application:
         expected_security_release_count = len(data_application_json["sections"]["user_information"]["items"])
         assert f680_application.security_releases.all().count() == expected_security_release_count
 
-        australia_release = SecurityRelease.objects.get(id=data_australia_release_id)
+        australia_release = SecurityReleaseRequest.objects.get(id=data_australia_release_id)
         australia_recipient = australia_release.recipient
         assert australia_recipient.name == "australia name"
         assert australia_recipient.address == "australia address"
@@ -600,7 +600,7 @@ class TestF680Application:
         assert australia_release.security_grading == "secret"
         assert australia_release.intended_use == "australia intended use"
 
-        france_release = SecurityRelease.objects.get(id=data_france_release_id)
+        france_release = SecurityReleaseRequest.objects.get(id=data_france_release_id)
         france_recipient = france_release.recipient
         assert france_recipient.name == "france name"
         assert france_recipient.address == "france address"
@@ -611,7 +611,7 @@ class TestF680Application:
         assert france_release.security_grading == "official"
         assert france_release.intended_use == "france intended use"
 
-        uae_release = SecurityRelease.objects.get(id=data_uae_release_id)
+        uae_release = SecurityReleaseRequest.objects.get(id=data_uae_release_id)
         uae_recipient = uae_release.recipient
         assert uae_recipient.name == "uae name"
         assert uae_recipient.address == "uae address"
