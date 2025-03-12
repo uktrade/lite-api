@@ -35,8 +35,9 @@ def required_fields(required_keys, data):
     missing_keys = set(required_keys)
     for field in data["fields"]:
         missing_keys.discard(field["key"])
-    if missing_keys:
-        raise serializers.ValidationError(f"Required fields missing from section; {list(missing_keys)}")
+    ordered_missing_keys = sorted(list(missing_keys))
+    if ordered_missing_keys:
+        raise serializers.ValidationError(f"Required fields missing from section; {ordered_missing_keys}")
 
 
 class FieldSerializer(serializers.Serializer):
@@ -68,7 +69,7 @@ class UserItemSerializer(serializers.Serializer):
 
 class UserInformationSerializer(serializers.Serializer):
     type = serializers.ChoiceField(choices=["multiple"])
-    items = UserItemSerializer(many=True)
+    items = UserItemSerializer(many=True, min_length=1)
 
 
 class ProductInformationSerializer(serializers.Serializer):

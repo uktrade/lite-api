@@ -1,3 +1,4 @@
+import pytest
 from parameterized import parameterized
 from uuid import uuid4
 
@@ -312,6 +313,102 @@ class TestF680ApplicationViewSet:
                 "pending": exporter_user.pending,
             },
         }
+        assert response.data == expected_result
+
+    @pytest.mark.parametrize(
+        "application_json, expected_result",
+        (
+            ({}, {"errors": {"sections": [ErrorDetail(string="This field is required.", code="required")]}}),
+            (
+                {
+                    "sections": {
+                        "approval_type": {},
+                        "product_information": {},
+                        "user_information": {},
+                        "general_application_details": {},
+                    }
+                },
+                {
+                    "errors": {
+                        "sections": {
+                            "product_information": {
+                                "type": [ErrorDetail(string="This field is required.", code="required")],
+                                "fields": [ErrorDetail(string="This field is required.", code="required")],
+                            },
+                            "user_information": {
+                                "type": [ErrorDetail(string="This field is required.", code="required")],
+                                "items": [ErrorDetail(string="This field is required.", code="required")],
+                            },
+                            "general_application_details": {
+                                "type": [ErrorDetail(string="This field is required.", code="required")],
+                                "fields": [ErrorDetail(string="This field is required.", code="required")],
+                            },
+                            "approval_type": {
+                                "type": [ErrorDetail(string="This field is required.", code="required")],
+                                "fields": [ErrorDetail(string="This field is required.", code="required")],
+                            },
+                        }
+                    }
+                },
+            ),
+            (
+                {
+                    "sections": {
+                        "approval_type": {"type": "multiple", "fields": []},
+                        "product_information": {"type": "single", "fields": []},
+                        "user_information": {"type": "multiple", "items": []},
+                        "general_application_details": {"type": "single", "fields": []},
+                    }
+                },
+                {
+                    "errors": {
+                        "sections": {
+                            "approval_type": {
+                                "type": [
+                                    ErrorDetail(string='"multiple" is not a valid choice.', code="invalid_choice"),
+                                ],
+                            },
+                            "general_application_details": {
+                                "non_field_errors": [
+                                    ErrorDetail(
+                                        string="Required fields missing from section; ['name']", code="invalid"
+                                    ),
+                                ],
+                            },
+                            "product_information": {
+                                "non_field_errors": [
+                                    ErrorDetail(
+                                        string="Required fields missing from section; ['product_description', 'product_name']",
+                                        code="invalid",
+                                    ),
+                                ],
+                            },
+                            "user_information": {
+                                "items": {
+                                    "non_field_errors": [
+                                        ErrorDetail(
+                                            string="Ensure this field has at least 1 elements.", code="min_length"
+                                        ),
+                                    ],
+                                },
+                            },
+                        },
+                    }
+                },
+            ),
+        ),
+    )
+    def test_POST_submit_application_json_format_incorrect_responds_400(
+        self, application_json, expected_result, api_client, exporter_headers, exporter_user, organisation
+    ):
+        f680_application = F680ApplicationFactory(
+            organisation=organisation,
+            application=application_json,
+            reference_code=None,
+        )
+        url = reverse("exporter_f680:application_submit", kwargs={"f680_application_id": f680_application.id})
+        response = api_client.post(url, **exporter_headers)
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
         assert response.data == expected_result
 
     def test_POST_submit_different_organisation_not_found(self, api_client, exporter_headers):
