@@ -101,9 +101,9 @@ class Product(models.Model):
 
 class SecurityReleaseRequest(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    recipient = models.ForeignKey(Recipient, on_delete=models.CASCADE)
-    product = models.ForeignKey(Product, on_delete=models.CASCADE)
-    application = models.ForeignKey(F680Application, on_delete=models.CASCADE, related_name="security_releases")
+    recipient = models.ForeignKey(Recipient, on_delete=models.CASCADE, related_name="security_release_requests")
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name="security_release_requests")
+    application = models.ForeignKey(F680Application, on_delete=models.CASCADE, related_name="security_release_requests")
     security_grading = models.CharField(choices=enums.SecurityGrading.security_release_choices, max_length=50)
     security_grading_other = models.TextField(null=True, default=None)
     approval_types = ArrayField(models.CharField(choices=enums.ApprovalTypes.choices, max_length=50))

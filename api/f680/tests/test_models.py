@@ -27,7 +27,7 @@ class TestF680Application:
         assert product.organisation == f680_application.organisation
 
         expected_security_release_count = len(data_application_json["sections"]["user_information"]["items"])
-        assert f680_application.security_releases.all().count() == expected_security_release_count
+        assert f680_application.security_release_requests.all().count() == expected_security_release_count
 
         australia_release = SecurityReleaseRequest.objects.get(id=data_australia_release_id)
         australia_recipient = australia_release.recipient
