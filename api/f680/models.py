@@ -4,6 +4,7 @@ from django.db import models
 from django.contrib.postgres.fields import ArrayField
 
 from api.applications.models import BaseApplication
+from api.common.models import TimestampableModel
 from api.organisations.models import Organisation
 from api.staticdata.countries.models import Country
 
@@ -74,7 +75,7 @@ class F680Application(BaseApplication):  # /PS-IGNORE
 # TODO: Eventually we may want to use this model more widely.  We can do that
 #   but for now baking it in to the f680 application avoids us having to guess
 #   at unknown futures
-class Recipient(models.Model):
+class Recipient(TimestampableModel):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.TextField()
     address = models.TextField()
@@ -88,7 +89,7 @@ class Recipient(models.Model):
 # TODO: Eventually we may want to use this model more widely.  We can do that
 #   but for now baking it in to the f680 application avoids us having to guess
 #   at unknown futures
-class Product(models.Model):
+class Product(TimestampableModel):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.TextField()
     description = models.TextField()
@@ -99,7 +100,7 @@ class Product(models.Model):
     organisation = models.ForeignKey(Organisation, related_name="organisation_product", on_delete=models.CASCADE)
 
 
-class SecurityReleaseRequest(models.Model):
+class SecurityReleaseRequest(TimestampableModel):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     recipient = models.ForeignKey(Recipient, on_delete=models.CASCADE, related_name="security_release_requests")
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name="security_release_requests")
