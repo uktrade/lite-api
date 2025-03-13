@@ -47,7 +47,7 @@ class ApplicationHistory(ExporterApplicationMixin, RetrieveAPIView):
     serializer_class = ApplicationHistorySerializer
 
 
-class ApplicationDocuments(ExporterApplicationMixin, ListCreateAPIView):
+class ApplicationDocumentView(ExporterApplicationMixin, ListCreateAPIView):
     serializer_class = ExporterApplicationDocumentSerializer
     lookup_url_kwarg = "pk"
 

@@ -21,7 +21,6 @@ def init_s3_client():
     # want to explicitly re-instiate the client e.g. in tests.
     global _client
     additional_s3_params = {}
-
     if settings.AWS_ENDPOINT_URL:
         additional_s3_params["endpoint_url"] = settings.AWS_ENDPOINT_URL
 
@@ -68,6 +67,7 @@ def generate_s3_key(document_name, file_extension):
 
 
 def upload_bytes_file(raw_file, s3_key):
+
     _client.put_object(Bucket=settings.AWS_STORAGE_BUCKET_NAME, Key=s3_key, Body=raw_file)
 
 
