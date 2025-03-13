@@ -11,7 +11,7 @@ class RecipientType:
 
 
 class RecipientRole:
-    AGENT_BROKER = "agent-broker"
+    AGENT_BROKER = "agent-or-broker"
     INTERMEDIATE_CONSIGNEE = "intermediate-consignee"
     AUTHORISED_SUBMITTER = "authorised-submitter"
     CONSULTANT = "consultant"
@@ -20,7 +20,7 @@ class RecipientRole:
     OTHER = "other"
 
     choices = [
-        (AGENT_BROKER, "End-user"),
+        (AGENT_BROKER, "Agent or broker"),
         (INTERMEDIATE_CONSIGNEE, "Intermediate consignee"),
         (AUTHORISED_SUBMITTER, "Authorised submitter"),
         (CONSULTANT, "Consultant"),
