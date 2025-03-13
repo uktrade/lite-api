@@ -9,4 +9,7 @@ from api.cases.enums import ApplicationFeatures, CaseTypeSubTypeEnum
 class F680ApplicationManifest(BaseManifest):
     model_class = F680Application
     caseworker_serializers = {"view": F680ApplicationSerializer}
-    features = {ApplicationFeatures.LICENCE_ISSUE: False}
+    features = {
+        ApplicationFeatures.LICENCE_ISSUE: False,
+        ApplicationFeatures.ROUTE_TO_COUNTERSIGNING_QUEUES: False,
+    }
