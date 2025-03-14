@@ -1,5 +1,7 @@
 from unittest import mock
 
+from django.test import override_settings
+
 from api.cases.notify import (
     notify_exporter_ecju_query,
     notify_exporter_licence_issued,
@@ -32,12 +34,13 @@ class NotifyTests(DataTestClient):
         self.case = self.create_standard_application_case(self.organisation)
         self.licence = StandardLicenceFactory(case=self.case)
 
+    @override_settings(EXPORTER_BASE_URL="https://exporter.lite.example.com")
     @mock.patch("api.cases.notify.send_email")
     def test_notify_licence_issued(self, mock_send_email):
         expected_payload = ExporterLicenceIssued(
             user_first_name=self.exporter_user.first_name,
             application_reference=self.case.reference_code,
-            exporter_frontend_url="https://exporter.lite.service.localhost.uktrade.digital/",
+            exporter_frontend_url="https://exporter.lite.example.com/",
         )
 
         notify_exporter_licence_issued(self.case)
@@ -48,12 +51,13 @@ class NotifyTests(DataTestClient):
             expected_payload,
         )
 
+    @override_settings(EXPORTER_BASE_URL="https://exporter.lite.example.com")
     @mock.patch("api.cases.notify.send_email")
     def test_notify_licence_refused(self, mock_send_email):
         expected_payload = ExporterLicenceRefused(
             user_first_name=self.exporter_user.first_name,
             application_reference=self.case.reference_code,
-            exporter_frontend_url="https://exporter.lite.service.localhost.uktrade.digital/",
+            exporter_frontend_url="https://exporter.lite.example.com/",
         )
 
         notify_exporter_licence_refused(self.case)
@@ -94,12 +98,13 @@ class NotifyTests(DataTestClient):
             expected_payload,
         )
 
+    @override_settings(EXPORTER_BASE_URL="https://exporter.lite.example.com")
     @mock.patch("api.cases.notify.send_email")
     def test_notify_no_licence_required(self, mock_send_email):
         expected_payload = ExporterNoLicenceRequired(
             user_first_name=self.exporter_user.first_name,
             application_reference=self.case.reference_code,
-            exporter_frontend_url="https://exporter.lite.service.localhost.uktrade.digital/",
+            exporter_frontend_url="https://exporter.lite.example.com/",
         )
 
         notify_exporter_no_licence_required(self.case)
@@ -110,6 +115,7 @@ class NotifyTests(DataTestClient):
             expected_payload,
         )
 
+    @override_settings(EXPORTER_BASE_URL="https://exporter.lite.example.com")
     @mock.patch("api.cases.notify.send_email")
     def test_notify_exporter_ecju_query(self, mock_send_email):
         application = self.create_standard_application_case(self.organisation)
@@ -121,7 +127,7 @@ class NotifyTests(DataTestClient):
         expected_payload = ExporterECJUQuery(
             exporter_first_name=application.submitted_by.first_name,
             case_reference=application.reference_code,
-            exporter_frontend_url="https://exporter.lite.service.localhost.uktrade.digital/",
+            exporter_frontend_url="https://exporter.lite.example.com/",
         )
         mock_send_email.assert_called_with(
             application.submitted_by.email,
@@ -130,6 +136,7 @@ class NotifyTests(DataTestClient):
         )
         assert mock_send_email.called == 1
 
+    @override_settings(EXPORTER_BASE_URL="https://exporter.lite.example.com")
     @mock.patch("api.cases.notify.send_email")
     def test_notify_exporter_inform_letter(self, mock_send_email):
         notify_exporter_inform_letter(self.case)
@@ -137,7 +144,7 @@ class NotifyTests(DataTestClient):
         expected_payload = ExporterInformLetter(
             user_first_name=self.case.submitted_by.first_name,
             application_reference=self.case.reference_code,
-            exporter_frontend_url="https://exporter.lite.service.localhost.uktrade.digital/",
+            exporter_frontend_url="https://exporter.lite.example.com/",
         )
         mock_send_email.assert_called_with(
             self.case.submitted_by.email,

@@ -1,6 +1,7 @@
 from api.users.models import ExporterUser, UserOrganisationRelationship
 from parameterized import parameterized
 
+from django.test import override_settings
 from django.urls import reverse
 from rest_framework import status
 from unittest import mock
@@ -36,6 +37,7 @@ class TestAddExporterUserToOrganisation(DataTestClient):
         }
         self.gov_user.role.permissions.set([GovPermissions.MANAGE_ORGANISATIONS.name])
 
+    @override_settings(EXPORTER_BASE_URL="https://exporter.lite.example.com")
     @mock.patch("api.organisations.models.notify_exporter_user_added")
     def test_create_exporter_user_success(self, mocked_notify):
 
@@ -51,7 +53,7 @@ class TestAddExporterUserToOrganisation(DataTestClient):
             self.data["email"],
             {
                 "organisation_name": self.organisation.name,
-                "exporter_frontend_url": "https://exporter.lite.service.localhost.uktrade.digital/",
+                "exporter_frontend_url": "https://exporter.lite.example.com/",
             },
         )
 
