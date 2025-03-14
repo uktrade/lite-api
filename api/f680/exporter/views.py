@@ -1,3 +1,4 @@
+from django.db import transaction
 from django.utils import timezone
 
 from rest_framework import viewsets
@@ -16,7 +17,7 @@ from lite_routing.routing_rules_internal.flagging_engine import apply_flagging_r
 from lite_routing.routing_rules_internal.routing_engine import run_routing_rules
 
 from api.f680.models import F680Application
-from api.f680.exporter.serializers import F680ApplicationSerializer
+from api.f680.exporter.serializers import F680ApplicationSerializer, SubmittedApplicationJSONSerializer
 from api.f680.exporter.filters import DraftApplicationFilter
 
 
@@ -34,6 +35,7 @@ class F680ApplicationViewSet(viewsets.ModelViewSet):
         serializer_context["case_type_id"] = CaseTypeEnum.F680.id
         return serializer_context
 
+    @transaction.atomic
     @action(detail=True)
     def submit(self, request, **kwargs):
         # TODO: What follows is a lean slice of applications.views.applications.ApplicationSubmission.
@@ -41,6 +43,8 @@ class F680ApplicationViewSet(viewsets.ModelViewSet):
         #   to depend on a model method, a library utility, or something else.  We should also think about
         #   commonality with StandardApplication
         application = self.get_object()
+        application_serializer = SubmittedApplicationJSONSerializer(data=application.application)
+        application_serializer.is_valid(raise_exception=True)
 
         # TODO: some sort of validation that we have everything we need on the application -
         #   this may duplicate frontend validation in some way so needs some consideration.
