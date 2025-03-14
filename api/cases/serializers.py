@@ -28,9 +28,6 @@ from api.cases.models import (
     CaseType,
 )
 from api.cases.service import retrieve_latest_activity
-from api.compliance.models import ComplianceSiteCase, ComplianceVisitCase
-from api.compliance.serializers.ComplianceSiteCaseSerializers import ComplianceSiteViewSerializer
-from api.compliance.serializers.ComplianceVisitCaseSerializers import ComplianceVisitSerializer
 from api.core.serializers import KeyValueChoiceField, PrimaryKeyRelatedSerializerField
 from api.documents.libraries.process_document import process_document
 from api.flags.serializers import CaseListFlagSerializer
@@ -38,7 +35,6 @@ from api.flags.models import Flag
 from api.gov_users.serializers import GovUserSimpleSerializer
 from api.organisations.models import Organisation
 from api.organisations.serializers import TinyOrganisationViewSerializer
-from api.queries.serializers import QueryViewSerializer
 from api.queues.constants import ALL_CASES_QUEUE_ID
 from api.queues.models import Queue
 from api.queues.serializers import QueueListSerializer
@@ -309,18 +305,10 @@ class CaseDetailSerializer(serializers.ModelSerializer):
     def get_data(self, instance):
         from api.applications.helpers import get_application_view_serializer
 
-        if instance.case_type.type == CaseTypeTypeEnum.APPLICATION:
-            application = get_application(instance.id)
-            serializer = get_application_view_serializer(application)
-            return serializer(application).data
-        elif instance.case_type.type == CaseTypeTypeEnum.QUERY:
-            return QueryViewSerializer(instance.query, read_only=True).data
-        elif instance.case_type.sub_type == CaseTypeSubTypeEnum.COMP_SITE:
-            compliance = ComplianceSiteCase.objects.get(id=instance.id)
-            return ComplianceSiteViewSerializer(compliance, context={"team": self.team}).data
-        elif instance.case_type.sub_type == CaseTypeSubTypeEnum.COMP_VISIT:
-            compliance = ComplianceVisitCase.objects.get(id=instance.id)
-            return ComplianceVisitSerializer(compliance).data
+        application = get_application(instance.id)
+        serializer = get_application_view_serializer(application)
+
+        return serializer(application).data
 
     def get_flags(self, instance):
         return list(instance.flags.values("id", "name", "colour", "label", "priority", "alias"))
