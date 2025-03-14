@@ -1,7 +1,6 @@
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
 
-from api.cases.enums import CaseTypeTypeEnum, CaseTypeSubTypeEnum, CaseTypeReferenceEnum
 from api.cases.models import CaseType
 from api.cases.serializers import CaseTypeSerializer, CaseTypeReferenceListSerializer
 from api.core.serializers import PrimaryKeyRelatedSerializerField
@@ -62,27 +61,6 @@ class LetterTemplateSerializer(serializers.ModelSerializer):
         if not attrs:
             raise serializers.ValidationError(strings.LetterTemplates.NEED_AT_LEAST_ONE_CASE_TYPE)
         return attrs
-
-    def validate(self, data):
-        validated_data = super().validate(data)
-
-        # Prevent decisions from being set on Application case-type templates
-        if validated_data.get("decisions"):
-            case_types = validated_data.get("case_types")
-            errors = []
-            for case_type in case_types:
-                if case_type.type != CaseTypeTypeEnum.APPLICATION or case_type.sub_type == CaseTypeSubTypeEnum.HMRC:
-                    errors.append(CaseTypeReferenceEnum.get_text(case_type.reference))
-
-            if errors:
-                raise serializers.ValidationError(
-                    {
-                        "case_types": strings.LetterTemplates.DECISIONS_NON_APPLICATION_CASE_TYPES_ERROR
-                        + ", ".join(sorted(errors))
-                    }
-                )
-
-        return validated_data
 
 
 class LetterTemplateListSerializer(serializers.Serializer):
