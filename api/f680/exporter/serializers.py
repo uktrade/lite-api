@@ -3,7 +3,12 @@ from rest_framework import serializers
 from api.organisations.exporter.serializers import RelatedOrganisationSerializer
 from api.users.exporter.serializers import RelatedExporterUserSerializer
 
-from api.f680.models import F680Application  # /PS-IGNORE
+from api.f680.models import F680Application
+
+
+class SectionType:
+    SINGLE = "single"
+    MULTIPLE = "multiple"
 
 
 class F680ApplicationSerializer(serializers.ModelSerializer):  # /PS-IGNORE
@@ -12,7 +17,7 @@ class F680ApplicationSerializer(serializers.ModelSerializer):  # /PS-IGNORE
     submitted_by = RelatedExporterUserSerializer(read_only=True)
 
     class Meta:
-        model = F680Application  # /PS-IGNORE
+        model = F680Application
         fields = [
             "id",
             "application",
@@ -68,12 +73,12 @@ class UserItemSerializer(serializers.Serializer):
 
 
 class UserInformationSerializer(serializers.Serializer):
-    type = serializers.ChoiceField(choices=["multiple"])
+    type = serializers.ChoiceField(choices=[SectionType.MULTIPLE])
     items = UserItemSerializer(many=True, min_length=1)
 
 
 class ProductInformationSerializer(serializers.Serializer):
-    type = serializers.ChoiceField(choices=["single"])
+    type = serializers.ChoiceField(choices=[SectionType.SINGLE])
     fields = FieldSerializer(many=True)
 
     def validate(self, data):
@@ -82,7 +87,7 @@ class ProductInformationSerializer(serializers.Serializer):
 
 
 class GeneralApplicationDetailsSerializer(serializers.Serializer):
-    type = serializers.ChoiceField(choices=["single"])
+    type = serializers.ChoiceField(choices=[SectionType.SINGLE])
     fields = FieldSerializer(many=True)
 
     def validate(self, data):
@@ -91,7 +96,7 @@ class GeneralApplicationDetailsSerializer(serializers.Serializer):
 
 
 class ApprovalTypeSerializer(serializers.Serializer):
-    type = serializers.ChoiceField(choices=["single"])
+    type = serializers.ChoiceField(choices=[SectionType.SINGLE])
     fields = FieldSerializer(many=True)
 
     def validate(self, data):
