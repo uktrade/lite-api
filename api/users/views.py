@@ -1,12 +1,12 @@
 from uuid import UUID
 
+from django.db.models import Count
 from django.http.response import JsonResponse
 from rest_framework import status, serializers
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.generics import UpdateAPIView, ListAPIView
 from rest_framework.views import APIView
 
-from api.cases.enums import CaseTypeTypeEnum, CaseTypeSubTypeEnum
 from api.core.authentication import (
     ExporterAuthentication,
     GovAuthentication,
@@ -22,7 +22,7 @@ from api.core.helpers import (
     date_to_drf_date,
     str_to_bool,
 )
-from api.core.permissions import assert_user_has_permission, check_user_has_permission
+from api.core.permissions import assert_user_has_permission
 from lite_content.lite_api import strings
 from lite_content.lite_api.strings import Users
 from api.organisations.enums import OrganisationStatus
@@ -217,52 +217,17 @@ class NotificationViewSet(APIView):
 
     def get(self, request):
         """
-        Count the number of application, eua_query and goods_query exporter user notifications
+        Count the number of exporter user notifications by case type
         """
         organisation = get_request_user_organisation(request)
-        notifications_list = list(
+        notification_counts = (
             self.queryset.filter(user_id=request.user.pk, organisation_id=organisation.id)
-            .prefetch_related("case__case_type", "case__compliancesitecase")
-            .values(
-                "case__case_type__sub_type",
-                "case__case_type__type",
-                "case__compliancesitecase__site_id",
-                "case__compliancevisitcase__site_case__site_id",
-            )
+            .values("case__case_type__type")
+            .annotate(cases_count=Count("case__case_type__type"))
+            .values_list("case__case_type__type", "cases_count")
+            .order_by()
         )
-        case_types = [notification["case__case_type__type"] for notification in notifications_list]
-        case_sub_types = [notification["case__case_type__sub_type"] for notification in notifications_list]
-        notifications = {
-            CaseTypeTypeEnum.APPLICATION: case_types.count(CaseTypeTypeEnum.APPLICATION),
-            CaseTypeSubTypeEnum.EUA: case_sub_types.count(CaseTypeSubTypeEnum.EUA),
-            CaseTypeSubTypeEnum.GOODS: case_sub_types.count(CaseTypeSubTypeEnum.GOODS),
-        }
-
-        # Compliance
-        can_administer_sites = check_user_has_permission(
-            self.request.user.exporteruser, ExporterPermissions.ADMINISTER_SITES, organisation
-        )
-
-        request_user_sites = (
-            list(
-                Site.objects.get_by_user_and_organisation(request.user.exporteruser, organisation).values_list(
-                    "id", flat=True
-                )
-            )
-            if not can_administer_sites
-            else []
-        )
-
-        notifications[CaseTypeTypeEnum.COMPLIANCE] = len(
-            [
-                notification
-                for notification in notifications_list
-                if (notification["case__compliancesitecase__site_id"] and can_administer_sites)
-                or (notification["case__compliancevisitcase__site_case__site_id"] and can_administer_sites)
-                or notification["case__compliancesitecase__site_id"] in request_user_sites
-                or notification["case__compliancevisitcase__site_case__site_id"] in request_user_sites
-            ]
-        )
+        notifications = dict(notification_counts)
 
         return JsonResponse(data={"notifications": notifications}, status=status.HTTP_200_OK)
 
