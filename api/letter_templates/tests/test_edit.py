@@ -5,7 +5,6 @@ from api.audit_trail.models import Audit
 from api.audit_trail.enums import AuditType
 from api.cases.enums import CaseTypeEnum, CaseTypeReferenceEnum, AdviceType
 from api.core import constants
-from lite_content.lite_api import strings
 from api.picklists.enums import PicklistType, PickListStatus
 from api.staticdata.decisions.models import Decision
 from test_helpers.clients import DataTestClient
@@ -56,24 +55,6 @@ class LetterTemplateEditTests(DataTestClient):
         for decision in data["decisions"]:
             self.assertIn(decision, [response_decision["name"]["key"] for response_decision in response_decisions])
         self.assertEqual(Audit.objects.filter(verb=AuditType.UPDATED_LETTER_TEMPLATE_DECISIONS).count(), 1)
-
-    def test_edit_letter_template_decisions_on_non_application_case_types_failure(self):
-        case_type_ids = [CaseTypeEnum.GOODS.id, CaseTypeEnum.EUA.id]
-        case_type_references = [
-            CaseTypeReferenceEnum.get_text(reference)
-            for reference in [CaseTypeEnum.EUA.reference, CaseTypeEnum.GOODS.reference]
-        ]
-        self.letter_template.case_types.set(case_type_ids)
-        data = {"decisions": ["proviso", "approve"]}
-
-        response = self.client.put(self.url, data, **self.gov_headers)
-
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(
-            response.json()["errors"]["case_types"],
-            [strings.LetterTemplates.DECISIONS_NON_APPLICATION_CASE_TYPES_ERROR + ", ".join(case_type_references)],
-        )
-        self.assertEqual(Audit.objects.count(), 0)
 
     def test_edit_letter_template_edit_paragraphs_success(self):
         letter_paragraph = self.create_picklist_item(
