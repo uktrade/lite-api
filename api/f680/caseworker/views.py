@@ -15,11 +15,8 @@ class F680RecommendationViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         return Recommendation.objects.filter(case_id=self.kwargs["pk"])
 
-    def delete_user_recommendation(self):
-        current_user = self.request.user
-        qs = Recommendation.objects.filter(
-            case_id=self.kwargs["pk"], user_id=current_user.id, team=current_user.govuser.team
-        )
+    def delete_user_recommendation(self, user):
+        qs = self.get_queryset().filter(user_id=user.id, team=user.govuser.team)
         if qs.exists:
             qs.delete()
 
@@ -39,7 +36,11 @@ class F680RecommendationViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(data=data, many=True)
         serializer.is_valid(raise_exception=True)
 
-        self.delete_user_recommendation()
+        self.delete_user_recommendation(self.request.user)
         self.perform_create(serializer)
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
+    def destroy(self, request, *args, **kwargs):
+        self.delete_user_recommendation(request.user)
+        return Response(status=status.HTTP_204_NO_CONTENT)
