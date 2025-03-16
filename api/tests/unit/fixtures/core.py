@@ -221,3 +221,28 @@ def standard_case(draft_standard_application, submit_application):
 @pytest.fixture
 def final_advice_url(standard_case):
     return reverse("cases:case_final_advice", kwargs={"pk": standard_case.pk})
+
+
+@pytest.fixture()
+def team_case_advisor():
+    def _team_case_advisor(team_id):
+        gov_user = GovUserFactory()
+        if not Role.objects.filter(id=Roles.INTERNAL_DEFAULT_ROLE_ID, type=UserType.INTERNAL.value).exists():
+            gov_user.role = RoleFactory(
+                id=Roles.INTERNAL_DEFAULT_ROLE_ID, type=UserType.INTERNAL.value, name=Roles.INTERNAL_DEFAULT_ROLE_NAME
+            )
+
+        gov_user.team = Team.objects.get(id=team_id)
+        gov_user.save()
+        return gov_user
+
+    return _team_case_advisor
+
+
+@pytest.fixture()
+def team_case_advisor_headers(team_case_advisor):
+    def _team_case_advisor_headers(team_id):
+        case_advisor = team_case_advisor(team_id)
+        return {"HTTP_GOV_USER_TOKEN": user_to_token(case_advisor.baseuser_ptr)}
+
+    return _team_case_advisor_headers
