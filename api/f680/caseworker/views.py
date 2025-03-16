@@ -10,8 +10,10 @@ from api.f680.caseworker.serializers import F680RecommendationSerializer
 class F680RecommendationViewSet(viewsets.ModelViewSet):
     authentication_classes = (GovAuthentication,)
     serializer_class = F680RecommendationSerializer
-    queryset = Recommendation.objects.all()
     pagination_class = None
+
+    def get_queryset(self):
+        return Recommendation.objects.filter(case_id=self.kwargs["pk"])
 
     def delete_user_recommendation(self):
         current_user = self.request.user
