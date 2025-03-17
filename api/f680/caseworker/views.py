@@ -59,5 +59,8 @@ class F680RecommendationViewSet(viewsets.ModelViewSet):
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
     def destroy(self, request, *args, **kwargs):
-        self.delete_user_recommendation(request.user)
+        user = request.user
+        qs = self.get_queryset().filter(user_id=user.id, team=user.govuser.team)
+        if qs.exists:
+            qs.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
