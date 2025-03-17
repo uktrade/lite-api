@@ -32,11 +32,6 @@ class F680RecommendationViewSet(viewsets.ModelViewSet):
     def get_case(self):
         return self.application
 
-    def delete_user_recommendation(self, user):
-        qs = self.get_queryset().filter(user_id=user.id, team=user.govuser.team)
-        if qs.exists:
-            qs.delete()
-
     def prepare_data(self, request_data):
         return [
             {
@@ -53,7 +48,6 @@ class F680RecommendationViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(data=data, many=True)
         serializer.is_valid(raise_exception=True)
 
-        self.delete_user_recommendation(self.request.user)
         self.perform_create(serializer)
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
