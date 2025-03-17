@@ -10,6 +10,8 @@ from api.f680.tests.factories import (
     F680SecurityReleaseRequestFactory,
     SubmittedF680ApplicationFactory,
 )
+from api.staticdata.statuses.enums import CaseStatusEnum
+from api.staticdata.statuses.models import CaseStatus
 from api.staticdata.countries.factories import CountryFactory
 from api.users.libraries.user_to_token import user_to_token
 
@@ -24,7 +26,8 @@ pytest_plugins = [
 def get_f680_application(organisation):
 
     def _get_f680_application():
-        application = SubmittedF680ApplicationFactory(organisation=organisation)
+        ogd_advice = CaseStatus.objects.get(status=CaseStatusEnum.OGD_ADVICE)
+        application = SubmittedF680ApplicationFactory(organisation=organisation, status=ogd_advice)
         recipients = [
             F680RecipientFactory(
                 country=CountryFactory(**{"id": "AU", "name": "Australia"}), organisation=organisation
