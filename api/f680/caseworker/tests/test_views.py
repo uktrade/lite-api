@@ -23,6 +23,14 @@ pytest_plugins = [
 
 
 @pytest.fixture
+def url():
+    def _recommendation_url(f680_application):
+        return reverse("caseworker_f680:recommendation", kwargs={"pk": f680_application.id})
+
+    return _recommendation_url
+
+
+@pytest.fixture
 def get_f680_application(organisation):
 
     def _get_f680_application():
@@ -44,7 +52,7 @@ def get_f680_application(organisation):
     return _get_f680_application
 
 
-def test_GET_recommendation_success(api_client, get_f680_application, team_case_advisor_headers):
+def test_GET_recommendation_success(api_client, get_f680_application, url, team_case_advisor_headers):
     f680_application = get_f680_application()
     another_f680_application = get_f680_application()
 
@@ -56,9 +64,8 @@ def test_GET_recommendation_success(api_client, get_f680_application, team_case_
         F680RecommendationFactory(
             case=another_f680_application, security_release_request=release_request, conditions="No concerns"
         )
-    url = reverse("caseworker_f680:recommendation", kwargs={"pk": f680_application.id})
     headers = team_case_advisor_headers(TeamIdEnum.MOD_CAPPROT)
-    response = api_client.get(url, **headers)
+    response = api_client.get(url(f680_application), **headers)
     assert response.status_code == 200
     assert len(response.json()) == f680_application.security_release_requests.count()
 
@@ -67,7 +74,31 @@ def test_GET_recommendation_success(api_client, get_f680_application, team_case_
     )
 
 
-def test_POST_recommendation_success(api_client, get_f680_application, team_case_advisor_headers):
+def test_GET_recommendation_raises_notfound_error(api_client, get_f680_application, team_case_advisor_headers):
+    f680_application = get_f680_application()
+
+    for release_request in f680_application.security_release_requests.all():
+        F680RecommendationFactory(
+            case=f680_application, security_release_request=release_request, conditions="No concerns"
+        )
+    headers = team_case_advisor_headers(TeamIdEnum.MOD_CAPPROT)
+    url = reverse("caseworker_f680:recommendation", kwargs={"pk": "138d3a5f-5b5d-457d-8db0-723e14b36de4"})
+    response = api_client.get(url, **headers)
+    assert response.status_code == 404
+
+
+def test_GET_recommendation_raises_forbidden_error(api_client, get_f680_application, url, team_case_advisor_headers):
+    f680_application = get_f680_application()
+    for release_request in f680_application.security_release_requests.all():
+        F680RecommendationFactory(
+            case=f680_application, security_release_request=release_request, conditions="No concerns"
+        )
+    headers = team_case_advisor_headers(TeamIdEnum.FCDO)
+    response = api_client.get(url(f680_application), **headers)
+    assert response.status_code == 403
+
+
+def test_POST_recommendation_success(api_client, get_f680_application, url, team_case_advisor_headers):
     f680_application = get_f680_application()
 
     data = [
@@ -81,14 +112,13 @@ def test_POST_recommendation_success(api_client, get_f680_application, team_case
         for rr in f680_application.security_release_requests.all()
     ]
 
-    url = reverse("caseworker_f680:recommendation", kwargs={"pk": f680_application.id})
     headers = team_case_advisor_headers(TeamIdEnum.MOD_CAPPROT)
-    response = api_client.post(url, data=data, **headers)
+    response = api_client.post(url(f680_application), data=data, **headers)
     assert response.status_code == 201
     assert f680_application.recommendations.count() == f680_application.security_release_requests.count()
 
 
-def test_POST_again_clears_previous_recommendation(api_client, get_f680_application, team_case_advisor_headers):
+def test_POST_recommendation_again_raises_error(api_client, get_f680_application, url, team_case_advisor_headers):
     f680_application = get_f680_application()
 
     data = [
@@ -102,23 +132,17 @@ def test_POST_again_clears_previous_recommendation(api_client, get_f680_applicat
         for rr in f680_application.security_release_requests.all()
     ]
 
-    url = reverse("caseworker_f680:recommendation", kwargs={"pk": f680_application.id})
     headers = team_case_advisor_headers(TeamIdEnum.MOD_CAPPROT)
-    response = api_client.post(url, data=data, **headers)
+    response = api_client.post(url(f680_application), data=data, **headers)
     assert response.status_code == 201
     assert f680_application.recommendations.count() == f680_application.security_release_requests.count()
 
-    recommendation_ids = set(r.id for r in f680_application.recommendations.all())
-    response = api_client.post(url, data=data, **headers)
-    assert response.status_code == 201
-    all_recommendation_ids = set(r.id for r in f680_application.recommendations.all())
-
-    assert bool(all_recommendation_ids.intersection(recommendation_ids)) is False
+    response = api_client.post(url(f680_application), data=data, **headers)
+    assert response.status_code == 403
+    assert response.json() == {"errors": {"detail": "You do not have permission to perform this action."}}
 
 
-def test_DELETE_user_recommendation_success(
-    api_client, get_f680_application, team_case_advisor, team_case_advisor_headers
-):
+def test_DELETE_user_recommendation_success(api_client, get_f680_application, url, team_case_advisor):
     f680_application = get_f680_application()
     gov_user = team_case_advisor(TeamIdEnum.MOD_CAPPROT)
 
@@ -131,8 +155,81 @@ def test_DELETE_user_recommendation_success(
             user=gov_user,
             team=gov_user.team,
         )
-    url = reverse("caseworker_f680:recommendation", kwargs={"pk": f680_application.id})
     headers = {"HTTP_GOV_USER_TOKEN": user_to_token(gov_user.baseuser_ptr)}
-    response = api_client.delete(url, **headers)
+    response = api_client.delete(url(f680_application), **headers)
     assert response.status_code == 204
     assert f680_application.recommendations.count() == 0
+
+
+@pytest.mark.parametrize(
+    "data, errors",
+    (
+        (
+            {
+                "security_grading": SecurityGrading.OFFICIAL_SENSITIVE,
+                "conditions": "Conditions for Australia",
+                "refusal_reasons": "",
+            },
+            [{"type": ["This field is required."]}],
+        ),
+        (
+            {
+                "type": RecommendationType.APPROVE,
+                "conditions": "Conditions for Australia",
+                "refusal_reasons": "",
+            },
+            [{"security_grading": ["This field is required."]}],
+        ),
+        (
+            {
+                "type": RecommendationType.APPROVE,
+                "refusal_reasons": "",
+                "security_grading": SecurityGrading.OFFICIAL_SENSITIVE,
+            },
+            [{"conditions": ["This field is required."]}],
+        ),
+        (
+            {
+                "type": RecommendationType.APPROVE,
+                "conditions": "No concerns",
+                "security_grading": SecurityGrading.OFFICIAL_SENSITIVE,
+            },
+            [{"refusal_reasons": ["This field is required."]}],
+        ),
+        (
+            {
+                "type": RecommendationType.APPROVE,
+                "conditions": "No concerns",
+                "refusal_reasons": "",
+                "security_grading": SecurityGrading.OFFICIAL_SENSITIVE,
+                "security_release_request": "138d3a5f-5b5d-457d-8db0-723e14b36de4",
+            },
+            [
+                {
+                    "security_release_request": [
+                        'Invalid pk "138d3a5f-5b5d-457d-8db0-723e14b36de4" - object does not exist.'
+                    ]
+                }
+            ],
+        ),
+    ),
+)
+def test_POST_recommendation_validation_errors(
+    api_client, get_f680_application, url, team_case_advisor_headers, data, errors
+):
+    f680_application = get_f680_application()
+
+    headers = team_case_advisor_headers(TeamIdEnum.MOD_CAPPROT)
+    release_request = f680_application.security_release_requests.first()
+    data = {"security_release_request": str(release_request.id), **data}
+    response = api_client.post(url(f680_application), data=[data], **headers)
+    assert response.status_code == 400
+    assert response.json()["errors"] == errors
+
+
+def test_POST_recommendation_invalid_application_raises_error(api_client, team_case_advisor_headers):
+    url = reverse("caseworker_f680:recommendation", kwargs={"pk": "138d3a5f-5b5d-457d-8db0-723e14b36de4"})
+    headers = team_case_advisor_headers(TeamIdEnum.MOD_CAPPROT)
+    # Data is intentionally empty as we fail before validating the data
+    response = api_client.post(url, data=[], **headers)
+    assert response.status_code == 404
