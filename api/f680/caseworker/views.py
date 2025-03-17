@@ -4,16 +4,16 @@ from rest_framework.response import Response
 from api.core.authentication import GovAuthentication
 
 from api.f680.models import Recommendation
+from api.f680.caseworker.filters import CurrentCaseRecommendationFilter
 from api.f680.caseworker.serializers import F680RecommendationSerializer
 
 
 class F680RecommendationViewSet(viewsets.ModelViewSet):
     authentication_classes = (GovAuthentication,)
+    filter_backends = (CurrentCaseRecommendationFilter,)
+    queryset = Recommendation.objects.all()
     serializer_class = F680RecommendationSerializer
     pagination_class = None
-
-    def get_queryset(self):
-        return Recommendation.objects.filter(case_id=self.kwargs["pk"])
 
     def delete_user_recommendation(self, user):
         qs = self.get_queryset().filter(user_id=user.id, team=user.govuser.team)
