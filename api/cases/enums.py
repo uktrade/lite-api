@@ -79,6 +79,10 @@ class CaseTypeTypeEnum:
     def as_list(cls):
         return [{"key": choice[0], "value": choice[1]} for choice in cls.choices]
 
+    @classmethod
+    def get_case_type(cls, case_type):
+        return case_type.type
+
 
 class CaseTypeSubTypeEnum:
     STANDARD = "standard"
@@ -133,6 +137,10 @@ class CaseTypeSubTypeEnum:
         Useful for licence duration
         """
         return application_type in CaseTypeSubTypeEnum.mod
+
+    @classmethod
+    def get_case_type(cls, case_type):
+        return case_type.sub_type
 
 
 class CaseTypeEnum:
@@ -257,6 +265,11 @@ class CaseTypeEnum:
     MOD_LICENCE_IDS = [F680.id, EXHIBITION.id, GIFTING.id]
     LICENCE_IDS = OPEN_GENERAL_LICENCE_IDS + STANDARD_LICENCE_IDS + OPEN_LICENCE_IDS + MOD_LICENCE_IDS
 
+    choices = [
+        (SIEL.id, SIEL.reference),
+        (F680.id, F680.reference),
+    ]
+
     @classmethod
     def case_types_to_representation(cls):
         return CaseTypeReferenceEnum.as_list()
@@ -293,6 +306,10 @@ class CaseTypeEnum:
     @classmethod
     def trade_control_case_type_ids(cls):
         return [cls.SICL.id, cls.OICL.id]
+
+    @classmethod
+    def get_case_type(cls, case_type):
+        return case_type.pk
 
 
 class AdviceType:
