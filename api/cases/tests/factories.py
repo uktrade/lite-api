@@ -84,6 +84,8 @@ class CaseSIELFactory(CaseFactory):
 
 
 class CaseTypeFactory(factory.django.DjangoModelFactory):
+    reference = factory.Faker("lexify", text="??????")
+
     class Meta:
         model = CaseType
 
