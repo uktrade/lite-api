@@ -9,13 +9,13 @@ from api.core.exceptions import NotFoundError
 
 from api.f680.models import Recommendation
 from api.f680.caseworker.filters import CurrentCaseRecommendationFilter
-from api.f680.caseworker.permissions import CaseCanAcceptRecommendations, CaseUserMakeRecommendations
+from api.f680.caseworker.permissions import CaseCanAcceptRecommendations, CaseCanUserMakeRecommendations
 from api.f680.caseworker.serializers import F680RecommendationSerializer
 
 
 class F680RecommendationViewSet(viewsets.ModelViewSet):
     authentication_classes = (GovAuthentication,)
-    permission_classes = (CaseCanAcceptRecommendations, CaseUserMakeRecommendations)
+    permission_classes = (CaseCanAcceptRecommendations, CaseCanUserMakeRecommendations)
     filter_backends = (CurrentCaseRecommendationFilter,)
     queryset = Recommendation.objects.all()
     serializer_class = F680RecommendationSerializer

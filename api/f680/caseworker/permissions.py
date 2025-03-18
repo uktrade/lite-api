@@ -15,7 +15,7 @@ class CaseCanAcceptRecommendations(permissions.BasePermission):
         return view.get_case().status.status == CaseStatusEnum.OGD_ADVICE
 
 
-class CaseUserMakeRecommendations(permissions.BasePermission):
+class CaseCanUserMakeRecommendations(permissions.BasePermission):
     def has_permission(self, request, view):
         user = request.user
         if str(user.govuser.team.id) not in OGDS_FOR_F680:
