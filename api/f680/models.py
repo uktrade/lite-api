@@ -4,9 +4,12 @@ from django.db import models
 from django.contrib.postgres.fields import ArrayField
 
 from api.applications.models import BaseApplication
+from api.cases.models import Case
 from api.common.models import TimestampableModel
 from api.organisations.models import Organisation
 from api.staticdata.countries.models import Country
+from api.teams.models import Team
+from api.users.models import GovUser
 
 from api.f680.managers import F680ApplicationQuerySet
 from api.f680 import enums
@@ -110,3 +113,18 @@ class SecurityReleaseRequest(TimestampableModel):
     approval_types = ArrayField(models.CharField(choices=enums.ApprovalTypes.choices, max_length=50))
     # We need details of the release, this doesn't appear to be in the frontend flows yet..
     intended_use = models.TextField()
+
+
+class Recommendation(TimestampableModel):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    case = models.ForeignKey(Case, related_name="recommendations", on_delete=models.CASCADE)
+    type = models.CharField(choices=enums.RecommendationType.choices, max_length=30)
+    conditions = models.TextField(default="", blank=True, null=True)
+    refusal_reasons = models.TextField(default="", blank=True, null=True)
+    security_grading = models.CharField(choices=enums.SecurityGrading.security_release_choices, max_length=50)
+    security_grading_other = models.TextField(default="", blank=True, null=True)
+    user = models.ForeignKey(GovUser, on_delete=models.PROTECT, related_name="recommendations")
+    team = models.ForeignKey(Team, on_delete=models.PROTECT, related_name="recommendations", null=True)
+    security_release_request = models.ForeignKey(
+        SecurityReleaseRequest, related_name="recommendations", on_delete=models.CASCADE
+    )
