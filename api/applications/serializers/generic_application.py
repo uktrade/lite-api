@@ -1,7 +1,6 @@
 from django.utils import timezone
 from rest_framework import serializers
 from rest_framework.fields import CharField
-from rest_framework.relations import PrimaryKeyRelatedField
 
 from api.applications.enums import (
     ApplicationExportType,
@@ -17,7 +16,6 @@ from api.core.serializers import KeyValueChoiceField
 from api.flags.serializers import FlagSerializer
 from api.gov_users.serializers import GovUserSimpleSerializer
 from lite_content.lite_api import strings
-from api.organisations.models import Organisation
 from api.organisations.serializers import OrganisationDetailSerializer, ExternalLocationSerializer, SiteListSerializer
 from api.parties.serializers import PartySerializer
 from api.staticdata.denial_reasons.models import DenialReason
@@ -168,39 +166,6 @@ class GenericApplicationViewSerializer(serializers.ModelSerializer):
     def get_additional_documents(self, instance):
         documents = instance.applicationdocument_set.all().order_by("created_at")
         return ApplicationDocumentSerializer(documents, many=True).data
-
-
-class GenericApplicationCreateSerializer(serializers.ModelSerializer):
-    def __init__(self, case_type_id, **kwargs):
-        super().__init__(**kwargs)
-        self.initial_data["case_type"] = case_type_id
-        self.initial_data["organisation"] = self.context.id
-
-    name = CharField(
-        max_length=100,
-        required=True,
-        allow_blank=False,
-        allow_null=False,
-        error_messages={"blank": strings.Applications.Generic.MISSING_REFERENCE_NAME_ERROR},
-    )
-    case_type = PrimaryKeyRelatedField(
-        queryset=CaseType.objects.all(),
-        error_messages={"required": strings.Applications.Generic.NO_LICENCE_TYPE},
-    )
-    organisation = PrimaryKeyRelatedField(queryset=Organisation.objects.all())
-
-    class Meta:
-        model = BaseApplication
-        fields = (
-            "id",
-            "name",
-            "case_type",
-            "organisation",
-        )
-
-    def create(self, validated_data):
-        validated_data["status"] = get_case_status_by_status(CaseStatusEnum.DRAFT)
-        return super().create(validated_data)
 
 
 class GenericApplicationUpdateSerializer(serializers.ModelSerializer):
