@@ -1,3 +1,4 @@
+from pprint import pprint
 from django.db import transaction
 from django.utils import timezone
 
@@ -43,6 +44,7 @@ class F680ApplicationViewSet(viewsets.ModelViewSet):
         #   to depend on a model method, a library utility, or something else.  We should also think about
         #   commonality with StandardApplication
         application = self.get_object()
+        pprint(application.application)
         application_serializer = SubmittedApplicationJSONSerializer(data=application.application)
         application_serializer.is_valid(raise_exception=True)
 
@@ -54,7 +56,7 @@ class F680ApplicationViewSet(viewsets.ModelViewSet):
         application.sla_days = 0
         application.submitted_by = request.user.exporteruser
         application.save()
-        application.on_submit()
+        application.on_submit(application_serializer.data)
 
         apply_flagging_rules_to_case(application)
         queues_assigned = run_routing_rules(application)
