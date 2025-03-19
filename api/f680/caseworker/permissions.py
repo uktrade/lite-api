@@ -22,7 +22,7 @@ class CaseCanUserMakeRecommendations(permissions.BasePermission):
             return False
 
         user_recommendation = view.get_queryset().filter(user_id=user.id, team=user.govuser.team)
-        if user_recommendation.exists() and request.method != "DELETE":
+        if user_recommendation.exists() and request.method == "POST":
             return False
 
         return True
