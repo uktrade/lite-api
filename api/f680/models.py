@@ -20,18 +20,6 @@ class F680Application(BaseApplication):  # /PS-IGNORE
 
     application = models.JSONField()
 
-    def get_field_value(self, fields, field_key, raise_exception=True):
-        for field in fields:
-            if field.get("key") == field_key:
-                return field.get("raw_answer")
-        if raise_exception:
-            raise KeyError(f"Field {field_key} not found in fields for application {self.id}")
-        return None
-
-    def get_application_field_value(self, section, field_key, raise_exception=True):
-        section_fields = self.application["sections"][section]["fields"]
-        return self.get_field_value(section_fields, field_key, raise_exception=raise_exception)
-
     def get_product(self):
         if self.security_release_requests.count() == 0:
             return None
