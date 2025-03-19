@@ -67,12 +67,14 @@ class CaseTypeTypeEnum:
     QUERY = "query"
     REGISTRATION = "registration"
     COMPLIANCE = "compliance"
+    SECURITY_CLEARANCE = "security_clearance"
 
     choices = [
         (APPLICATION, "Application"),
         (QUERY, "Query"),
         (REGISTRATION, "Registration"),
         (COMPLIANCE, "Compliance"),
+        (SECURITY_CLEARANCE, "Security Clearance"),
     ]
 
     @classmethod
@@ -144,6 +146,18 @@ class CaseTypeSubTypeEnum:
 
 
 class CaseTypeEnum:
+    class SIEL:
+        id = UUID("00000000-0000-0000-0000-000000000004")
+        reference = CaseTypeReferenceEnum.SIEL
+        type = CaseTypeTypeEnum.APPLICATION
+        sub_type = CaseTypeSubTypeEnum.STANDARD
+
+    class F680:
+        id = UUID("00000000-0000-0000-0000-000000000007")
+        reference = CaseTypeReferenceEnum.F680
+        type = CaseTypeTypeEnum.SECURITY_CLEARANCE
+        sub_type = CaseTypeSubTypeEnum.F680
+
     class OIEL:
         id = UUID("00000000-0000-0000-0000-000000000001")
         reference = CaseTypeReferenceEnum.OIEL
@@ -162,12 +176,6 @@ class CaseTypeEnum:
         type = CaseTypeTypeEnum.APPLICATION
         sub_type = CaseTypeSubTypeEnum.OPEN
 
-    class SIEL:
-        id = UUID("00000000-0000-0000-0000-000000000004")
-        reference = CaseTypeReferenceEnum.SIEL
-        type = CaseTypeTypeEnum.APPLICATION
-        sub_type = CaseTypeSubTypeEnum.STANDARD
-
     class SICL:
         id = UUID("00000000-0000-0000-0000-000000000005")
         reference = CaseTypeReferenceEnum.SICL
@@ -179,12 +187,6 @@ class CaseTypeEnum:
         reference = CaseTypeReferenceEnum.SITL
         type = CaseTypeTypeEnum.APPLICATION
         sub_type = CaseTypeSubTypeEnum.STANDARD
-
-    class F680:
-        id = UUID("00000000-0000-0000-0000-000000000007")
-        reference = CaseTypeReferenceEnum.F680
-        type = CaseTypeTypeEnum.APPLICATION
-        sub_type = CaseTypeSubTypeEnum.F680
 
     class EXHIBITION:
         id = UUID("00000000-0000-0000-0000-000000000008")
