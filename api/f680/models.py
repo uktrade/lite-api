@@ -32,6 +32,11 @@ class F680Application(BaseApplication):  # /PS-IGNORE
         section_fields = self.application["sections"][section]["fields"]
         return self.get_field_value(section_fields, field_key, raise_exception=raise_exception)
 
+    def get_product(self):
+        if self.security_release_requests.count() == 0:
+            return None
+        return self.security_release_requests.first().product
+
     def on_submit(self):
         self.name = self.get_application_field_value("general_application_details", "name")
         self.save()
