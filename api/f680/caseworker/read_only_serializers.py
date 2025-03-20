@@ -1,8 +1,8 @@
 from rest_framework import serializers
 
-from api.core.serializers import KeyValueChoiceField, PrimaryKeyRelatedField
+from api.core.serializers import KeyValueChoiceField
 from api.f680.enums import RecipientType, RecommendationType, SecurityGrading
-from api.f680.models import F680Application, Recommendation, SecurityReleaseRequest
+from api.f680.models import Recommendation
 
 
 class CountryViewSerializer(serializers.Serializer):
