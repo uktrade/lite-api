@@ -1,5 +1,7 @@
 from unittest import mock
 
+from django.test import override_settings
+
 from rest_framework import status
 from rest_framework.reverse import reverse_lazy
 
@@ -22,6 +24,7 @@ class CreateExporterUser(DataTestClient):
         }
         self.url = reverse_lazy("users:users")
 
+    @override_settings(EXPORTER_BASE_URL="https://exporter.lite.example.com")
     @mock.patch("api.users.notify.notify_exporter_user_added")
     def test_create_new_exporter_user_success(self, mocked_notify):
         previous_user_count = ExporterUser.objects.count()
@@ -34,10 +37,11 @@ class CreateExporterUser(DataTestClient):
             self.data["email"],
             {
                 "organisation_name": self.organisation.name,
-                "exporter_frontend_url": "https://exporter.lite.service.localhost.uktrade.digital/",
+                "exporter_frontend_url": "https://exporter.lite.example.com/",
             },
         )
 
+    @override_settings(EXPORTER_BASE_URL="https://exporter.lite.example.com")
     @mock.patch("api.users.notify.notify_exporter_user_added")
     def test_create_exporter_user_when_user_already_exists_doesnt_create_new_user(self, mocked_notify):
         """
@@ -64,7 +68,7 @@ class CreateExporterUser(DataTestClient):
             self.data["email"],
             {
                 "organisation_name": other_org.name,
-                "exporter_frontend_url": "https://exporter.lite.service.localhost.uktrade.digital/",
+                "exporter_frontend_url": "https://exporter.lite.example.com/",
             },
         )
 

@@ -76,3 +76,15 @@ class ApprovalTypes:
         (THROUGH_LIFE_SUPPORT, "Through life support"),
         (SUPPLY, "Supply"),
     ]
+
+
+class RecommendationType:
+    APPROVE = "approve"
+    REFUSE = "refuse"
+    NOT_APPLICABLE = "not_applicable"
+
+    choices = [
+        (APPROVE, "Approve"),
+        (REFUSE, "Refuse"),
+        (NOT_APPLICABLE, "Not applicable"),
+    ]

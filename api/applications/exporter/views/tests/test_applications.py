@@ -1,20 +1,31 @@
+import pytest
 import uuid
 from django.utils import timezone
 from pytz import timezone as tz
 
+from api.audit_trail.enums import AuditType
+from api.audit_trail.models import Audit
 from api.cases.tests.factories import EcjuQueryFactory
 from parameterized import parameterized
 
 from django.urls import reverse
 from rest_framework import status
 
-from api.applications.tests.factories import StandardApplicationFactory
+from api.applications.tests.factories import ApplicationDocumentFactory, StandardApplicationFactory
 from api.staticdata.statuses.enums import CaseStatusEnum
 from api.staticdata.statuses.models import CaseStatus
 from api.cases.models import Case, Queue
 from api.organisations.tests.factories import OrganisationFactory
 
 from test_helpers.clients import DataTestClient
+
+from api.f680.tests.factories import F680ApplicationFactory  # /PS-IGNORE
+
+pytestmark = pytest.mark.django_db
+
+pytest_plugins = [
+    "api.tests.unit.fixtures.core",
+]
 
 
 class TestChangeStatus(DataTestClient):
@@ -173,3 +184,130 @@ class TestApplicationHistory(DataTestClient):
         response = self.client.get(url, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+
+@pytest.fixture()
+def application(organisation):
+    return StandardApplicationFactory(organisation=organisation)
+
+
+@pytest.fixture()
+def document_data(application):
+    return {
+        "name": "my_file.jpg",
+        "s3_key": "my_file.jpg",
+        "size": 476,
+        "description": "banana cake 1",
+        "application": str(application.id),
+    }
+
+
+class TestApplicationDocuments:
+
+    @pytest.mark.parametrize("application_factory", [StandardApplicationFactory, F680ApplicationFactory])
+    def test_GET_success(self, application_factory, api_client, exporter_headers, organisation):
+
+        my_application = application_factory(organisation=organisation)
+        my_doc_1 = ApplicationDocumentFactory(application=my_application)
+        my_doc_2 = ApplicationDocumentFactory(application=my_application)
+        other_doc = ApplicationDocumentFactory()
+
+        url = reverse(
+            "exporter_applications:document",
+            kwargs={
+                "pk": str(my_application.pk),
+            },
+        )
+        response = api_client.get(url, **exporter_headers)
+        assert response.status_code == status.HTTP_200_OK
+        response_json = response.json()
+
+        assert response_json["count"] == 2
+
+        result_doc_ids = [r["id"] for r in response_json["results"]]
+        result_doc_applications = [r["application"] for r in response_json["results"]]
+
+        assert [str(my_doc_1.id), str(my_doc_2.id)] == result_doc_ids
+        assert str(my_application.id) in result_doc_applications
+        assert str(other_doc.id) not in result_doc_ids
+
+    def test_GET_application_not_found_404(self, api_client, exporter_headers):
+
+        url = reverse(
+            "exporter_applications:document",
+            kwargs={
+                "pk": str(uuid.uuid4()),
+            },
+        )
+        response = api_client.get(url, **exporter_headers)
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+
+    def test_GET_application_documents_wrong_organisation_403(self, api_client, exporter_headers):
+        other_application = StandardApplicationFactory(organisation=OrganisationFactory())
+
+        url = reverse(
+            "exporter_applications:document",
+            kwargs={
+                "pk": str(other_application.pk),
+            },
+        )
+        response = api_client.get(url, exporter_headers)
+
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+
+    @pytest.mark.parametrize("application_factory", [StandardApplicationFactory, F680ApplicationFactory])
+    def test_POST_application_document(
+        self, application_factory, api_client, exporter_headers, application, document_data, organisation
+    ):
+
+        my_application = application_factory(organisation=organisation)
+        url = reverse(
+            "exporter_applications:document",
+            kwargs={
+                "pk": str(my_application.pk),
+            },
+        )
+        document_data["application"] = my_application.pk
+
+        response = api_client.post(url, data=document_data, **exporter_headers)
+
+        assert response.status_code == status.HTTP_201_CREATED
+        response_document = response.json()
+
+        response = api_client.get(url, **exporter_headers)
+
+        expected = {
+            **document_data,
+            "id": response_document["id"],
+            "application": str(my_application.id),
+            "virus_scanned_at": None,
+            "document_type": None,
+            "safe": None,
+            "created_at": response_document["created_at"],
+            "updated_at": response_document["updated_at"],
+        }
+
+        assert response_document == expected
+
+    def test_POST_application_document_create_audit(
+        self, api_client, exporter_headers, exporter_user, application, document_data
+    ):
+
+        url = reverse(
+            "exporter_applications:document",
+            kwargs={
+                "pk": str(application.pk),
+            },
+        )
+
+        response = api_client.post(url, data=document_data, **exporter_headers)
+
+        assert response.status_code == status.HTTP_201_CREATED
+
+        audit = Audit.objects.get()
+
+        assert audit.actor == exporter_user
+        assert audit.target.id == application.id
+        assert audit.verb == AuditType.UPLOAD_APPLICATION_DOCUMENT
+
+        assert audit.payload == {"file_name": document_data["name"]}

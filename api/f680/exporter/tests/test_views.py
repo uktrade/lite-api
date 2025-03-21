@@ -354,45 +354,44 @@ class TestF680ApplicationViewSet:
             (
                 {
                     "sections": {
-                        "approval_type": {"type": "multiple", "fields": []},
-                        "product_information": {"type": "single", "fields": []},
+                        "approval_type": {"type": "multiple", "fields": {}},
+                        "product_information": {"type": "single", "fields": {}},
                         "user_information": {"type": "multiple", "items": []},
-                        "general_application_details": {"type": "single", "fields": []},
+                        "general_application_details": {"type": "single", "fields": {}},
                     }
                 },
                 {
                     "errors": {
                         "sections": {
-                            "approval_type": {
-                                "type": [
-                                    ErrorDetail(string='"multiple" is not a valid choice.', code="invalid_choice"),
-                                ],
-                            },
-                            "general_application_details": {
-                                "non_field_errors": [
-                                    ErrorDetail(
-                                        string="Required fields missing from section; ['name']", code="invalid"
-                                    ),
-                                ],
-                            },
                             "product_information": {
-                                "non_field_errors": [
-                                    ErrorDetail(
-                                        string="Required fields missing from section; ['product_description', 'product_name']",
-                                        code="invalid",
-                                    ),
-                                ],
+                                "fields": {
+                                    "product_name": [ErrorDetail(string="This field is required.", code="required")],
+                                    "product_description": [
+                                        ErrorDetail(string="This field is required.", code="required")
+                                    ],
+                                }
                             },
                             "user_information": {
                                 "items": {
                                     "non_field_errors": [
                                         ErrorDetail(
                                             string="Ensure this field has at least 1 elements.", code="min_length"
-                                        ),
-                                    ],
+                                        )
+                                    ]
+                                }
+                            },
+                            "general_application_details": {
+                                "fields": {"name": [ErrorDetail(string="This field is required.", code="required")]}
+                            },
+                            "approval_type": {
+                                "type": [
+                                    ErrorDetail(string='"multiple" is not a valid choice.', code="invalid_choice")
+                                ],
+                                "fields": {
+                                    "approval_choices": [ErrorDetail(string="This field is required.", code="required")]
                                 },
                             },
-                        },
+                        }
                     }
                 },
             ),

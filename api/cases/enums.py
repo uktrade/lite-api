@@ -67,17 +67,23 @@ class CaseTypeTypeEnum:
     QUERY = "query"
     REGISTRATION = "registration"
     COMPLIANCE = "compliance"
+    SECURITY_CLEARANCE = "security_clearance"
 
     choices = [
         (APPLICATION, "Application"),
         (QUERY, "Query"),
         (REGISTRATION, "Registration"),
         (COMPLIANCE, "Compliance"),
+        (SECURITY_CLEARANCE, "Security Clearance"),
     ]
 
     @classmethod
     def as_list(cls):
         return [{"key": choice[0], "value": choice[1]} for choice in cls.choices]
+
+    @classmethod
+    def get_case_type(cls, case_type):
+        return case_type.type
 
 
 class CaseTypeSubTypeEnum:
@@ -134,8 +140,24 @@ class CaseTypeSubTypeEnum:
         """
         return application_type in CaseTypeSubTypeEnum.mod
 
+    @classmethod
+    def get_case_type(cls, case_type):
+        return case_type.sub_type
+
 
 class CaseTypeEnum:
+    class SIEL:
+        id = UUID("00000000-0000-0000-0000-000000000004")
+        reference = CaseTypeReferenceEnum.SIEL
+        type = CaseTypeTypeEnum.APPLICATION
+        sub_type = CaseTypeSubTypeEnum.STANDARD
+
+    class F680:
+        id = UUID("00000000-0000-0000-0000-000000000007")
+        reference = CaseTypeReferenceEnum.F680
+        type = CaseTypeTypeEnum.SECURITY_CLEARANCE
+        sub_type = CaseTypeSubTypeEnum.F680
+
     class OIEL:
         id = UUID("00000000-0000-0000-0000-000000000001")
         reference = CaseTypeReferenceEnum.OIEL
@@ -154,12 +176,6 @@ class CaseTypeEnum:
         type = CaseTypeTypeEnum.APPLICATION
         sub_type = CaseTypeSubTypeEnum.OPEN
 
-    class SIEL:
-        id = UUID("00000000-0000-0000-0000-000000000004")
-        reference = CaseTypeReferenceEnum.SIEL
-        type = CaseTypeTypeEnum.APPLICATION
-        sub_type = CaseTypeSubTypeEnum.STANDARD
-
     class SICL:
         id = UUID("00000000-0000-0000-0000-000000000005")
         reference = CaseTypeReferenceEnum.SICL
@@ -171,12 +187,6 @@ class CaseTypeEnum:
         reference = CaseTypeReferenceEnum.SITL
         type = CaseTypeTypeEnum.APPLICATION
         sub_type = CaseTypeSubTypeEnum.STANDARD
-
-    class F680:
-        id = UUID("00000000-0000-0000-0000-000000000007")
-        reference = CaseTypeReferenceEnum.F680
-        type = CaseTypeTypeEnum.APPLICATION
-        sub_type = CaseTypeSubTypeEnum.F680
 
     class EXHIBITION:
         id = UUID("00000000-0000-0000-0000-000000000008")
@@ -257,6 +267,11 @@ class CaseTypeEnum:
     MOD_LICENCE_IDS = [F680.id, EXHIBITION.id, GIFTING.id]
     LICENCE_IDS = OPEN_GENERAL_LICENCE_IDS + STANDARD_LICENCE_IDS + OPEN_LICENCE_IDS + MOD_LICENCE_IDS
 
+    choices = [
+        (SIEL.id, SIEL.reference),
+        (F680.id, F680.reference),
+    ]
+
     @classmethod
     def case_types_to_representation(cls):
         return CaseTypeReferenceEnum.as_list()
@@ -293,6 +308,10 @@ class CaseTypeEnum:
     @classmethod
     def trade_control_case_type_ids(cls):
         return [cls.SICL.id, cls.OICL.id]
+
+    @classmethod
+    def get_case_type(cls, case_type):
+        return case_type.pk
 
 
 class AdviceType:

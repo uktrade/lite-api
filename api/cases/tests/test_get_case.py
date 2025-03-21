@@ -10,11 +10,16 @@ from api.cases.models import Case, CaseQueue
 from lite_routing.routing_rules_internal.enums import FlagsEnum
 from parameterized import parameterized
 from rest_framework import status
+from freezegun import freeze_time
 
 from api.applications.models import PartyOnApplication
 from api.cases.enums import CaseTypeEnum
-from api.cases.models import Case
 from api.cases.tests.factories import CaseAssignmentFactory, FinalAdviceFactory, CountersignAdviceFactory
+from api.f680.tests.factories import (
+    SubmittedF680ApplicationFactory,
+    F680SecurityReleaseRequestFactory,
+    F680ProductFactory,
+)
 from api.flags.enums import SystemFlags
 from api.flags.models import Flag
 from api.flags.tests.factories import FlagFactory
@@ -23,8 +28,6 @@ from api.staticdata.trade_control.enums import TradeControlActivity, TradeContro
 from test_helpers.clients import DataTestClient
 from api.staticdata.statuses.models import CaseStatus, CaseSubStatus
 from api.users.models import ExporterUser
-
-from lite_routing.routing_rules_internal.enums import FlagsEnum
 
 
 class CaseGetTests(DataTestClient):
@@ -443,3 +446,104 @@ class CaseGetTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response_data["case"]["data"]["denial_matches"], expected_denial_matches)
+
+    @freeze_time("2025-01-01 12:00:01")
+    def test_f680_case_no_related_records(self):
+        application = SubmittedF680ApplicationFactory(
+            name="some name",
+        )
+        url = reverse("cases:case", kwargs={"pk": application.id})
+
+        response = self.client.get(url, **self.gov_headers)
+
+        response_data = response.json()
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        expected_case_data = {
+            "application": {"some": "json"},
+            "id": str(application.id),
+            "name": "some name",
+            "organisation": {
+                "id": str(application.organisation.id),
+                "name": application.organisation.name,
+                "status": application.organisation.status,
+                "type": application.organisation.type,
+            },
+            "product": None,
+            "reference_code": application.reference_code,
+            "security_release_requests": [],
+            "status": {"id": str(application.status.id), "key": "submitted", "value": "Submitted"},
+            "submitted_at": "2025-01-01T12:00:01Z",
+            "submitted_by": None,
+        }
+        self.assertEqual(response_data["case"]["data"], expected_case_data)
+
+    @freeze_time("2025-01-01 12:00:01")
+    def test_f680_case_related_records(self):
+        application = SubmittedF680ApplicationFactory(
+            name="some name",
+        )
+        product = F680ProductFactory()
+        security_release_requests = []
+        for i in range(3):
+            security_release_requests.append(
+                F680SecurityReleaseRequestFactory(application=application, product=product)
+            )
+
+        url = reverse("cases:case", kwargs={"pk": application.id})
+        response = self.client.get(url, **self.gov_headers)
+        response_data = response.json()
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        expected_case_data = {
+            "application": {"some": "json"},
+            "id": str(application.id),
+            "name": "some name",
+            "organisation": {
+                "id": str(application.organisation.id),
+                "name": application.organisation.name,
+                "status": application.organisation.status,
+                "type": application.organisation.type,
+            },
+            "product": {
+                "id": str(product.id),
+                "name": product.name,
+                "description": product.description,
+                "security_grading": {"key": product.security_grading, "value": product.get_security_grading_display()},
+                "security_grading_other": product.security_grading_other,
+            },
+            "reference_code": application.reference_code,
+            "security_release_requests": [
+                {
+                    "id": str(request.id),
+                    "recipient": {
+                        "id": str(request.recipient.id),
+                        "name": request.recipient.name,
+                        "address": request.recipient.address,
+                        "country": {
+                            "id": str(request.recipient.country_id),
+                            "name": request.recipient.country.name,
+                            "type": request.recipient.country.type,
+                            "is_eu": request.recipient.country.is_eu,
+                            "report_name": request.recipient.country.report_name,
+                        },
+                        "type": {"key": request.recipient.type, "value": request.recipient.get_type_display()},
+                        "role": request.recipient.role,
+                        "role_other": request.recipient.role_other,
+                    },
+                    "security_grading": {
+                        "key": request.security_grading,
+                        "value": request.get_security_grading_display(),
+                    },
+                    "security_grading_other": request.security_grading_other,
+                    "approval_types": request.approval_types,
+                    "intended_use": request.intended_use,
+                    "product_id": str(request.product.id),
+                }
+                for request in security_release_requests
+            ],
+            "status": {"id": str(application.status.id), "key": "submitted", "value": "Submitted"},
+            "submitted_at": "2025-01-01T12:00:01Z",
+            "submitted_by": None,
+        }
+        self.assertEqual(response_data["case"]["data"], expected_case_data)
