@@ -4,8 +4,8 @@ from django.core.management.base import BaseCommand
 
 from api.audit_trail import service as audit_trail_service
 from api.audit_trail.enums import AuditType
-from api.applications.helpers import get_application_update_serializer
 from api.applications.libraries.get_applications import get_application
+from api.applications.serializers.standard_application import StandardApplicationUpdateSerializer
 from api.cases.models import Case
 from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
 from api.users.models import BaseUser
@@ -49,10 +49,9 @@ class Command(BaseCommand):
             return
 
         prev_status = application.status.status
-        serializer = get_application_update_serializer(application)
         case_status = get_case_status_by_status(status)
         data = {"status": str(case_status.pk)}
-        serializer = serializer(application, data=data, partial=True)
+        serializer = StandardApplicationUpdateSerializer(application, data=data, partial=True)
         if not serializer.is_valid():
             logging.error(f"Error updating the status for {case_reference}: {serializer.errors}")
             return
