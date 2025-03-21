@@ -10,5 +10,5 @@ from api.export_licences.exporter.serializers import ExportLicenceSerializer
 class ExportLicenceApplicationViewSet(viewsets.ModelViewSet):
     authentication_classes = (ExporterAuthentication,)
     serializer_class = ExportLicenceSerializer
-    serializer_context_processors = (ApplicationSerializerContextProcessor(CaseTypeEnum.SIEL.id),)
+    serializer_context_processors = (ApplicationSerializerContextProcessor(CaseTypeEnum.EXPORT_LICENCE.id),)
     queryset = StandardApplication.objects.all()

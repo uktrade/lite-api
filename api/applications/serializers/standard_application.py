@@ -53,7 +53,6 @@ from api.users.models import ExporterUser
 from api.users.libraries.notifications import get_exporter_user_notification_individual_count
 
 from .denial import DenialMatchOnApplicationViewSerializer
-from .generic_application import GenericApplicationListSerializer
 from .good import GoodOnApplicationViewSerializer
 from .fields import CaseStatusField
 
@@ -463,7 +462,7 @@ class StandardApplicationCreateSerializer(serializers.ModelSerializer):
 
     @classmethod
     def many_init(cls, *args, **kwargs):
-        kwargs["child"] = GenericApplicationListSerializer()
+        kwargs["child"] = StandardApplicationListSerializer()
         return serializers.ListSerializer(*args, **kwargs)
 
 
