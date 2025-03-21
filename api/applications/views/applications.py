@@ -25,7 +25,6 @@ from api.applications import constants
 from api.applications.creators import validate_application_ready_for_submission, _validate_agree_to_declaration
 from api.applications.helpers import (
     get_application_view_serializer,
-    get_application_update_serializer,
     validate_and_create_goods_on_licence,
     auto_match_sanctions,
 )
@@ -49,14 +48,20 @@ from api.applications.models import (
     PartyOnApplication,
     StandardApplication,
 )
-from api.applications.serializers.generic_application import GenericApplicationCopySerializer
 from api.applications.serializers.standard_application import (
+    StandardApplicationCopySerializer,
     StandardApplicationCreateSerializer,
     StandardApplicationRequiresSerialNumbersSerializer,
+    StandardApplicationUpdateSerializer,
 )
 from api.audit_trail import service as audit_trail_service
 from api.audit_trail.enums import AuditType
-from api.cases.enums import AdviceLevel, AdviceType, CaseTypeSubTypeEnum, CaseTypeEnum
+from api.cases.enums import (
+    AdviceLevel,
+    AdviceType,
+    CaseTypeSubTypeEnum,
+    CaseTypeEnum,
+)
 from api.cases.models import CaseQueueMovement
 from api.cases.generated_documents.models import GeneratedCaseDocument
 from api.cases.generated_documents.helpers import auto_generate_case_document
@@ -197,10 +202,9 @@ class ApplicationDetail(RetrieveUpdateDestroyAPIView):
         Update an application instance
         """
         application = get_application(pk)
-        update_serializer = get_application_update_serializer(application)
         case = application.get_case()
         data = request.data.copy()
-        serializer = update_serializer(
+        serializer = StandardApplicationUpdateSerializer(
             application, data=data, context=get_request_user_organisation(request), partial=True
         )
 
@@ -213,10 +217,6 @@ class ApplicationDetail(RetrieveUpdateDestroyAPIView):
 
         if not serializer.is_valid():
             return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
-
-        if application.case_type.sub_type == CaseTypeSubTypeEnum.HMRC:
-            serializer.save()
-            return JsonResponse(data={}, status=status.HTTP_200_OK)
 
         # Audit block
         if request.data.get("name"):
@@ -236,9 +236,8 @@ class ApplicationDetail(RetrieveUpdateDestroyAPIView):
             serializer.save()
             return JsonResponse(data={}, status=status.HTTP_200_OK)
 
-        if application.case_type.sub_type == CaseTypeSubTypeEnum.STANDARD:
-            save_and_audit_have_you_been_informed_ref(request, application, serializer)
-            serializer.save()
+        save_and_audit_have_you_been_informed_ref(request, application, serializer)
+        serializer.save()
 
         return JsonResponse(data={}, status=status.HTTP_200_OK)
 
@@ -582,7 +581,7 @@ class ApplicationCopy(APIView):
 
         data = request.data
 
-        serializer = GenericApplicationCopySerializer(
+        serializer = StandardApplicationCopySerializer(
             data=data, context={"application_type": old_application.case_type}
         )
 
@@ -739,11 +738,12 @@ class ApplicationRouteOfGoods(UpdateAPIView):
         """Update an application instance with route of goods data."""
 
         application = get_application(pk)
-        serializer = get_application_update_serializer(application)
         case = application.get_case()
         data = request.data.copy()
 
-        serializer = serializer(application, data=data, context=get_request_user_organisation(request), partial=True)
+        serializer = StandardApplicationUpdateSerializer(
+            application, data=data, context=get_request_user_organisation(request), partial=True
+        )
         if not serializer.is_valid():
             return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
