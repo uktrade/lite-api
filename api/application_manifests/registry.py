@@ -11,7 +11,7 @@ class ManifestRegistry:
         return _register
 
     def get_manifest(self, application_type):
-        return self.manifests[application_type]
+        return self.manifests[application_type.reference]
 
 
 application_manifest_registry = ManifestRegistry()

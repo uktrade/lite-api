@@ -63,13 +63,13 @@ class CaseTypeManager(models.Manager):
 class CaseType(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     type = models.CharField(choices=CaseTypeTypeEnum.choices, null=False, blank=False, max_length=35)
-    sub_type = models.CharField(choices=CaseTypeSubTypeEnum.choices, null=False, blank=False, max_length=35)
+    sub_type = models.CharField(choices=CaseTypeSubTypeEnum.choices, null=True, blank=False, max_length=35)
     reference = models.CharField(
         choices=CaseTypeReferenceEnum.choices,
         unique=True,
         null=False,
         blank=False,
-        max_length=6,
+        max_length=255,
     )
 
     objects = CaseTypeManager()
@@ -505,7 +505,7 @@ class Case(TimestampableModel):
         return super().delete(*args, **kwargs)
 
     def get_application_manifest(self):
-        application_manifest = application_manifest_registry.get_manifest(self.case_type.sub_type)
+        application_manifest = application_manifest_registry.get_manifest(self.case_type)
         return application_manifest
 
     def get_application(self):

@@ -23,6 +23,7 @@ class CaseTypeReferenceEnum:
     EUA = "eua"
     OGTCL = "ogtcl"
     OGTL = "ogtl"
+    EXPORT_LICENCE = "export_licence"
     # Compliance cases both require COMP as a prefix in the reference code, so we use an _ to separate the suffix
     #   which means we have both on reference code creation, without affecting filtering case_types etc
     COMP_SITE = "comp_c"
@@ -45,6 +46,7 @@ class CaseTypeReferenceEnum:
         (OGTL, "Open General Transhipment Licence"),
         (COMP_SITE, "Compliance Site Case"),
         (COMP_VISIT, "Compliance Visit Case"),
+        (EXPORT_LICENCE, "Export Licence"),
     ]
 
     STANDARD_LICENCES = [SIEL, SICL, SITL]
@@ -146,6 +148,11 @@ class CaseTypeSubTypeEnum:
 
 
 class CaseTypeEnum:
+    class EXPORT_LICENCE:
+        id = UUID("00000000-0000-0000-0000-000000000017")
+        reference = CaseTypeReferenceEnum.EXPORT_LICENCE
+        type = CaseTypeTypeEnum.APPLICATION
+
     class SIEL:
         id = UUID("00000000-0000-0000-0000-000000000004")
         reference = CaseTypeReferenceEnum.SIEL
