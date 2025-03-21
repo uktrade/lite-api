@@ -3,6 +3,7 @@ import pytest
 from .factories import F680ApplicationFactory
 
 from api.f680.models import Product, SecurityReleaseRequest
+from api.f680.exporter.serializers import SubmittedApplicationJSONSerializer
 
 
 pytestmark = pytest.mark.django_db
@@ -15,7 +16,9 @@ class TestF680Application:
     ):
         f680_application = F680ApplicationFactory(application=data_application_json)
         assert f680_application.name is None
-        f680_application.on_submit()
+        serializer = SubmittedApplicationJSONSerializer(data=f680_application.application)
+        serializer.is_valid(raise_exception=True)
+        f680_application.on_submit(serializer.data)
         f680_application.refresh_from_db()
         assert f680_application.name == "some name"
 
@@ -67,34 +70,4 @@ class TestF680Application:
         f680_application = F680ApplicationFactory()
         assert f680_application.name is None
         with pytest.raises(KeyError):
-            f680_application.on_submit()
-
-    def test_get_application_field_value_field_present(self, data_application_json):
-        f680_application = F680ApplicationFactory(application=data_application_json)
-        assert f680_application.get_application_field_value("general_application_details", "name") == "some name"
-
-    def test_get_application_field_value_field_missing_exception_raised(self, data_application_json):
-        f680_application = F680ApplicationFactory(application=data_application_json)
-        with pytest.raises(KeyError):
-            f680_application.get_application_field_value("general_application_details", "foo")
-
-    def test_get_application_field_value_section_missing(self, data_application_json):
-        f680_application = F680ApplicationFactory(application=data_application_json)
-        with pytest.raises(KeyError):
-            f680_application.get_application_field_value("bar", "name")
-
-    def test_get_field_value_field_exists(self):
-        f680_application = F680ApplicationFactory()
-        fields = [{"key": "foo", "raw_answer": "bar"}, {"key": "a", "raw_answer": "b"}]
-        assert f680_application.get_field_value(fields, "a") == "b"
-
-    def test_get_field_value_field_missing_exception_raised(self):
-        f680_application = F680ApplicationFactory()
-        fields = [{"key": "foo", "raw_answer": "bar"}, {"key": "a", "raw_answer": "b"}]
-        with pytest.raises(KeyError):
-            f680_application.get_field_value(fields, "missing")
-
-    def test_get_field_value_field_missing_no_exception(self):
-        f680_application = F680ApplicationFactory()
-        fields = [{"key": "foo", "raw_answer": "bar"}, {"key": "a", "raw_answer": "b"}]
-        assert f680_application.get_field_value(fields, "missing", raise_exception=False) == None
+            f680_application.on_submit({})
