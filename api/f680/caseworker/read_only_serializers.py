@@ -15,7 +15,7 @@ class GovUserViewSerializer(serializers.Serializer):
     id = serializers.ReadOnlyField(source="baseuser_ptr_id")
     first_name = serializers.CharField(read_only=True)
     last_name = serializers.CharField(read_only=True)
-    team = TeamViewSerializer()
+    team = serializers.ReadOnlyField(source="team_id")
 
 
 class F680RecommendationViewSerializer(serializers.ModelSerializer):
