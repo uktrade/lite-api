@@ -1,6 +1,7 @@
 import pytest
 
 from django.urls import reverse
+from freezegun import freeze_time
 
 from api.f680.enums import RecommendationType, SecurityGrading
 from api.f680.models import Recommendation
@@ -52,19 +53,27 @@ def get_f680_application(organisation):
     return _get_f680_application
 
 
-def test_GET_recommendation_success(api_client, get_f680_application, url, team_case_advisor_headers):
+@freeze_time("2025-01-01 12:00:01")
+def test_GET_recommendation_success(
+    api_client, get_f680_application, url, team_case_advisor, team_case_advisor_headers
+):
     f680_application = get_f680_application()
     another_f680_application = get_f680_application()
+    gov_user = team_case_advisor(TeamIdEnum.MOD_CAPPROT)
 
     for release_request in f680_application.security_release_requests.all():
         F680RecommendationFactory(
-            case=f680_application, security_release_request=release_request, conditions="No concerns"
+            case=f680_application,
+            security_release_request=release_request,
+            type=RecommendationType.APPROVE,
+            security_grading="official",
+            conditions="No concerns",
         )
     for release_request in another_f680_application.security_release_requests.all():
         F680RecommendationFactory(
             case=another_f680_application, security_release_request=release_request, conditions="No concerns"
         )
-    headers = team_case_advisor_headers(TeamIdEnum.MOD_CAPPROT)
+    headers = {"HTTP_GOV_USER_TOKEN": user_to_token(gov_user.baseuser_ptr)}
     response = api_client.get(url(f680_application), **headers)
     assert response.status_code == 200
     assert len(response.json()) == f680_application.security_release_requests.count()
@@ -72,6 +81,33 @@ def test_GET_recommendation_success(api_client, get_f680_application, url, team_
     assert Recommendation.objects.count() == (
         f680_application.security_release_requests.count() + another_f680_application.security_release_requests.count()
     )
+
+    # check the response shape
+    assert response.json() == [
+        {
+            "id": str(item.id),
+            "case": str(item.case.id),
+            "type": {"key": "approve", "value": "Approve"},
+            "created_at": item.created_at.strftime("%Y-%m-%dT%H:%M:%SZ"),
+            "security_grading": {"key": "official", "value": "Official"},
+            "security_grading_other": item.security_grading_other,
+            "conditions": item.conditions,
+            "refusal_reasons": item.refusal_reasons,
+            "security_release_request": str(item.security_release_request_id),
+            "user": {
+                "id": str(item.user.baseuser_ptr.id),
+                "first_name": item.user.baseuser_ptr.first_name,
+                "last_name": item.user.baseuser_ptr.last_name,
+                "team": str(item.user.team.id),
+            },
+            "team": {
+                "id": str(item.team.id),
+                "name": item.team.name,
+                "alias": item.team.alias,
+            },
+        }
+        for item in Recommendation.objects.filter(case=f680_application)
+    ]
 
 
 def test_GET_recommendation_raises_notfound_error(api_client, get_f680_application, team_case_advisor_headers):
