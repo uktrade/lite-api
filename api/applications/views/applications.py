@@ -61,6 +61,7 @@ from api.cases.enums import (
     AdviceType,
     CaseTypeSubTypeEnum,
     CaseTypeEnum,
+    CaseTypeReferenceEnum,
 )
 from api.cases.models import CaseQueueMovement
 from api.cases.generated_documents.models import GeneratedCaseDocument
@@ -738,7 +739,12 @@ class ApplicationRouteOfGoods(UpdateAPIView):
 
     @authorised_to_view_application(ExporterUser)
     @application_is_major_editable
-    @allowed_application_types([CaseTypeSubTypeEnum.STANDARD])
+    @allowed_application_types(
+        [
+            CaseTypeReferenceEnum.EXPORT_LICENCE,
+            CaseTypeReferenceEnum.SIEL,
+        ]
+    )
     def put(self, request, pk):
         """Update an application instance with route of goods data."""
 
