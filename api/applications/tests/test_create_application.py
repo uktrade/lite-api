@@ -6,9 +6,12 @@ from urllib.parse import urlencode
 from api.applications.enums import ApplicationExportType, ApplicationExportLicenceOfficialType
 from api.applications.models import StandardApplication, BaseApplication
 from api.applications.tests.factories import DraftStandardApplicationFactory
-from api.cases.enums import CaseTypeEnum, CaseTypeReferenceEnum
-from lite_content.lite_api import strings
-from api.staticdata.trade_control.enums import TradeControlActivity, TradeControlProductCategory
+from api.cases.enums import (
+    CaseTypeEnum,
+    CaseTypeReferenceEnum,
+)
+from api.cases.models import CaseType
+from api.staticdata.statuses.enums import CaseStatusEnum
 from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
 from test_helpers.clients import DataTestClient
 
@@ -22,7 +25,6 @@ class DraftTests(DataTestClient):
         """
         data = {
             "name": "Test",
-            "application_type": CaseTypeReferenceEnum.SIEL,
             "export_type": ApplicationExportType.TEMPORARY,
             "have_you_been_informed": ApplicationExportLicenceOfficialType.YES,
             "reference_number_on_information_form": "123",
@@ -30,11 +32,19 @@ class DraftTests(DataTestClient):
 
         response = self.client.post(self.url, data, **self.exporter_headers)
         response_data = response.json()
-        standard_application = StandardApplication.objects.get()
 
+        self.assertEqual(StandardApplication.objects.count(), 1)
+
+        standard_application = StandardApplication.objects.get()
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(response_data["id"], str(standard_application.id))
-        self.assertEqual(StandardApplication.objects.count(), 1)
+        self.assertEqual(standard_application.name, "Test")
+        self.assertEqual(standard_application.export_type, ApplicationExportType.TEMPORARY)
+        self.assertEqual(standard_application.have_you_been_informed, ApplicationExportLicenceOfficialType.YES)
+        self.assertEqual(standard_application.reference_number_on_information_form, "123")
+        self.assertEqual(standard_application.organisation, self.organisation)
+        self.assertEqual(standard_application.status, get_case_status_by_status(CaseStatusEnum.DRAFT))
+        self.assertEqual(standard_application.case_type, CaseType.objects.get(pk=CaseTypeEnum.SIEL.id))
 
     def test_create_draft_standard_individual_export_application_empty_export_type_successful(self):
         """
@@ -42,7 +52,6 @@ class DraftTests(DataTestClient):
         """
         data = {
             "name": "Test",
-            "application_type": CaseTypeReferenceEnum.SIEL,
             "have_you_been_informed": ApplicationExportLicenceOfficialType.YES,
             "reference_number_on_information_form": "123",
         }
@@ -51,16 +60,23 @@ class DraftTests(DataTestClient):
         response_data = response.json()
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
+        self.assertEqual(StandardApplication.objects.count(), 1)
         standard_application = StandardApplication.objects.get()
         self.assertEqual(response_data["id"], str(standard_application.id))
-        self.assertEqual(StandardApplication.objects.count(), 1)
+        self.assertEqual(standard_application.name, "Test")
+        self.assertEqual(standard_application.export_type, "")
+        self.assertEqual(standard_application.have_you_been_informed, ApplicationExportLicenceOfficialType.YES)
+        self.assertEqual(standard_application.reference_number_on_information_form, "123")
+        self.assertEqual(standard_application.organisation, self.organisation)
+        self.assertEqual(standard_application.status, get_case_status_by_status(CaseStatusEnum.DRAFT))
+        self.assertEqual(standard_application.case_type, CaseType.objects.get(pk=CaseTypeEnum.SIEL.id))
 
     @parameterized.expand(
         [
             [{}],
-            [{"application_type": CaseTypeReferenceEnum.SIEL, "export_type": ApplicationExportType.TEMPORARY}],
+            [{"export_type": ApplicationExportType.TEMPORARY}],
             [{"name": "Test", "export_type": ApplicationExportType.TEMPORARY}],
-            [{"name": "Test", "application_type": CaseTypeReferenceEnum.SIEL}],
+            [{"name": "Test"}],
             [{"application_type": CaseTypeReferenceEnum.EXHC}],
             [{"name": "Test"}],
         ]
@@ -76,76 +92,6 @@ class DraftTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(BaseApplication.objects.count(), 0)
-
-    def test_create_no_application_type_failure(self):
-        """
-        Ensure that we cannot create a new application without
-        providing a application_type.
-        """
-        data = {}
-
-        response = self.client.post(self.url, data, **self.exporter_headers)
-
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(
-            response.json()["errors"]["application_type"][0], strings.Applications.Generic.SELECT_A_LICENCE_TYPE
-        )
-
-    def test_trade_control_application(self):
-        data = {
-            "name": "Test",
-            "application_type": CaseTypeEnum.SICL.reference,
-            "trade_control_activity": TradeControlActivity.OTHER,
-            "trade_control_activity_other": "other activity type",
-            "trade_control_product_categories": [key for key, _ in TradeControlProductCategory.choices],
-        }
-
-        response = self.client.post(self.url, data, **self.exporter_headers)
-
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        application_id = response.json()["id"]
-        application = StandardApplication.objects.get(id=application_id)
-
-        self.assertEqual(application.trade_control_activity, data["trade_control_activity"])
-        self.assertEqual(application.trade_control_activity_other, data["trade_control_activity_other"])
-        self.assertEqual(
-            set(application.trade_control_product_categories), set(data["trade_control_product_categories"])
-        )
-
-    @parameterized.expand(
-        [
-            (
-                CaseTypeEnum.SICL.reference,
-                "trade_control_activity",
-                strings.Applications.Generic.TRADE_CONTROL_ACTIVITY_ERROR,
-            ),
-            (
-                CaseTypeEnum.SICL.reference,
-                "trade_control_activity_other",
-                strings.Applications.Generic.TRADE_CONTROL_ACTIVITY_OTHER_ERROR,
-            ),
-            (
-                CaseTypeEnum.SICL.reference,
-                "trade_control_product_categories",
-                strings.Applications.Generic.TRADE_CONTROl_PRODUCT_CATEGORY_ERROR,
-            ),
-        ]
-    )
-    def test_trade_control_application_failure(self, case_type, missing_field, expected_error):
-        data = {
-            "name": "Test",
-            "application_type": case_type,
-            "trade_control_activity": TradeControlActivity.OTHER,
-            "trade_control_activity_other": "other activity type",
-            "trade_control_product_categories": [key for key, _ in TradeControlProductCategory.choices],
-        }
-        data.pop(missing_field)
-
-        response = self.client.post(self.url, data, **self.exporter_headers)
-
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        errors = response.json()["errors"]
-        self.assertEqual(errors[missing_field], [expected_error])
 
 
 class ApplicationsListTests(DataTestClient):
