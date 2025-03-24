@@ -11,6 +11,7 @@ from api.f680.models import Recommendation
 from api.f680.caseworker.filters import CurrentCaseRecommendationFilter
 from api.f680.caseworker.permissions import CaseCanAcceptRecommendations, CaseCanUserMakeRecommendations
 from api.f680.caseworker.serializers import F680RecommendationSerializer
+from api.f680.caseworker.read_only_serializers import F680RecommendationViewSerializer
 
 
 class F680RecommendationViewSet(viewsets.ModelViewSet):
@@ -51,6 +52,11 @@ class F680RecommendationViewSet(viewsets.ModelViewSet):
         self.perform_create(serializer)
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+        serializer = F680RecommendationViewSerializer(queryset, many=True)
+        return Response(serializer.data)
 
     def destroy(self, request, *args, **kwargs):
         user = request.user
