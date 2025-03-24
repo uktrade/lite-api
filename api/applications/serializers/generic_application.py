@@ -1,4 +1,3 @@
-from django.utils import timezone
 from rest_framework import serializers
 from rest_framework.fields import CharField
 
@@ -6,8 +5,7 @@ from api.applications.enums import (
     ApplicationExportType,
     ApplicationExportLicenceOfficialType,
 )
-from api.applications.libraries.get_applications import get_application
-from api.applications.models import BaseApplication, ApplicationDenialReason
+from api.applications.models import BaseApplication
 from api.applications.serializers.document import ApplicationDocumentSerializer
 from api.cases.enums import CaseTypeSubTypeEnum
 from api.cases.models import CaseType
@@ -18,10 +16,6 @@ from api.gov_users.serializers import GovUserSimpleSerializer
 from lite_content.lite_api import strings
 from api.organisations.serializers import OrganisationDetailSerializer, ExternalLocationSerializer, SiteListSerializer
 from api.parties.serializers import PartySerializer
-from api.staticdata.denial_reasons.models import DenialReason
-from api.staticdata.statuses.enums import CaseStatusEnum
-from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
-from api.staticdata.statuses.models import CaseStatus
 from api.users.libraries.notifications import get_exporter_user_notification_individual_count
 from api.users.models import ExporterUser
 
@@ -166,44 +160,6 @@ class GenericApplicationViewSerializer(serializers.ModelSerializer):
     def get_additional_documents(self, instance):
         documents = instance.applicationdocument_set.all().order_by("created_at")
         return ApplicationDocumentSerializer(documents, many=True).data
-
-
-class GenericApplicationUpdateSerializer(serializers.ModelSerializer):
-    name = CharField(
-        max_length=100,
-        required=True,
-        allow_blank=False,
-        allow_null=False,
-        error_messages={"blank": strings.Applications.Generic.MISSING_REFERENCE_NAME_ERROR},
-    )
-    reasons = serializers.PrimaryKeyRelatedField(queryset=DenialReason.objects.all(), many=True, write_only=True)
-    reason_details = serializers.CharField(required=False, allow_blank=True)
-    status = serializers.PrimaryKeyRelatedField(queryset=CaseStatus.objects.all())
-
-    class Meta:
-        model = BaseApplication
-        fields = (
-            "name",
-            "status",
-            "reasons",
-            "reason_details",
-        )
-
-    def update(self, instance, validated_data):
-        """
-        Update and return an existing `Application` instance, given the validated data.
-        """
-        instance.name = validated_data.get("name", instance.name)
-        instance.status = validated_data.get("status", instance.status)
-        instance.clearance_level = validated_data.get("clearance_level", instance.clearance_level)
-
-        # Remove any previous denial reasons
-        if validated_data.get("status") == get_case_status_by_status(CaseStatusEnum.FINALISED):
-            ApplicationDenialReason.objects.filter(application=get_application(instance.id)).delete()
-            instance.last_closed_at = timezone.now()
-
-        instance = super().update(instance, validated_data)
-        return instance
 
 
 class GenericApplicationCopySerializer(serializers.ModelSerializer):

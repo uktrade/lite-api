@@ -1,4 +1,6 @@
 from django.db.models import Q
+from django.utils import timezone
+
 from rest_framework import serializers
 from rest_framework.fields import CharField
 
@@ -10,8 +12,12 @@ from api.applications.enums import (
     GoodsStartingPoint,
     GoodsRecipients,
 )
+from api.applications.libraries.get_applications import get_application
 from api.applications.mixins.serializers import PartiesSerializerMixin
-from api.applications.models import StandardApplication
+from api.applications.models import (
+    ApplicationDenialReason,
+    StandardApplication,
+)
 from api.licences.serializers.view_licence import CaseLicenceViewSerializer
 from api.applications.serializers.serializer_helper import validate_field
 from api.audit_trail.enums import AuditType
@@ -21,15 +27,16 @@ from api.cases.models import CaseType
 from api.core.serializers import KeyValueChoiceField
 from api.licences.models import Licence
 from lite_content.lite_api import strings
+from api.staticdata.denial_reasons.models import DenialReason
 from api.staticdata.statuses.enums import CaseStatusEnum
 from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
+from api.staticdata.statuses.models import CaseStatus
 from api.staticdata.statuses.serializers import CaseSubStatusSerializer
 from api.staticdata.trade_control.enums import TradeControlProductCategory, TradeControlActivity
 
 from .denial import DenialMatchOnApplicationViewSerializer
 from .generic_application import (
     GenericApplicationListSerializer,
-    GenericApplicationUpdateSerializer,
     GenericApplicationViewSerializer,
 )
 from .good import GoodOnApplicationViewSerializer
@@ -317,7 +324,17 @@ class StandardApplicationCreateSerializer(serializers.ModelSerializer):
         return serializers.ListSerializer(*args, **kwargs)
 
 
-class StandardApplicationUpdateSerializer(GenericApplicationUpdateSerializer):
+class StandardApplicationUpdateSerializer(serializers.ModelSerializer):
+    name = CharField(
+        max_length=100,
+        required=True,
+        allow_blank=False,
+        allow_null=False,
+        error_messages={"blank": strings.Applications.Generic.MISSING_REFERENCE_NAME_ERROR},
+    )
+    reasons = serializers.PrimaryKeyRelatedField(queryset=DenialReason.objects.all(), many=True, write_only=True)
+    reason_details = serializers.CharField(required=False, allow_blank=True)
+    status = serializers.PrimaryKeyRelatedField(queryset=CaseStatus.objects.all())
     export_type = KeyValueChoiceField(
         choices=ApplicationExportType.choices, required=False, allow_blank=True, allow_null=True
     )
@@ -327,7 +344,11 @@ class StandardApplicationUpdateSerializer(GenericApplicationUpdateSerializer):
 
     class Meta:
         model = StandardApplication
-        fields = GenericApplicationUpdateSerializer.Meta.fields + (
+        fields = (
+            "name",
+            "status",
+            "reasons",
+            "reason_details",
             "export_type",
             "have_you_been_informed",
             "reference_number_on_information_form",
@@ -352,12 +373,17 @@ class StandardApplicationUpdateSerializer(GenericApplicationUpdateSerializer):
             if hasattr(self, "initial_data"):
                 self.initial_data["non_waybill_or_lading_route_details"] = None
 
-        if self.instance.case_type.id == CaseTypeEnum.SICL.id:
-            self.fields.pop("have_you_been_informed")
-            self.fields.pop("reference_number_on_information_form")
-
     def update(self, instance, validated_data):
         self._update_have_you_been_informed_linked_fields(instance, validated_data)
+
+        instance.name = validated_data.get("name", instance.name)
+        instance.status = validated_data.get("status", instance.status)
+        instance.clearance_level = validated_data.get("clearance_level", instance.clearance_level)
+
+        # Remove any previous denial reasons
+        if validated_data.get("status") == get_case_status_by_status(CaseStatusEnum.FINALISED):
+            ApplicationDenialReason.objects.filter(application=get_application(instance.id)).delete()
+            instance.last_closed_at = timezone.now()
 
         instance = super().update(instance, validated_data)
         return instance
