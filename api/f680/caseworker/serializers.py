@@ -5,7 +5,14 @@ from api.cases.models import Case
 from api.core.serializers import CountrySerializerField, KeyValueChoiceField, PrimaryKeyRelatedField
 from api.organisations.exporter.serializers import RelatedOrganisationSerializer
 from api.f680 import enums
-from api.f680.models import F680Application, Product, Recipient, Recommendation, SecurityReleaseRequest
+from api.f680.models import (
+    F680Application,
+    Product,
+    Recipient,
+    Recommendation,
+    SecurityReleaseRequest,
+    SecurityReleaseOutcome,
+)
 from api.teams.models import Team
 from api.users.exporter.serializers import RelatedExporterUserSerializer
 from api.users.enums import UserStatuses
@@ -111,3 +118,25 @@ class F680RecommendationSerializer(serializers.ModelSerializer):
             "security_release_request",
         )
         read_only_fields = ["id"]
+
+
+class SecurityReleaseOutcomeSerializer(serializers.ModelSerializer):
+    case = PrimaryKeyRelatedField(queryset=Case.objects.all())
+    user = PrimaryKeyRelatedField(queryset=GovUser.objects.filter(status=UserStatuses.ACTIVE))
+    team = PrimaryKeyRelatedField(queryset=Team.objects.all())
+    security_release_requests = PrimaryKeyRelatedField(queryset=SecurityReleaseRequest.objects.all(), many=True)
+
+    class Meta:
+        model = SecurityReleaseOutcome
+        fields = [
+            "id",
+            "case",
+            "user",
+            "team",
+            "security_release_requests",
+            "outcome",
+            "conditions",
+            "refusal_reasons",
+            "security_grading",
+            "approval_types",
+        ]
