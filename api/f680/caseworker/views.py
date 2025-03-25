@@ -18,6 +18,7 @@ class F680RecommendationViewSet(viewsets.ModelViewSet):
     authentication_classes = (GovAuthentication,)
     permission_classes = (CaseCanAcceptRecommendations, CaseCanUserMakeRecommendations)
     filter_backends = (CurrentCaseRecommendationFilter,)
+    queryset = Recommendation.objects.all()
     serializer_class = F680RecommendationSerializer
     pagination_class = None
 
@@ -28,9 +29,6 @@ class F680RecommendationViewSet(viewsets.ModelViewSet):
             raise Http404()
 
         return super().dispatch(request, *args, **kwargs)
-
-    def get_queryset(self):
-        return Recommendation.objects.filter(case_id=self.kwargs["pk"])
 
     def get_case(self):
         return self.application

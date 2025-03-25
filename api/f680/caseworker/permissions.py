@@ -21,7 +21,8 @@ class CaseCanUserMakeRecommendations(permissions.BasePermission):
         if str(user.govuser.team.id) not in OGDS_FOR_F680:
             return False
 
-        user_recommendation = view.get_queryset().filter(user_id=user.id, team=user.govuser.team)
+        queryset = view.filter_queryset(view.get_queryset())
+        user_recommendation = queryset.filter(user_id=user.id, team=user.govuser.team)
         if user_recommendation.exists() and request.method == "POST":
             return False
 

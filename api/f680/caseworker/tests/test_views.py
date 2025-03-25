@@ -178,8 +178,9 @@ def test_POST_recommendation_again_raises_error(api_client, get_f680_application
     assert response.json() == {"errors": {"detail": "You do not have permission to perform this action."}}
 
 
-def test_POST_recommendation_another_case_success(api_client, get_f680_application, url, team_case_advisor_headers):
+def test_POST_recommendation_another_case_success(api_client, get_f680_application, url, team_case_advisor):
     f680_applications = [get_f680_application() for _ in range(4)]
+    gov_user = team_case_advisor(TeamIdEnum.MOD_CAPPROT)
 
     for f680_application in f680_applications:
         data = [
@@ -192,8 +193,7 @@ def test_POST_recommendation_another_case_success(api_client, get_f680_applicati
             }
             for rr in f680_application.security_release_requests.all()
         ]
-
-        headers = team_case_advisor_headers(TeamIdEnum.MOD_CAPPROT)
+        headers = {"HTTP_GOV_USER_TOKEN": user_to_token(gov_user.baseuser_ptr)}
         response = api_client.post(url(f680_application), data=data, **headers)
         assert response.status_code == 201
         assert f680_application.recommendations.count() == f680_application.security_release_requests.count()
