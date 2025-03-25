@@ -59,6 +59,13 @@ class SecurityGrading:
         (OTHER, "Other"),
     ]
 
+    security_release_outcome_choices = [
+        (OFFICIAL, "Official"),
+        (OFFICIAL_SENSITIVE, "Official - sensitive"),
+        (SECRET, "Secret"),
+        (TOP_SECRET, "Top-secret"),
+    ]
+
 
 class ApprovalTypes:
     INITIAL_DISCUSSION_OR_PROMOTING = "initial_discussion_or_promoting"
@@ -87,4 +94,14 @@ class RecommendationType:
         (APPROVE, "Approve"),
         (REFUSE, "Refuse"),
         (NOT_APPLICABLE, "Not applicable"),
+    ]
+
+
+class SecurityReleaseOutcomes:
+    APPROVE = "approve"
+    REFUSE = "refuse"
+
+    choices = [
+        (APPROVE, "Approve"),
+        (REFUSE, "Refuse"),
     ]
