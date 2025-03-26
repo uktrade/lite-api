@@ -22,9 +22,17 @@ urlpatterns = [
             {
                 "get": "list",
                 "post": "create",
-                "delete": "destroy",
             }
         ),
         name="outcome",
+    ),
+    path(
+        "<uuid:pk>/outcome/<uuid:outcome_id>/",
+        F680OutcomeViewSet.as_view(
+            {
+                "delete": "destroy",
+            }
+        ),
+        name="delete_outcome",
     ),
 ]
