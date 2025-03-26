@@ -1,5 +1,7 @@
 import factory
 import factory.fuzzy
+import factory.random
+import pytest
 
 from faker import Faker
 
@@ -17,6 +19,11 @@ from api.f680.enums import ApprovalTypes, RecipientRole, RecipientType, Recommen
 from api.f680.models import F680Application, Product, Recipient, Recommendation, SecurityReleaseRequest
 
 faker = Faker()
+
+
+@pytest.fixture(autouse=True, scope="session")
+def set_factory_seed():
+    factory.random.reseed_random(1234)
 
 
 class F680ApplicationFactory(factory.django.DjangoModelFactory):

@@ -32,6 +32,7 @@ from api.core.serializers import KeyValueChoiceField, PrimaryKeyRelatedSerialize
 from api.documents.libraries.process_document import process_document
 from api.flags.serializers import CaseListFlagSerializer
 from api.flags.models import Flag
+from api.f680.caseworker.serializers import ProductSerializer, SecurityReleaseRequestSerializer
 from api.gov_users.serializers import GovUserSimpleSerializer
 from api.organisations.models import Organisation
 from api.organisations.serializers import TinyOrganisationViewSerializer
@@ -121,6 +122,7 @@ class CaseListSerializer(serializers.Serializer):
     end_users = serializers.SerializerMethodField()
     sub_status = CaseSubStatusSerializer()
     flags = PrimaryKeyRelatedSerializerField(many=True, queryset=Flag.objects.all(), serializer=CaseListFlagSerializer)
+    f680_data = serializers.SerializerMethodField()
 
     def __init__(self, *args, **kwargs):
         self.team = kwargs.pop("team", None)
@@ -181,6 +183,27 @@ class CaseListSerializer(serializers.Serializer):
 
     def has_end_users(self, instance):
         return hasattr(instance, "baseapplication") and hasattr(instance.baseapplication, "end_user_parties")
+
+    def get_f680_data(self, instance):
+        if instance.case_type.sub_type != CaseTypeSubTypeEnum.F680:
+            return {}
+
+        application = get_application(instance.id)
+        data = {}
+        data["product"] = ProductSerializer(application.get_product()).data
+        data["security_release_requests"] = SecurityReleaseRequestSerializer(
+            application.security_release_requests.order_by("recipient__type"), many=True
+        ).data
+
+        data["recommendations"] = [
+            {
+                "team": item.team.name,
+                "type": item.type,
+            }
+            for item in instance.recommendations.distinct("type", "team")
+        ]
+
+        return data
 
 
 class GoodOnApplicationSummarySerializer(serializers.Serializer):
