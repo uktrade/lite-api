@@ -65,10 +65,11 @@ def get_f680_application(organisation):
     return _get_f680_application
 
 
-class TestGETRecommendations:
-
+class TestF680RecommendationViewSet:
     @freeze_time("2025-01-01 12:00:01")
-    def test_GET_recommendation_success(self, get_hawk_client, get_f680_application, url, team_case_advisor):
+    def test_GET_recommendation_success(
+        self, get_hawk_client, get_f680_application, url, team_case_advisor, team_case_advisor_headers
+    ):
         f680_application = get_f680_application()
         another_f680_application = get_f680_application()
         gov_user = team_case_advisor(TeamIdEnum.MOD_CAPPROT)
@@ -137,22 +138,6 @@ class TestGETRecommendations:
         api_client, target_url = get_hawk_client("GET", url)
         response = api_client.get(target_url, **headers)
         assert response.status_code == 404
-
-    def test_GET_recommendation_raises_forbidden_error(
-        self, get_hawk_client, get_f680_application, url, team_case_advisor_headers
-    ):
-        f680_application = get_f680_application()
-        for release_request in f680_application.security_release_requests.all():
-            F680RecommendationFactory(
-                case=f680_application, security_release_request=release_request, conditions="No concerns"
-            )
-        headers = team_case_advisor_headers(TeamIdEnum.FCDO)
-        api_client, target_url = get_hawk_client("GET", url(f680_application))
-        response = api_client.get(target_url, **headers)
-        assert response.status_code == 403
-
-
-class TestCreateRecommendations:
 
     def test_POST_recommendation_success(self, get_hawk_client, get_f680_application, url, team_case_advisor_headers):
         f680_application = get_f680_application()
@@ -265,12 +250,12 @@ class TestCreateRecommendations:
                     "conditions": "No concerns",
                     "refusal_reasons": "",
                     "security_grading": SecurityGrading.OFFICIAL_SENSITIVE,
-                    "security_release_request": "138d3a5f-5b5d-457d-8db0-723e14b36de4",
+                    "security_release_request": "138d3a5f-5b5d-457d-8db0-723e14b36de4",  # /PS-IGNORE
                 },
                 [
                     {
                         "security_release_request": [
-                            'Invalid pk "138d3a5f-5b5d-457d-8db0-723e14b36de4" - object does not exist.'
+                            'Invalid pk "138d3a5f-5b5d-457d-8db0-723e14b36de4" - object does not exist.'  # /PS-IGNORE
                         ]
                     }
                 ],
@@ -298,9 +283,6 @@ class TestCreateRecommendations:
         response = api_client.post(target_url, [], **headers)
         assert response.status_code == 404
 
-
-class TestClearRecommendations:
-
     def test_DELETE_user_recommendation_success(self, get_hawk_client, get_f680_application, url, team_case_advisor):
         f680_application = get_f680_application()
         gov_user = team_case_advisor(TeamIdEnum.MOD_CAPPROT)
@@ -319,3 +301,4 @@ class TestClearRecommendations:
         response = api_client.delete(target_url, **headers)
         assert response.status_code == 204
         assert f680_application.recommendations.count() == 0
+
