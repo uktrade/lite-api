@@ -72,6 +72,7 @@ class F680OutcomeViewSet(viewsets.ModelViewSet):
     filter_backends = (filters.CurrentCaseFilter,)
     queryset = SecurityReleaseOutcome.objects.all()
     serializer_class = serializers.SecurityReleaseOutcomeSerializer
+    lookup_url_kwarg = "outcome_id"
     pagination_class = None
 
     def dispatch(self, request, *args, **kwargs):
