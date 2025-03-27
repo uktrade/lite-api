@@ -1,14 +1,16 @@
 import pytest
+from uuid import uuid4
 
 from django.urls import reverse
 from freezegun import freeze_time
 
 from api.f680.enums import RecommendationType, SecurityGrading
-from api.f680.models import Recommendation
+from api.f680.models import Recommendation, SecurityReleaseOutcome
 from api.f680.tests.factories import (
     F680RecipientFactory,
     F680RecommendationFactory,
     F680SecurityReleaseRequestFactory,
+    F680SecurityReleaseOutcomeFactory,
     SubmittedF680ApplicationFactory,
 )
 from api.staticdata.statuses.enums import CaseStatusEnum
@@ -282,3 +284,204 @@ class TestF680RecommendationViewSet:
         # Data is intentionally empty as we fail before validating the data
         response = api_client.post(url, data=[], **headers)
         assert response.status_code == 404
+
+
+class TestF680OutcomeViewSet:
+
+    def test_GET_outcomes_exist(self, api_client, get_f680_application, team_case_advisor_headers):
+        f680_application = get_f680_application()
+        headers = team_case_advisor_headers(TeamIdEnum.MOD_ECJU)
+        outcome = F680SecurityReleaseOutcomeFactory(
+            case=f680_application,
+            outcome="approve",
+            security_grading=SecurityGrading.OFFICIAL_SENSITIVE,
+            conditions="No concerns",
+            approval_types=["training"],
+        )
+        release_request_ids = [str(request.id) for request in f680_application.security_release_requests.all()]
+        outcome.security_release_requests.set(release_request_ids)
+        url = reverse("caseworker_f680:outcome", kwargs={"pk": str(f680_application.id)})
+        response = api_client.get(url, **headers)
+        assert response.status_code == 200
+        assert response.json() == [
+            {
+                "id": str(outcome.id),
+                "case": str(f680_application.id),
+                "approval_types": outcome.approval_types,
+                "conditions": outcome.conditions,
+                "outcome": outcome.outcome,
+                "refusal_reasons": "",
+                "security_grading": outcome.security_grading,
+                "security_release_requests": release_request_ids,
+                "team": str(outcome.team.id),
+                "user": str(outcome.user.baseuser_ptr.id),
+            },
+        ]
+
+    def test_GET_outcomes_missing(self, api_client, get_f680_application, team_case_advisor_headers):
+        f680_application = get_f680_application()
+        headers = team_case_advisor_headers(TeamIdEnum.MOD_ECJU)
+        url = reverse("caseworker_f680:outcome", kwargs={"pk": str(f680_application.id)})
+        response = api_client.get(url, **headers)
+        assert response.status_code == 200
+        assert response.json() == []
+
+    def test_GET_case_missing_404(self, api_client, team_case_advisor_headers):
+        headers = team_case_advisor_headers(TeamIdEnum.MOD_ECJU)
+        url = reverse("caseworker_f680:outcome", kwargs={"pk": uuid4()})
+        response = api_client.get(url, **headers)
+        assert response.status_code == 404
+
+    def test_POST_create_single_item_group_success(self, api_client, get_f680_application, team_case_advisor_headers):
+        f680_application = get_f680_application()
+        f680_application.status = CaseStatus.objects.get(status=CaseStatusEnum.UNDER_FINAL_REVIEW)
+        f680_application.save()
+        headers = team_case_advisor_headers(TeamIdEnum.MOD_ECJU)
+        url = reverse("caseworker_f680:outcome", kwargs={"pk": str(f680_application.id)})
+        post_data = {
+            "security_grading": "top-secret",
+            "outcome": "approve",
+            "conditions": "my conditions",
+            "approval_types": ["training"],
+            "security_release_requests": [str(f680_application.security_release_requests.first().id)],
+        }
+        response = api_client.post(url, post_data, **headers)
+        assert response.status_code == 201
+
+        outcome = SecurityReleaseOutcome.objects.first()
+        assert outcome.security_grading == post_data["security_grading"]
+        assert outcome.outcome == post_data["outcome"]
+        assert outcome.conditions == post_data["conditions"]
+        assert outcome.approval_types == post_data["approval_types"]
+        release_request_ids = [str(request.id) for request in outcome.security_release_requests.all()]
+        assert release_request_ids == post_data["security_release_requests"]
+        assert outcome.refusal_reasons == ""
+        assert str(outcome.team.id) == TeamIdEnum.MOD_ECJU
+
+        assert response.json() == {
+            "id": str(outcome.id),
+            "case": str(f680_application.id),
+            "approval_types": outcome.approval_types,
+            "conditions": outcome.conditions,
+            "outcome": outcome.outcome,
+            "refusal_reasons": outcome.refusal_reasons,
+            "security_grading": outcome.security_grading,
+            "security_release_requests": release_request_ids,
+            "team": str(outcome.team.id),
+            "user": str(outcome.user.baseuser_ptr.id),
+        }
+
+    def test_POST_create_multiple_item_group_success(self, api_client, get_f680_application, team_case_advisor_headers):
+        f680_application = get_f680_application()
+        f680_application.status = CaseStatus.objects.get(status=CaseStatusEnum.UNDER_FINAL_REVIEW)
+        f680_application.save()
+        headers = team_case_advisor_headers(TeamIdEnum.MOD_ECJU)
+        url = reverse("caseworker_f680:outcome", kwargs={"pk": str(f680_application.id)})
+        release_request_ids = [str(request.id) for request in f680_application.security_release_requests.all()]
+        post_data = {
+            "outcome": "refuse",
+            "refusal_reasons": "my reasons",
+            "security_release_requests": release_request_ids,
+        }
+        response = api_client.post(url, post_data, **headers)
+        assert response.status_code == 201
+
+        outcome = SecurityReleaseOutcome.objects.first()
+        actual_release_request_ids = [str(request.id) for request in outcome.security_release_requests.all()]
+        assert outcome.security_grading == None
+        assert outcome.outcome == post_data["outcome"]
+        assert outcome.refusal_reasons == post_data["refusal_reasons"]
+        assert outcome.approval_types == []
+        assert actual_release_request_ids == post_data["security_release_requests"]
+        assert outcome.conditions == ""
+        assert str(outcome.team.id) == TeamIdEnum.MOD_ECJU
+
+        assert response.json() == {
+            "id": str(outcome.id),
+            "case": str(f680_application.id),
+            "approval_types": outcome.approval_types,
+            "conditions": outcome.conditions,
+            "outcome": outcome.outcome,
+            "refusal_reasons": outcome.refusal_reasons,
+            "security_grading": outcome.security_grading,
+            "security_release_requests": release_request_ids,
+            "team": str(outcome.team.id),
+            "user": str(outcome.user.baseuser_ptr.id),
+        }
+
+    def test_POST_case_not_ready_for_outcome_permission_denied(
+        self, api_client, get_f680_application, team_case_advisor_headers
+    ):
+        # case created in OGD advice status
+        f680_application = get_f680_application()
+        headers = team_case_advisor_headers(TeamIdEnum.MOD_ECJU)
+        url = reverse("caseworker_f680:outcome", kwargs={"pk": str(f680_application.id)})
+        release_request_ids = [str(request.id) for request in f680_application.security_release_requests.all()]
+        post_data = {
+            "outcome": "refuse",
+            "refusal_reasons": "my reasons",
+            "security_release_requests": release_request_ids,
+        }
+        response = api_client.post(url, post_data, **headers)
+        assert response.status_code == 403
+
+    def test_POST_user_cannot_make_outcome_permission_denied(
+        self, api_client, get_f680_application, team_case_advisor_headers
+    ):
+        # case created in OGD advice status
+        f680_application = get_f680_application()
+        f680_application.status = CaseStatus.objects.get(status=CaseStatusEnum.UNDER_FINAL_REVIEW)
+        f680_application.save()
+        # User in wrong team
+        headers = team_case_advisor_headers(TeamIdEnum.MOD_CAPPROT)
+        url = reverse("caseworker_f680:outcome", kwargs={"pk": str(f680_application.id)})
+        release_request_ids = [str(request.id) for request in f680_application.security_release_requests.all()]
+        post_data = {
+            "outcome": "refuse",
+            "refusal_reasons": "my reasons",
+            "security_release_requests": release_request_ids,
+        }
+        response = api_client.post(url, post_data, **headers)
+        assert response.status_code == 403
+
+    def test_POST_invalid_data(self):
+        # TODO parametrize..
+        pass
+
+    def test_DELETE_success(self, api_client, get_f680_application, team_case_advisor_headers):
+        f680_application = get_f680_application()
+        f680_application.status = CaseStatus.objects.get(status=CaseStatusEnum.UNDER_FINAL_REVIEW)
+        f680_application.save()
+        headers = team_case_advisor_headers(TeamIdEnum.MOD_ECJU)
+        release_request_ids = [str(request.id) for request in f680_application.security_release_requests.all()]
+        outcome = F680SecurityReleaseOutcomeFactory(
+            case_id=f680_application.id,
+            outcome="refuse",
+            refusal_reasons="my reasons",
+        )
+        outcome.security_release_requests.set(release_request_ids)
+        url = reverse(
+            "caseworker_f680:delete_outcome", kwargs={"pk": str(f680_application.id), "outcome_id": str(outcome.id)}
+        )
+        response = api_client.delete(url, **headers)
+        assert response.status_code == 204
+        assert SecurityReleaseOutcome.objects.count() == 0
+
+    def test_DELETE_case_missing_404(self, api_client, get_f680_application, team_case_advisor_headers):
+        f680_application = get_f680_application()
+        f680_application.status = CaseStatus.objects.get(status=CaseStatusEnum.UNDER_FINAL_REVIEW)
+        f680_application.save()
+        headers = team_case_advisor_headers(TeamIdEnum.MOD_ECJU)
+        release_request_ids = [str(request.id) for request in f680_application.security_release_requests.all()]
+        # Deliberately avoid linking the outcome with the case
+        outcome = F680SecurityReleaseOutcomeFactory(
+            outcome="refuse",
+            refusal_reasons="my reasons",
+        )
+        outcome.security_release_requests.set(release_request_ids)
+        url = reverse(
+            "caseworker_f680:delete_outcome", kwargs={"pk": str(f680_application.id), "outcome_id": str(outcome.id)}
+        )
+        response = api_client.delete(url, **headers)
+        assert response.status_code == 404
+        assert SecurityReleaseOutcome.objects.first() == outcome
