@@ -17,7 +17,7 @@ from api.applications.serializers.good import (
 )
 from api.audit_trail import service as audit_trail_service
 from api.audit_trail.enums import AuditType
-from api.cases.enums import CaseTypeSubTypeEnum
+from api.cases.enums import CaseTypeReferenceEnum
 from api.cases.models import Case
 from api.core.authentication import ExporterAuthentication, GovAuthentication, SharedAuthentication
 from api.core.decorators import (
@@ -46,10 +46,9 @@ class ApplicationGoodsOnApplication(APIView):
 
     @allowed_application_types(
         [
-            CaseTypeSubTypeEnum.STANDARD,
-            CaseTypeSubTypeEnum.EXHIBITION,
-            CaseTypeSubTypeEnum.GIFTING,
-            CaseTypeSubTypeEnum.F680,
+            CaseTypeReferenceEnum.EXPORT_LICENCE,
+            CaseTypeReferenceEnum.SIEL,
+            CaseTypeReferenceEnum.F680,
         ]
     )
     @authorised_to_view_application(ExporterUser)
@@ -61,10 +60,9 @@ class ApplicationGoodsOnApplication(APIView):
 
     @allowed_application_types(
         [
-            CaseTypeSubTypeEnum.STANDARD,
-            CaseTypeSubTypeEnum.EXHIBITION,
-            CaseTypeSubTypeEnum.GIFTING,
-            CaseTypeSubTypeEnum.F680,
+            CaseTypeReferenceEnum.EXPORT_LICENCE,
+            CaseTypeReferenceEnum.SIEL,
+            CaseTypeReferenceEnum.F680,
         ]
     )
     @application_is_major_editable
