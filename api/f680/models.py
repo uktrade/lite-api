@@ -134,3 +134,16 @@ class Recommendation(TimestampableModel):
     security_release_request = models.ForeignKey(
         SecurityReleaseRequest, related_name="recommendations", on_delete=models.CASCADE
     )
+
+
+class SecurityReleaseOutcome(TimestampableModel):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    case = models.ForeignKey(Case, related_name="security_release_outcomes", on_delete=models.CASCADE)
+    security_release_requests = models.ManyToManyField(SecurityReleaseRequest)
+    user = models.ForeignKey(GovUser, on_delete=models.PROTECT, related_name="security_release_outcomes")
+    team = models.ForeignKey(Team, on_delete=models.PROTECT, related_name="security_release_outcomes", null=True)
+    outcome = models.CharField(choices=enums.SecurityReleaseOutcomes.choices, max_length=30)
+    conditions = models.TextField(default="", blank=True, null=True)
+    refusal_reasons = models.TextField(default="", blank=True, null=True)
+    security_grading = models.CharField(choices=enums.SecurityGrading.security_release_outcome_choices, max_length=50)
+    approval_types = ArrayField(models.CharField(choices=enums.ApprovalTypes.choices, max_length=50))
