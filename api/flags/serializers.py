@@ -35,12 +35,13 @@ class FlagAssignmentSerializer(serializers.Serializer):
     note = serializers.CharField(max_length=200, required=False, allow_blank=True)
 
     def validate_flags(self, flags):
+
         level, team, user, obj = self.context["level"], self.context["team"], self.context["user"], self.context["obj"]
 
-        previously_assigned_team_flags = obj.flags.filter(level=level, team=team)
+        previously_assigned_team_flags = obj.flags.filter(level=level).filter_by_applicable_team(team=team)
         previously_assigned_deactivated_team_flags = obj.flags.filter(
-            level=level, team=user.team, status=FlagStatuses.DEACTIVATED
-        )
+            level=level, status=FlagStatuses.DEACTIVATED
+        ).filter_by_applicable_team(team=user.team)
 
         ignored_flags = flags + [x for x in previously_assigned_deactivated_team_flags]
 
@@ -71,11 +72,7 @@ class FlagAssignmentSerializer(serializers.Serializer):
             raise serializers.ValidationError(f"You do not have permission to remove the following flags: {flags_list}")
 
         team_flags = list(
-            Flag.objects.filter(
-                level=level,
-                team=team,
-                status=FlagStatuses.ACTIVE,
-            )
+            Flag.objects.filter(level=level, status=FlagStatuses.ACTIVE).filter_by_applicable_team(team=team)
         )
 
         if not set(flags).issubset(list(team_flags)):
