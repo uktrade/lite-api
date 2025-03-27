@@ -1,8 +1,14 @@
+import json
 import pytest
 
+from django.conf import settings
+from django.test import override_settings
 from django.urls import reverse
 from freezegun import freeze_time
+from rest_framework.test import APIClient
+from urllib import parse
 
+from api.core.requests import get_hawk_sender
 from api.f680.enums import RecommendationType, SecurityGrading
 from api.f680.models import Recommendation
 from api.f680.tests.factories import (
@@ -21,6 +27,40 @@ from lite_routing.routing_rules_internal.enums import TeamIdEnum
 pytest_plugins = [
     "api.tests.unit.fixtures.core",
 ]
+
+
+class Client(APIClient):
+    def post(self, url, data, **kwargs):
+        if not settings.HAWK_AUTHENTICATION_ENABLED:
+            return super().post(url, data=data, **kwargs)
+
+        # Without this hawk sender gets data as string whereas
+        # receiver gets it as bytes resulting in failure because
+        # of hash mismatch. Our version on mohawk sender supports
+        # receiving in bytes so convert before sending it.
+        data = json.dumps(data).encode("utf-8")
+        return super().post(url, data=data, content_type="application/json", **kwargs)
+
+
+@pytest.fixture(params=[False, True])
+def hawk_authentication(request):
+    with override_settings(HAWK_AUTHENTICATION_ENABLED=request.param):
+        yield request.param
+
+
+@pytest.fixture
+def get_api_client():
+    def _get_api_client(method, url, data=None):
+        client = Client()
+        if settings.HAWK_AUTHENTICATION_ENABLED:
+            url = parse.urljoin("http://testserver", url)
+            sender = get_hawk_sender(method, url, data, settings.HAWK_LITE_API_CREDENTIALS)
+            client.credentials(HTTP_HAWK_AUTHENTICATION=sender.request_header, CONTENT_TYPE="application/json")
+            return client, url
+        else:
+            return client, url
+
+    return _get_api_client
 
 
 @pytest.fixture
@@ -53,12 +93,11 @@ def get_f680_application(organisation):
     return _get_f680_application
 
 
+@pytest.mark.usefixtures("hawk_authentication")
 class TestGETRecommendations:
 
     @freeze_time("2025-01-01 12:00:01")
-    def test_GET_recommendation_success(
-        self, api_client, get_f680_application, url, team_case_advisor, team_case_advisor_headers
-    ):
+    def test_GET_recommendation_success(self, get_api_client, get_f680_application, url, team_case_advisor):
         f680_application = get_f680_application()
         another_f680_application = get_f680_application()
         gov_user = team_case_advisor(TeamIdEnum.MOD_CAPPROT)
@@ -76,7 +115,8 @@ class TestGETRecommendations:
                 case=another_f680_application, security_release_request=release_request, conditions="No concerns"
             )
         headers = {"HTTP_GOV_USER_TOKEN": user_to_token(gov_user.baseuser_ptr)}
-        response = api_client.get(url(f680_application), **headers)
+        api_client, target_url = get_api_client("GET", url(f680_application))
+        response = api_client.get(target_url, **headers)
         assert response.status_code == 200
         assert len(response.json()) == f680_application.security_release_requests.count()
 
@@ -113,7 +153,7 @@ class TestGETRecommendations:
         ]
 
     def test_GET_recommendation_raises_notfound_error(
-        self, api_client, get_f680_application, team_case_advisor_headers
+        self, get_api_client, get_f680_application, team_case_advisor_headers
     ):
         f680_application = get_f680_application()
 
@@ -123,11 +163,12 @@ class TestGETRecommendations:
             )
         headers = team_case_advisor_headers(TeamIdEnum.MOD_CAPPROT)
         url = reverse("caseworker_f680:recommendation", kwargs={"pk": "138d3a5f-5b5d-457d-8db0-723e14b36de4"})
-        response = api_client.get(url, **headers)
+        api_client, target_url = get_api_client("GET", url)
+        response = api_client.get(target_url, **headers)
         assert response.status_code == 404
 
     def test_GET_recommendation_raises_forbidden_error(
-        self, api_client, get_f680_application, url, team_case_advisor_headers
+        self, get_api_client, get_f680_application, url, team_case_advisor_headers
     ):
         f680_application = get_f680_application()
         for release_request in f680_application.security_release_requests.all():
@@ -135,12 +176,15 @@ class TestGETRecommendations:
                 case=f680_application, security_release_request=release_request, conditions="No concerns"
             )
         headers = team_case_advisor_headers(TeamIdEnum.FCDO)
-        response = api_client.get(url(f680_application), **headers)
+        api_client, target_url = get_api_client("GET", url(f680_application))
+        response = api_client.get(target_url, **headers)
         assert response.status_code == 403
 
 
+@pytest.mark.usefixtures("hawk_authentication")
 class TestCreateRecommendations:
-    def test_POST_recommendation_success(self, api_client, get_f680_application, url, team_case_advisor_headers):
+
+    def test_POST_recommendation_success(self, get_api_client, get_f680_application, url, team_case_advisor_headers):
         f680_application = get_f680_application()
 
         data = [
@@ -155,12 +199,13 @@ class TestCreateRecommendations:
         ]
 
         headers = team_case_advisor_headers(TeamIdEnum.MOD_CAPPROT)
-        response = api_client.post(url(f680_application), data=data, **headers)
+        api_client, target_url = get_api_client("POST", url(f680_application), data=data)
+        response = api_client.post(target_url, data, **headers)
         assert response.status_code == 201
         assert f680_application.recommendations.count() == f680_application.security_release_requests.count()
 
     def test_POST_recommendation_again_raises_error(
-        self, api_client, get_f680_application, url, team_case_advisor_headers
+        self, get_api_client, get_f680_application, url, team_case_advisor_headers
     ):
         f680_application = get_f680_application()
 
@@ -176,15 +221,19 @@ class TestCreateRecommendations:
         ]
 
         headers = team_case_advisor_headers(TeamIdEnum.MOD_CAPPROT)
-        response = api_client.post(url(f680_application), data=data, **headers)
+        api_client, target_url = get_api_client("POST", url(f680_application), data=data)
+        response = api_client.post(target_url, data, **headers)
         assert response.status_code == 201
         assert f680_application.recommendations.count() == f680_application.security_release_requests.count()
 
-        response = api_client.post(url(f680_application), data=data, **headers)
+        api_client, target_url = get_api_client("POST", url(f680_application), data=data)
+        response = api_client.post(target_url, data, **headers)
         assert response.status_code == 403
         assert response.json() == {"errors": {"detail": "You do not have permission to perform this action."}}
 
-    def test_POST_recommendation_another_case_success(self, api_client, get_f680_application, url, team_case_advisor):
+    def test_POST_recommendation_another_case_success(
+        self, get_api_client, get_f680_application, url, team_case_advisor
+    ):
         f680_applications = [get_f680_application() for _ in range(4)]
         gov_user = team_case_advisor(TeamIdEnum.MOD_CAPPROT)
 
@@ -200,7 +249,8 @@ class TestCreateRecommendations:
                 for rr in f680_application.security_release_requests.all()
             ]
             headers = {"HTTP_GOV_USER_TOKEN": user_to_token(gov_user.baseuser_ptr)}
-            response = api_client.post(url(f680_application), data=data, **headers)
+            api_client, target_url = get_api_client("POST", url(f680_application), data=data)
+            response = api_client.post(target_url, data, **headers)
             assert response.status_code == 201
             assert f680_application.recommendations.count() == f680_application.security_release_requests.count()
 
@@ -258,27 +308,31 @@ class TestCreateRecommendations:
         ),
     )
     def test_POST_recommendation_validation_errors(
-        self, api_client, get_f680_application, url, team_case_advisor_headers, data, errors
+        self, get_api_client, get_f680_application, url, team_case_advisor_headers, data, errors
     ):
         f680_application = get_f680_application()
 
         headers = team_case_advisor_headers(TeamIdEnum.MOD_CAPPROT)
         release_request = f680_application.security_release_requests.first()
         data = {"security_release_request": str(release_request.id), **data}
-        response = api_client.post(url(f680_application), data=[data], **headers)
+        api_client, target_url = get_api_client("POST", url(f680_application), data=[data])
+        response = api_client.post(target_url, [data], **headers)
         assert response.status_code == 400
         assert response.json()["errors"] == errors
 
-    def test_POST_recommendation_invalid_application_raises_error(self, api_client, team_case_advisor_headers):
+    def test_POST_recommendation_invalid_application_raises_error(self, get_api_client, team_case_advisor_headers):
         url = reverse("caseworker_f680:recommendation", kwargs={"pk": "138d3a5f-5b5d-457d-8db0-723e14b36de4"})
         headers = team_case_advisor_headers(TeamIdEnum.MOD_CAPPROT)
         # Data is intentionally empty as we fail before validating the data
-        response = api_client.post(url, data=[], **headers)
+        api_client, target_url = get_api_client("POST", url, data=[])
+        response = api_client.post(target_url, [], **headers)
         assert response.status_code == 404
 
 
+@pytest.mark.usefixtures("hawk_authentication")
 class TestClearRecommendations:
-    def test_DELETE_user_recommendation_success(self, api_client, get_f680_application, url, team_case_advisor):
+
+    def test_DELETE_user_recommendation_success(self, get_api_client, get_f680_application, url, team_case_advisor):
         f680_application = get_f680_application()
         gov_user = team_case_advisor(TeamIdEnum.MOD_CAPPROT)
 
@@ -292,6 +346,7 @@ class TestClearRecommendations:
                 team=gov_user.team,
             )
         headers = {"HTTP_GOV_USER_TOKEN": user_to_token(gov_user.baseuser_ptr)}
-        response = api_client.delete(url(f680_application), **headers)
+        api_client, target_url = get_api_client("DELETE", url(f680_application))
+        response = api_client.delete(target_url, **headers)
         assert response.status_code == 204
         assert f680_application.recommendations.count() == 0
