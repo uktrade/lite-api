@@ -101,3 +101,11 @@ class F680OutcomeViewSet(viewsets.ModelViewSet):
         self.perform_create(serializer)
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
+    def destroy(self, request, *args, **kwargs):
+        response = super().destroy(request, *args, **kwargs)
+        # The following makes 204 no content responses play nicely with hawk authentication
+        if response.status_code == status.HTTP_204_NO_CONTENT:
+            return HttpResponse(status=response.status_code)
+        else:
+            return response
