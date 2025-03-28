@@ -8,26 +8,66 @@
 
 {% block body %}
 
-  <div class="govuk-body">We Have Approved Your F680 Application</div>
+  <div class="govuk-body">We have carefully considered and approved your application for F680 security approval.
+    Below is information about what we have authorised and what conditions apply.
+    This clearance can be reviewed, suspended or revoked at any time by the Ministry of
+    Defence (MOD).
+    </div>
   <p>{{user_content}}</p>
-  <h2 class="govuk-heading-l">Strategic Export Licensing Criteria</h3>
-  {% for section_key, section in details.application.sections.items %}
-    <h3>{{section.label}}</h3>
-    {% if section.type == "single" %}
-        {% for field in section.fields %}
-            {% if field.answer %}
-            <p>{{field.question}}: {{field.answer}}</p>
-            {% endif %}
+  <h2 class="govuk-heading-l">Authorisation details</h3>
+
+
+  {{security_release_outcomes}}
+  <h3 class="govuk-heading-l">Entities covered by this authorisation</h3>
+    <table>
+      <thead class="govuk-table__head">
+        <tr class="govuk-table__row">
+          <th class="govuk-table__header">Country</th>
+          <th class="govuk-table__header">Enity</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for srr in security_release_outcomes.security_release_requests %}
+          <tr id="nlr-product-row-{{ forloop.counter }}" class="govuk-table__row">
+            <td class="govuk-table__cell">{{ srr.recipient.country.name }}</td>
+            <td class="govuk-table__cell">
+              <p>{{srr.recipient.name}}<p>
+              <p>{{srr.recipient.address}}<p>
+
+            </td>
+          </tr>
         {% endfor %}
-    {% else %}
-        {% for item in section.items %}
-            {% for field in item.fields %}
-                {% if field.answer %}
-                <p>{{field.question}}: {{field.answer}}</p>
-                {% endif %}
-            {% endfor %}
+      </tbody>
+  </table>
+  <h3 class="govuk-heading-l">Activities covered by this authorisation</h3>
+  <table>
+    <thead class="govuk-table__head">
+      <tr class="govuk-table__row">
+        <th class="govuk-table__header">Activity type</th>
+        <th class="govuk-table__header">Status</th>
+        <th class="govuk-table__header">Secuirty classification</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for srr in security_release_outcomes.security_release_requests %}
+        {% for at in srr.approval_types %}
+        <tr id="srr-approval-row-{{ forloop.counter }}" class="govuk-table__row">
+          <td class="govuk-table__cell">{{ at }}</td>
+          <td class="govuk-table__cell">{{security_release_outcomes.outcome}}</td>
+          <td class="govuk-table__cell">{{security_release_outcomes.security_grading}}</td>
+
+        </tr>
         {% endfor %}
-    {% endif %}
-  {% endfor %}
+      {% endfor %}
+    </tbody>
+</table>
+
+<p>Authorisation valid unit: [DD Month YYYY]</p>
+<p>You must tell the entities listed above the security classification of the item you’re
+sharing with them. You must also tell them the minimum security requirements they
+must meet to keep it safe.</p>
+
+
+<h3 class="govuk-heading-l">Conditions</h3>
 
 {% endblock %}

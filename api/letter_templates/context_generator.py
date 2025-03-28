@@ -4,6 +4,8 @@ from datetime import timedelta
 from django.contrib.humanize.templatetags.humanize import intcomma
 from django.utils import timezone
 
+from api.f680.caseworker.serializers import SecurityReleaseOutcomeSerializer
+from api.f680.models import SecurityReleaseOutcome
 from rest_framework import serializers
 
 from api.appeals.constants import APPEAL_DAYS
@@ -714,8 +716,10 @@ def get_document_context(case, addressee=None):
 
         if base_application.submitted_at:
             date_application_submitted = base_application.submitted_at.strftime("%d %B %Y")
-
-    return {
+    # F680 Outcomes
+    sro = SecurityReleaseOutcome.objects.get(case=case)
+    secuirty_release_outcomes = SecurityReleaseOutcomeSerializer(sro).data
+    context = {
         "case_reference": case.reference_code,
         "case_submitted_at": case.submitted_at,
         "case_officer_name": case.get_case_officer_name(),
@@ -723,6 +727,7 @@ def get_document_context(case, addressee=None):
         "current_date": date,
         "current_time": time,
         "details": _get_details_context(case),
+        "security_release_outcomes": secuirty_release_outcomes,
         "addressee": AddresseeSerializer(addressee).data,
         "organisation": OrganisationSerializer(case.organisation).data,
         "licence": LicenceSerializer(licence).data if licence else None,
@@ -752,6 +757,7 @@ def get_document_context(case, addressee=None):
         "date_application_submitted": date_application_submitted,
         "exporter_reference": exporter_reference,
     }
+    return context
 
 
 # TODO: This mapping/serializers business feels nuts - we should just generate a context

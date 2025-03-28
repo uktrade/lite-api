@@ -120,11 +120,18 @@ class F680RecommendationSerializer(serializers.ModelSerializer):
         read_only_fields = ["id"]
 
 
+class ApprovalTypesSerializer(serializers.Serializer):
+    approval_types = KeyValueChoiceField(choices=enums.ApprovalTypes.choices)
+
+
 class SecurityReleaseOutcomeSerializer(serializers.ModelSerializer):
     case = PrimaryKeyRelatedField(queryset=Case.objects.all())
     user = PrimaryKeyRelatedField(queryset=GovUser.objects.filter(status=UserStatuses.ACTIVE))
     team = PrimaryKeyRelatedField(queryset=Team.objects.all())
-    security_release_requests = PrimaryKeyRelatedField(queryset=SecurityReleaseRequest.objects.all(), many=True)
+    # security_release_requests = PrimaryKeyRelatedField(queryset=SecurityReleaseRequest.objects.all(), many=True)
+    security_release_requests = SecurityReleaseRequestSerializer(many=True)
+    approval_types = serializers.ListField(child=KeyValueChoiceField(choices=enums.ApprovalTypes.choices))
+    security_release_requests
 
     def validate(self, data):
         if data["outcome"] == enums.SecurityReleaseOutcomes.APPROVE:
@@ -144,6 +151,14 @@ class SecurityReleaseOutcomeSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError("approval_types invalid for refuse outcome")
             if data.get("conditions"):
                 raise serializers.ValidationError("conditions invalid for refuse outcome")
+
+        existing_outcomes = SecurityReleaseOutcome.objects.filter(
+            security_release_requests__in=data["security_release_requests"]
+        ).exists()
+        if existing_outcomes:
+            raise serializers.ValidationError(
+                "A SecurityReleaseOutcome record exists for one or more of the security release ids"
+            )
 
         return data
 
