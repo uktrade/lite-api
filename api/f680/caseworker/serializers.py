@@ -126,6 +126,27 @@ class SecurityReleaseOutcomeSerializer(serializers.ModelSerializer):
     team = PrimaryKeyRelatedField(queryset=Team.objects.all())
     security_release_requests = PrimaryKeyRelatedField(queryset=SecurityReleaseRequest.objects.all(), many=True)
 
+    def validate(self, data):
+        if data["outcome"] == enums.SecurityReleaseOutcomes.APPROVE:
+            if not data.get("security_grading"):
+                raise serializers.ValidationError("security_grading required for approve outcome")
+            if not data.get("approval_types"):
+                raise serializers.ValidationError("approval_types required for approve outcome")
+            if data.get("refusal_reasons"):
+                raise serializers.ValidationError("refusal_reasons invalid for approve outcome")
+
+        if data["outcome"] == enums.SecurityReleaseOutcomes.REFUSE:
+            if not data.get("refusal_reasons"):
+                raise serializers.ValidationError("refusal_reasons required for refuse outcome")
+            if data.get("security_grading"):
+                raise serializers.ValidationError("security_grading invalid for refuse outcome")
+            if data.get("approval_types"):
+                raise serializers.ValidationError("approval_types invalid for refuse outcome")
+            if data.get("conditions"):
+                raise serializers.ValidationError("conditions invalid for refuse outcome")
+
+        return data
+
     class Meta:
         model = SecurityReleaseOutcome
         fields = [
