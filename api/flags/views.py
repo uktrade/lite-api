@@ -68,7 +68,7 @@ class FlagsListView(ListAPIView):
             flags = flags.filter(priority=priority)
 
         if team and team != "None":
-            flags = flags.filter(team=team)
+            flags = flags.filter_by_applicable_team(team)
 
         if status:
             flags = flags.filter(status=status)
@@ -135,11 +135,14 @@ class AssignFlags(APIView):
 
     def _assign_flags(self, flags, level, note, obj, user):
         level = level.title()
-        previously_assigned_team_flags = obj.flags.filter(level=level, team=user.team)
+
+        previously_assigned_team_flags = obj.flags.filter(level=level).filter_by_applicable_team(team=user.team)
         previously_assigned_deactivated_team_flags = obj.flags.filter(
-            level=level, team=user.team, status=FlagStatuses.DEACTIVATED
+            level=level, status=FlagStatuses.DEACTIVATED
+        ).filter_by_applicable_team(team=user.team)
+        previously_assigned_not_team_flags = obj.flags.exclude(
+            Q(level=level, team=user.team) | Q(level=level, applicable_by_team=user.team)
         )
-        previously_assigned_not_team_flags = obj.flags.exclude(level=level, team=user.team)
 
         added_flags = [flag.name for flag in flags if flag not in previously_assigned_team_flags]
         ignored_flags = flags + [x for x in previously_assigned_deactivated_team_flags]
