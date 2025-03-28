@@ -145,5 +145,7 @@ class SecurityReleaseOutcome(TimestampableModel):
     outcome = models.CharField(choices=enums.SecurityReleaseOutcomes.choices, max_length=30)
     conditions = models.TextField(default="", blank=True, null=True)
     refusal_reasons = models.TextField(default="", blank=True, null=True)
-    security_grading = models.CharField(choices=enums.SecurityGrading.security_release_outcome_choices, max_length=50)
-    approval_types = ArrayField(models.CharField(choices=enums.ApprovalTypes.choices, max_length=50))
+    security_grading = models.CharField(
+        choices=enums.SecurityGrading.security_release_outcome_choices, max_length=50, blank=True, null=True
+    )
+    approval_types = ArrayField(models.CharField(choices=enums.ApprovalTypes.choices, max_length=50), default=list)
