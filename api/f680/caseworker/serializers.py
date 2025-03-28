@@ -145,6 +145,14 @@ class SecurityReleaseOutcomeSerializer(serializers.ModelSerializer):
             if data.get("conditions"):
                 raise serializers.ValidationError("conditions invalid for refuse outcome")
 
+        existing_outcomes = SecurityReleaseOutcome.objects.filter(
+            security_release_requests__in=data["security_release_requests"]
+        ).exists()
+        if existing_outcomes:
+            raise serializers.ValidationError(
+                "A SecurityReleaseOutcome record exists for one or more of the security release ids"
+            )
+
         return data
 
     class Meta:

@@ -480,6 +480,36 @@ class TestF680OutcomeViewSet:
         response = api_client.post(target_url, post_data, **headers)
         assert response.status_code == 403
 
+    def test_POST_existing_outcome_responds_400(self, api_client, get_f680_application, team_case_advisor_headers):
+        f680_application = get_f680_application()
+        f680_application.status = CaseStatus.objects.get(status=CaseStatusEnum.UNDER_FINAL_REVIEW)
+        f680_application.save()
+        outcome = F680SecurityReleaseOutcomeFactory(
+            case=f680_application,
+            outcome="approve",
+            security_grading=enums.SecurityGrading.OFFICIAL_SENSITIVE,
+            conditions="No concerns",
+            approval_types=["training"],
+        )
+        release_request_ids = [str(request.id) for request in f680_application.security_release_requests.all()]
+        outcome.security_release_requests.set(release_request_ids)
+        headers = team_case_advisor_headers(TeamIdEnum.MOD_ECJU)
+        url = reverse("caseworker_f680:outcome", kwargs={"pk": str(f680_application.id)})
+        post_data = {
+            "outcome": "refuse",
+            "refusal_reasons": "my reasons",
+            "security_release_requests": release_request_ids,
+        }
+        response = api_client.post(url, post_data, **headers)
+        assert response.status_code == 400
+        assert response.json() == {
+            "errors": {
+                "non_field_errors": [
+                    "A SecurityReleaseOutcome record exists for one or more of the security release ids"
+                ]
+            }
+        }
+
     @pytest.mark.parametrize(
         "data, expected_errors",
         (
