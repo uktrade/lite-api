@@ -1,5 +1,5 @@
 from django.core.exceptions import ObjectDoesNotExist
-from django.http import Http404
+from django.http import Http404, HttpResponse
 from rest_framework import status, viewsets
 from rest_framework.response import Response
 
@@ -63,4 +63,4 @@ class F680RecommendationViewSet(viewsets.ModelViewSet):
         qs = self.get_queryset().filter(user_id=user.id, team=user.govuser.team)
         if qs.exists:
             qs.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        return HttpResponse(status=status.HTTP_204_NO_CONTENT)

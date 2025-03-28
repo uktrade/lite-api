@@ -1,10 +1,14 @@
+import json
 import pytest
 
+from django.conf import settings
 from django.urls import reverse
 from rest_framework.test import APIClient
+from urllib import parse
 
 from api.applications.tests.factories import DraftStandardApplicationFactory
 from api.core.constants import ExporterPermissions, GovPermissions, Roles
+from api.core.requests import get_hawk_sender
 from api.organisations.tests.factories import OrganisationFactory
 from api.parties.tests.factories import PartyDocumentFactory
 from api.teams.models import Team
@@ -24,6 +28,18 @@ from lite_routing.routing_rules_internal.enums import TeamIdEnum
 pytestmark = pytest.mark.django_db
 
 
+class HawkClient(APIClient):
+    def post(self, url, data, **kwargs):
+        assert settings.HAWK_AUTHENTICATION_ENABLED
+
+        # Without this hawk sender gets data as string whereas
+        # receiver gets it as bytes resulting in failure because
+        # of hash mismatch. Our version on mohawk sender supports
+        # receiving in bytes so convert before sending it.
+        data = json.dumps(data).encode("utf-8")
+        return super().post(url, data=data, content_type="application/json", **kwargs)
+
+
 @pytest.fixture(autouse=True)
 def django_db(db):
     return db
@@ -32,6 +48,24 @@ def django_db(db):
 @pytest.fixture(autouse=True)
 def setup(gov_user):
     pass
+
+
+@pytest.fixture()
+def api_client():
+    return APIClient()
+
+
+@pytest.fixture
+def get_hawk_client():
+    def _get_hawk_client(method, url, data=None):
+        assert settings.HAWK_AUTHENTICATION_ENABLED
+        client = HawkClient()
+        url = parse.urljoin("http://testserver", url)
+        sender = get_hawk_sender(method, url, data, settings.HAWK_LITE_API_CREDENTIALS)
+        client.credentials(HTTP_HAWK_AUTHENTICATION=sender.request_header, CONTENT_TYPE="application/json")
+        return client, url
+
+    return _get_hawk_client
 
 
 @pytest.fixture()
@@ -161,11 +195,6 @@ def mod_officer_headers(mod_officer):
 def gov_user_permissions():
     for permission in GovPermissions:
         Permission.objects.get_or_create(id=permission.name, name=permission.value, type=UserType.INTERNAL.value)
-
-
-@pytest.fixture()
-def api_client():
-    return APIClient()
 
 
 @pytest.fixture
