@@ -1,4 +1,3 @@
-import pytest
 from django.urls import reverse
 from rest_framework import status
 
@@ -22,6 +21,7 @@ class FlagsListTests(DataTestClient):
         And case-level and team-level flags are set in the query params
         Then only the case-level and team-level flags are returned
         """
+
         other_team = self.create_team("Team")
 
         flag1 = self.create_flag("Flag1", "Case", self.team)
@@ -40,6 +40,33 @@ class FlagsListTests(DataTestClient):
         self.assertNotIn(str(other_team_flag.id), returned_flags)
         self.assertIn(str(flag4.id), returned_flags)
         self.assertNotIn(SystemFlags.GOOD_NOT_YET_VERIFIED_ID, returned_flags)
+
+    def test_gov_user_can_see_only_applicable_team_flag(self):
+        """
+        Given Gov user
+        When searching for flags
+        Add a flag owned by another team byt can be accessed by another team
+        """
+        owner_team = self.create_team("Team")
+        applicable_team = self.create_team("Team2")
+
+        flag_1 = self.create_flag(
+            "Flag1",
+            "Organisation",
+            owner_team,
+        )
+        self.create_flag("Flag2", "Organisation", self.team)
+        self.create_flag("Flag3", "Organisation", self.team)
+
+        flag_1.applicable_by_team.set([applicable_team])
+        flag_1.save()
+        url = f"{self.url}?team={applicable_team.id}"
+        response = self.client.get(url, **self.gov_headers)
+        response_data = response.json()
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        returned_flags = [flag["id"] for flag in response_data["results"]]
+        self.assertIn(str(flag_1.id), returned_flags)
+        self.assertEqual(1, len(returned_flags))
 
     def test_get_case_flags_which_block_approval(self):
         case = self.create_standard_application_case(self.organisation)
