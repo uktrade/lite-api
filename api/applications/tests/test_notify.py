@@ -1,7 +1,9 @@
 from unittest import mock
 
+from django.test import override_settings
+
 from api.applications import notify
-from api.cases.enums import AdviceLevel, AdviceType, CountersignOrder
+from api.cases.enums import AdviceType, CountersignOrder
 from api.cases.tests.factories import CountersignAdviceFactory, FinalAdviceFactory
 from api.staticdata.statuses.enums import CaseStatusEnum
 from api.staticdata.statuses.models import CaseStatus
@@ -19,12 +21,13 @@ class NotifyTests(DataTestClient):
         self.case = self.submit_application(self.standard_application)
         self.standard_application.refresh_from_db()
 
+    @override_settings(EXPORTER_BASE_URL="https://exporter.lite.example.com")
     @mock.patch("api.applications.notify.send_email")
     def test_notify_licence_issued(self, mock_send_email):
         expected_payload = ExporterCaseOpenedForEditing(
             user_first_name=self.exporter_user.first_name,
             application_reference=self.standard_application.reference_code,
-            exporter_frontend_url="https://exporter.lite.service.localhost.uktrade.digital/",
+            exporter_frontend_url="https://exporter.lite.example.com/",
         )
 
         notify.notify_exporter_case_opened_for_editing(self.standard_application)
@@ -35,6 +38,7 @@ class NotifyTests(DataTestClient):
             expected_payload,
         )
 
+    @override_settings(CASEWORKER_BASE_URL="https://internal.lite.example.com")
     @mock.patch("api.applications.notify.send_email")
     def test_notify_countersign_case_returned(self, mock_send_email):
         self.gov_user.team = Team.objects.get(id=TeamIdEnum.LICENSING_UNIT)
@@ -58,9 +62,7 @@ class NotifyTests(DataTestClient):
             case=self.case,
             advice=advice,
         )
-        frontend_url = (
-            f"https://internal.lite.service.localhost.uktrade.digital/cases/{self.case.id}/countersign-decision-advice/"
-        )
+        frontend_url = f"https://internal.lite.example.com/cases/{self.case.id}/countersign-decision-advice/"
         data = {
             "case_reference": self.case.reference_code,
             "countersigned_user_name": f"{countersign_advice.countersigned_user.first_name} {countersign_advice.countersigned_user.last_name}",

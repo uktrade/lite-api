@@ -4,9 +4,12 @@ from django.db import models
 from django.contrib.postgres.fields import ArrayField
 
 from api.applications.models import BaseApplication
+from api.cases.models import Case
 from api.common.models import TimestampableModel
 from api.organisations.models import Organisation
 from api.staticdata.countries.models import Country
+from api.teams.models import Team
+from api.users.models import GovUser
 
 from api.f680.managers import F680ApplicationQuerySet
 from api.f680 import enums
@@ -17,45 +20,47 @@ class F680Application(BaseApplication):  # /PS-IGNORE
 
     application = models.JSONField()
 
-    def get_field_value(self, fields, field_key, raise_exception=True):
-        for field in fields:
-            if field.get("key") == field_key:
-                return field.get("raw_answer")
-        if raise_exception:
-            raise KeyError(f"Field {field_key} not found in fields for application {self.id}")
-        return None
+    def get_product(self):
+        if self.security_release_requests.count() == 0:
+            return None
+        return self.security_release_requests.first().product
 
-    def get_application_field_value(self, section, field_key, raise_exception=True):
-        section_fields = self.application["sections"][section]["fields"]
-        return self.get_field_value(section_fields, field_key, raise_exception=raise_exception)
-
-    def on_submit(self):
-        self.name = self.get_application_field_value("general_application_details", "name")
+    def on_submit(self, application_data):
+        self.name = application_data["sections"]["general_application_details"]["fields"]["name"]["raw_answer"]
         self.save()
 
+        product_information_fields = application_data["sections"]["product_information"]["fields"]
         # Create the Product for this application - F680s just have the one
         product = Product.objects.create(
-            name=self.get_application_field_value("product_information", "product_name"),
-            description=self.get_application_field_value("product_information", "product_description"),
+            name=application_data["sections"]["product_information"]["fields"]["product_name"]["raw_answer"],
+            description=application_data["sections"]["product_information"]["fields"]["product_description"][
+                "raw_answer"
+            ],
             organisation=self.organisation,
-            security_grading=self.get_application_field_value(
-                "product_information", "security_classification", raise_exception=False
+            security_grading=(
+                product_information_fields["security_classification"]["raw_answer"]
+                if "security_classification" in product_information_fields
+                else None
             ),
         )
 
         # Create a Recipient and SecurityRelease for each.  In F680s caseworkers
         #   will advise against SecurityRelease records
-        for item in self.application["sections"]["user_information"]["items"]:
+        for item in application_data["sections"]["user_information"]["items"]:
             item_fields = item["fields"]
 
             recipient = Recipient.objects.create(
-                name=self.get_field_value(item_fields, "end_user_name"),
-                address=self.get_field_value(item_fields, "address"),
-                country_id=self.get_field_value(item_fields, "country"),
-                type=self.get_field_value(item_fields, "entity_type"),
+                name=item_fields["end_user_name"]["raw_answer"],
+                address=item_fields["address"]["raw_answer"],
+                country_id=item_fields["country"]["raw_answer"],
+                type=item_fields["entity_type"]["raw_answer"],
                 organisation=self.organisation,
-                role=self.get_field_value(item_fields, "third_party_role", raise_exception=False),
-                role_other=self.get_field_value(item_fields, "third_party_role_other", raise_exception=False),
+                role=item_fields["third_party_role"]["raw_answer"] if "third_party_role" in item_fields else None,
+                role_other=(
+                    item_fields["third_party_role_other"]["raw_answer"]
+                    if "third_party_role_other" in item_fields
+                    else None
+                ),
             )
 
             SecurityReleaseRequest.objects.create(
@@ -63,12 +68,16 @@ class F680Application(BaseApplication):  # /PS-IGNORE
                 recipient=recipient,
                 product=product,
                 application=self,
-                security_grading=self.get_field_value(item_fields, "security_classification"),
-                intended_use=self.get_field_value(item_fields, "end_user_intended_end_use"),
-                security_grading_other=self.get_field_value(
-                    item_fields, "other_security_classification", raise_exception=False
+                security_grading=item_fields["security_classification"]["raw_answer"],
+                intended_use=item_fields["end_user_intended_end_use"]["raw_answer"],
+                security_grading_other=(
+                    item_fields["other_security_classification"]["raw_answer"]
+                    if "other_security_classification" in item_fields
+                    else None
                 ),
-                approval_types=self.get_application_field_value("approval_type", "approval_choices"),
+                approval_types=application_data["sections"]["approval_type"]["fields"]["approval_choices"][
+                    "raw_answer"
+                ],
             )
 
 
@@ -110,3 +119,18 @@ class SecurityReleaseRequest(TimestampableModel):
     approval_types = ArrayField(models.CharField(choices=enums.ApprovalTypes.choices, max_length=50))
     # We need details of the release, this doesn't appear to be in the frontend flows yet..
     intended_use = models.TextField()
+
+
+class Recommendation(TimestampableModel):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    case = models.ForeignKey(Case, related_name="recommendations", on_delete=models.CASCADE)
+    type = models.CharField(choices=enums.RecommendationType.choices, max_length=30)
+    conditions = models.TextField(default="", blank=True, null=True)
+    refusal_reasons = models.TextField(default="", blank=True, null=True)
+    security_grading = models.CharField(choices=enums.SecurityGrading.security_release_choices, max_length=50)
+    security_grading_other = models.TextField(default="", blank=True, null=True)
+    user = models.ForeignKey(GovUser, on_delete=models.PROTECT, related_name="recommendations")
+    team = models.ForeignKey(Team, on_delete=models.PROTECT, related_name="recommendations", null=True)
+    security_release_request = models.ForeignKey(
+        SecurityReleaseRequest, related_name="recommendations", on_delete=models.CASCADE
+    )

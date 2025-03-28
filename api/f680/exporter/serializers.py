@@ -11,7 +11,7 @@ class SectionType:
     MULTIPLE = "multiple"
 
 
-class F680ApplicationSerializer(serializers.ModelSerializer):  # /PS-IGNORE
+class F680ApplicationSerializer(serializers.ModelSerializer):
     status = serializers.CharField(source="status__status", read_only=True)
     organisation = RelatedOrganisationSerializer(read_only=True)
     submitted_by = RelatedExporterUserSerializer(read_only=True)
@@ -36,15 +36,6 @@ class F680ApplicationSerializer(serializers.ModelSerializer):  # /PS-IGNORE
         return super().create(validated_data)
 
 
-def required_fields(required_keys, data):
-    missing_keys = set(required_keys)
-    for field in data["fields"]:
-        missing_keys.discard(field["key"])
-    ordered_missing_keys = sorted(list(missing_keys))
-    if ordered_missing_keys:
-        raise serializers.ValidationError(f"Required fields missing from section; {ordered_missing_keys}")
-
-
 class FieldSerializer(serializers.Serializer):
     key = serializers.SlugField(max_length=50)
     answer = serializers.JSONField()
@@ -53,23 +44,20 @@ class FieldSerializer(serializers.Serializer):
     datatype = serializers.ChoiceField(choices=["list", "string", "boolean", "date"])
 
 
+class UserItemFieldsSerializer(serializers.Serializer):
+    entity_type = FieldSerializer()
+    end_user_name = FieldSerializer()
+    address = FieldSerializer()
+    country = FieldSerializer()
+    security_classification = FieldSerializer()
+    end_user_intended_end_use = FieldSerializer()
+    third_party_role = FieldSerializer(required=False)
+    third_party_role_other = FieldSerializer(required=False)
+
+
 class UserItemSerializer(serializers.Serializer):
     id = serializers.UUIDField()
-    fields = FieldSerializer(many=True)
-
-    def validate(self, data):
-        required_fields(
-            [
-                "entity_type",
-                "end_user_name",
-                "address",
-                "country",
-                "security_classification",
-                "end_user_intended_end_use",
-            ],
-            data,
-        )
-        return data
+    fields = UserItemFieldsSerializer()
 
 
 class UserInformationSerializer(serializers.Serializer):
@@ -77,31 +65,33 @@ class UserInformationSerializer(serializers.Serializer):
     items = UserItemSerializer(many=True, min_length=1)
 
 
+class ProductInformationFieldsSerializer(serializers.Serializer):
+    product_name = FieldSerializer()
+    product_description = FieldSerializer()
+    security_classification = FieldSerializer(required=False)
+
+
 class ProductInformationSerializer(serializers.Serializer):
     type = serializers.ChoiceField(choices=[SectionType.SINGLE])
-    fields = FieldSerializer(many=True)
+    fields = ProductInformationFieldsSerializer()
 
-    def validate(self, data):
-        required_fields(["product_name", "product_description"], data)
-        return data
+
+class GeneralApplicationDetailsFieldsSerializer(serializers.Serializer):
+    name = FieldSerializer()
 
 
 class GeneralApplicationDetailsSerializer(serializers.Serializer):
     type = serializers.ChoiceField(choices=[SectionType.SINGLE])
-    fields = FieldSerializer(many=True)
+    fields = GeneralApplicationDetailsFieldsSerializer()
 
-    def validate(self, data):
-        required_fields(["name"], data)
-        return data
+
+class ApprovalTypeFieldsSerializer(serializers.Serializer):
+    approval_choices = FieldSerializer()
 
 
 class ApprovalTypeSerializer(serializers.Serializer):
     type = serializers.ChoiceField(choices=[SectionType.SINGLE])
-    fields = FieldSerializer(many=True)
-
-    def validate(self, data):
-        required_fields(["approval_choices"], data)
-        return data
+    fields = ApprovalTypeFieldsSerializer()
 
 
 class SectionSerializer(serializers.Serializer):

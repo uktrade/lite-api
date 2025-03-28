@@ -1,6 +1,11 @@
+from api.audit_trail.enums import AuditType
 from api.cases.models import Case
 from api.staticdata.statuses.libraries.get_case_status import get_status_value_from_case_status_enum
 from api.staticdata.statuses.models import CaseStatus
+from api.applications.models import ApplicationDocument
+from api.documents.libraries.process_document import process_document
+from api.audit_trail import service as audit_trail_service
+
 from rest_framework import serializers
 
 from api.staticdata.statuses.enums import CaseStatusEnum
@@ -55,3 +60,24 @@ class ApplicationHistorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Case
         fields = ("id", "reference_code", "amendment_history")
+
+
+class ExporterApplicationDocumentSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = ApplicationDocument
+        fields = "__all__"
+
+    def create(self, validated_data):
+        # This rich is moved here to avoid heavy helpers in the view keeping view as simple
+        # TODO move these to models
+        document = super().create(validated_data)
+        document.save()
+        process_document(document)
+        audit_trail_service.create(
+            actor=self.context["request"].user,
+            verb=AuditType.UPLOAD_APPLICATION_DOCUMENT,
+            target=validated_data["application"].get_case(),
+            payload={"file_name": validated_data["name"]},
+        )
+        return document

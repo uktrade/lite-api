@@ -15,7 +15,8 @@ class CaseFlagsManagementTests(DataTestClient):
         super().setUp()
 
         # Cases
-        self.case = self.create_end_user_advisory_case(note="note", reasoning="test", organisation=self.organisation)
+        self.case = self.create_standard_application_case(organisation=self.organisation)
+        self.case.flags.all().delete()
 
         # Teams
         self.other_team = self.create_team("Team")

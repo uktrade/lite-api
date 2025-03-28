@@ -1,12 +1,14 @@
 from django.contrib.contenttypes.models import ContentType
-from django.urls import reverse, reverse_lazy
+from django.urls import reverse_lazy
 from parameterized import parameterized
 from rest_framework import status
+
+from test_helpers.clients import DataTestClient
 
 from api.cases.enums import CaseTypeEnum
 from api.cases.generated_documents.models import GeneratedCaseDocument
 from api.cases.models import CaseNote, EcjuQuery
-from test_helpers.clients import DataTestClient
+from api.f680.tests.factories import SubmittedF680ApplicationFactory
 from api.users.libraries.user_to_token import user_to_token
 from api.users.models import ExporterNotification
 
@@ -19,46 +21,32 @@ class ExporterUserNotificationTests(DataTestClient):
         self.generated_case_doc_content_type = ContentType.objects.get_for_model(GeneratedCaseDocument)
         self.url = reverse_lazy("users:notifications")
 
-    def _create_all_case_types_with_notifications(self):
-        self._create_end_user_advisory_query_with_notifications()
-        self._create_application_with_notifications()
-        self._create_clc_query_with_notifications()
-
-    def _create_clc_query_with_notifications(self):
-        clc_query = self.create_clc_query(description="this is a clc query", organisation=self.organisation)
-        self.create_case_note(clc_query, "This is a test note 1", self.gov_user.baseuser_ptr, True)
-        self.create_case_note(clc_query, "This is a test note 2", self.gov_user.baseuser_ptr, False)
-        self.create_ecju_query(clc_query, "This is an ecju query")
-        self.create_generated_case_document(
-            clc_query, template=self.create_letter_template(case_types=[CaseTypeEnum.GOODS.id])
-        )
-        return clc_query
-
     def _create_application_with_notifications(self):
         application = self.create_standard_application_case(self.organisation)
         self.create_case_note(application, "This is a test note 1", self.gov_user.baseuser_ptr, True)
         self.create_case_note(application, "This is a test note 2", self.gov_user.baseuser_ptr, False)
         self.create_ecju_query(application, "This is an ecju query")
         self.create_generated_case_document(
-            application, template=self.create_letter_template(case_types=[CaseTypeEnum.SIEL.id])
+            application,
+            template=self.create_letter_template(case_types=[CaseTypeEnum.SIEL.id]),
         )
         return application
 
-    def _create_end_user_advisory_query_with_notifications(self):
-        eua_query = self.create_end_user_advisory_case("note", "reasoning", self.organisation)
-        self.create_case_note(eua_query, "This is a test note 1", self.gov_user.baseuser_ptr, True)
-        self.create_case_note(eua_query, "This is a test note 2", self.gov_user.baseuser_ptr, False)
-        self.create_ecju_query(eua_query, "This is an ecju query")
+    def _create_f680_clearance_with_notifications(self):
+        application = SubmittedF680ApplicationFactory(organisation=self.organisation)
+        self.create_case_note(application, "This is a test note 1", self.gov_user.baseuser_ptr, True)
+        self.create_case_note(application, "This is a test note 2", self.gov_user.baseuser_ptr, False)
+        self.create_ecju_query(application, "This is an ecju query")
         self.create_generated_case_document(
-            eua_query, template=self.create_letter_template(case_types=[CaseTypeEnum.EUA.id])
+            application,
+            template=self.create_letter_template(case_types=[CaseTypeEnum.F680.id]),
         )
-        return eua_query
+        return application
 
     @parameterized.expand(
         [
             [_create_application_with_notifications],
-            [_create_clc_query_with_notifications],
-            [_create_end_user_advisory_query_with_notifications],
+            [_create_f680_clearance_with_notifications],
         ]
     )
     def test_create_case_notifications_success(self, create_case_func):
@@ -94,18 +82,22 @@ class ExporterUserNotificationTests(DataTestClient):
         self.assertEqual(case_generated_case_document_notification_count, 1)
 
     def test_get_notifications_for_user_success(self):
-        self._create_all_case_types_with_notifications()
         self._create_application_with_notifications()
-        self._create_clc_query_with_notifications()
-        self._create_clc_query_with_notifications()
+        self._create_f680_clearance_with_notifications()
 
         response = self.client.get(self.url, **self.exporter_headers)
         response_data = response.json()
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response_data["notifications"]["application"], 6)
-        self.assertEqual(response_data["notifications"]["end_user_advisory"], 3)
-        self.assertEqual(response_data["notifications"]["goods"], 9)
+        # This is three because the two ecju queries don't send out a
+        # notification each
+        self.assertEqual(
+            response_data["notifications"],
+            {
+                "application": 3,
+                "security_clearance": 3,
+            },
+        )
 
     def test_get_notifications_for_user_in_multiple_orgs_success(self):
         """
@@ -162,67 +154,3 @@ class ExporterUserNotificationTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertIn("exporter_user_notification_count", response_data)
         self.assertEqual(len(response_data["exporter_user_notification_count"]), 3)
-
-    def test_get_goods_with_notifications_success(self):
-        self._create_clc_query_with_notifications()
-
-        response = self.client.get(reverse_lazy("goods:goods"), **self.exporter_headers)
-        response_data = response.json()["results"][0]
-
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response_data["exporter_user_notification_count"], 3)
-
-    def test_get_end_user_advisory_queries_with_notifications_success(self):
-        self._create_end_user_advisory_query_with_notifications()
-
-        response = self.client.get(
-            reverse_lazy("queries:end_user_advisories:end_user_advisories"),
-            **self.exporter_headers,
-        )
-
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        eua_query_response_data = response.json()["results"][0]
-        self.assertIn("exporter_user_notification_count", eua_query_response_data)
-        self.assertEqual(eua_query_response_data["exporter_user_notification_count"], 3)
-
-    def test_get_end_user_advisory_query_with_notifications_success(self):
-        case = self._create_end_user_advisory_query_with_notifications()
-
-        response = self.client.get(
-            reverse_lazy("queries:end_user_advisories:end_user_advisory", kwargs={"pk": str(case.id)}),
-            **self.exporter_headers,
-        )
-        response_data = response.json()
-
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertIn("exporter_user_notification_count", response_data["end_user_advisory"])
-        self.assertEqual(len(response_data["end_user_advisory"]["exporter_user_notification_count"]), 3)
-
-    def test_end_user_advisory_create_validation_error(self):
-        response = self.client.post(
-            reverse("queries:end_user_advisories:end_user_advisories"),
-            data={},
-            **self.exporter_headers,
-        )
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertIn("end_user", response.json()["errors"])
-
-    def test_end_user_advisory_create_success(self):
-        data = {
-            "validate_only": True,
-            "end_user": {
-                "name": "End-user",
-                "address": "123",
-                "sub_type": "government",
-                "signatory_name_euu": "test signatory",
-                "country": "US",
-                "contact_email": "test@example.com",
-            },
-            "contact_email": "test@example.com",
-        }
-        response = self.client.post(
-            reverse("queries:end_user_advisories:end_user_advisories"),
-            data=data,
-            **self.exporter_headers,
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
