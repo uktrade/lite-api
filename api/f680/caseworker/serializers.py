@@ -4,13 +4,12 @@ from api.applications.serializers.fields import CaseStatusField
 from api.cases.models import Case
 from api.core.serializers import CountrySerializerField, KeyValueChoiceField, PrimaryKeyRelatedField
 from api.organisations.exporter.serializers import RelatedOrganisationSerializer
+from api.f680 import enums
+from api.f680.models import F680Application, Product, Recipient, Recommendation, SecurityReleaseRequest
 from api.teams.models import Team
 from api.users.exporter.serializers import RelatedExporterUserSerializer
 from api.users.enums import UserStatuses
 from api.users.models import GovUser
-
-from api.f680.models import F680Application, Product, Recipient, Recommendation, SecurityReleaseRequest
-from api.f680 import enums
 
 
 class ProductSerializer(serializers.ModelSerializer):
