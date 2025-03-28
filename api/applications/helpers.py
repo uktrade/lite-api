@@ -9,22 +9,12 @@ from elasticsearch.exceptions import NotFoundError
 
 from api.appeals.constants import APPEAL_DAYS
 from api.applications.models import BaseApplication, GoodOnApplication
-from api.applications.serializers.end_use_details import (
-    F680EndUseDetailsUpdateSerializer,
-    StandardEndUseDetailsUpdateSerializer,
-)
-from api.applications.serializers.standard_application import (
-    StandardApplicationCreateSerializer,
-    StandardApplicationUpdateSerializer,
-)
 from api.applications.serializers.good import GoodOnStandardLicenceSerializer
-from api.cases.enums import CaseTypeSubTypeEnum, CaseTypeEnum, AdviceType, AdviceLevel
-from api.core.exceptions import BadRequestError
+from api.cases.enums import AdviceType, AdviceLevel
 from api.documents.models import Document
 from api.documents.libraries import s3_operations
 from api.external_data.models import SanctionMatch
 from api.licences.models import GoodOnLicence
-from lite_content.lite_api import strings
 
 logger = logging.getLogger(__name__)
 
@@ -32,41 +22,6 @@ logger = logging.getLogger(__name__)
 def get_application_view_serializer(application: BaseApplication):
     application_manifest = application.get_application_manifest()
     return application_manifest.caseworker_serializers["view"]
-
-
-def get_application_create_serializer(case_type):
-    sub_type = CaseTypeEnum.reference_to_class(case_type).sub_type
-
-    if sub_type == CaseTypeSubTypeEnum.STANDARD:
-        return StandardApplicationCreateSerializer
-    else:
-        raise BadRequestError({"application_type": [strings.Applications.Generic.SELECT_A_LICENCE_TYPE]})
-
-
-def get_application_update_serializer(application: BaseApplication):
-    if application.case_type.sub_type == CaseTypeSubTypeEnum.STANDARD:
-        return StandardApplicationUpdateSerializer
-    else:
-        raise BadRequestError(
-            {
-                f"get_application_update_serializer does "
-                f"not support this application type: {application.case_type.sub_type}"
-            }
-        )
-
-
-def get_application_end_use_details_update_serializer(application: BaseApplication):
-    if application.case_type.sub_type == CaseTypeSubTypeEnum.STANDARD:
-        return StandardEndUseDetailsUpdateSerializer
-    elif application.case_type.sub_type == CaseTypeSubTypeEnum.F680:
-        return F680EndUseDetailsUpdateSerializer
-    else:
-        raise BadRequestError(
-            {
-                f"get_application_end_use_details_update_serializer does "
-                f"not support this application type: {application.case_type.sub_type}"
-            }
-        )
 
 
 def validate_and_create_goods_on_licence(application_id, licence_id, data):

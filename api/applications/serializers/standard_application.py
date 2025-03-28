@@ -1,6 +1,9 @@
 from django.db.models import Q
+from django.utils import timezone
+
 from rest_framework import serializers
 from rest_framework.fields import CharField
+from rest_framework.relations import PrimaryKeyRelatedField
 
 from api.appeals.serializers import AppealSerializer
 from api.applications.enums import (
@@ -10,24 +13,30 @@ from api.applications.enums import (
     GoodsStartingPoint,
     GoodsRecipients,
 )
+from api.applications.libraries.get_applications import get_application
 from api.applications.mixins.serializers import PartiesSerializerMixin
-from api.applications.models import StandardApplication
+from api.applications.models import (
+    ApplicationDenialReason,
+    StandardApplication,
+)
 from api.licences.serializers.view_licence import CaseLicenceViewSerializer
 from api.applications.serializers.serializer_helper import validate_field
 from api.audit_trail.enums import AuditType
 from api.audit_trail.models import Audit
-from api.cases.enums import CaseTypeEnum
+from api.cases.models import CaseType
 from api.core.serializers import KeyValueChoiceField
 from api.licences.models import Licence
 from lite_content.lite_api import strings
+from api.organisations.models import Organisation
+from api.staticdata.denial_reasons.models import DenialReason
 from api.staticdata.statuses.enums import CaseStatusEnum
+from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
+from api.staticdata.statuses.models import CaseStatus
 from api.staticdata.statuses.serializers import CaseSubStatusSerializer
 from api.staticdata.trade_control.enums import TradeControlProductCategory, TradeControlActivity
 
 from .denial import DenialMatchOnApplicationViewSerializer
 from .generic_application import (
-    GenericApplicationCreateSerializer,
-    GenericApplicationUpdateSerializer,
     GenericApplicationViewSerializer,
 )
 from .good import GoodOnApplicationViewSerializer
@@ -278,65 +287,59 @@ class StandardApplicationDataWorkspaceSerializer(serializers.ModelSerializer):
         }
 
 
-class StandardApplicationCreateSerializer(GenericApplicationCreateSerializer):
+class StandardApplicationCreateSerializer(serializers.ModelSerializer):
+    name = CharField(
+        max_length=100,
+        required=True,
+        allow_blank=False,
+        allow_null=False,
+        error_messages={"blank": strings.Applications.Generic.MISSING_REFERENCE_NAME_ERROR},
+    )
+    case_type = PrimaryKeyRelatedField(
+        queryset=CaseType.objects.all(),
+        error_messages={"required": strings.Applications.Generic.NO_LICENCE_TYPE},
+    )
+    organisation = PrimaryKeyRelatedField(queryset=Organisation.objects.all())
     export_type = KeyValueChoiceField(choices=ApplicationExportType.choices, required=False)
     have_you_been_informed = KeyValueChoiceField(
         choices=ApplicationExportLicenceOfficialType.choices,
         error_messages={"required": strings.Goods.INFORMED},
     )
     reference_number_on_information_form = CharField(allow_blank=True)
-    trade_control_activity = KeyValueChoiceField(
-        choices=TradeControlActivity.choices,
-        error_messages={"required": strings.Applications.Generic.TRADE_CONTROL_ACTIVITY_ERROR},
-    )
-    trade_control_activity_other = CharField(
-        error_messages={
-            "blank": strings.Applications.Generic.TRADE_CONTROL_ACTIVITY_OTHER_ERROR,
-            "required": strings.Applications.Generic.TRADE_CONTROL_ACTIVITY_OTHER_ERROR,
-        }
-    )
-    trade_control_product_categories = serializers.MultipleChoiceField(
-        choices=TradeControlProductCategory.choices,
-        error_messages={"required": strings.Applications.Generic.TRADE_CONTROl_PRODUCT_CATEGORY_ERROR},
-    )
 
     class Meta:
         model = StandardApplication
-        fields = GenericApplicationCreateSerializer.Meta.fields + (
+        fields = (
+            "id",
+            "name",
+            "case_type",
+            "organisation",
             "export_type",
             "have_you_been_informed",
             "reference_number_on_information_form",
-            "trade_control_activity",
-            "trade_control_activity_other",
-            "trade_control_product_categories",
         )
 
     def __init__(self, case_type_id, **kwargs):
-        super().__init__(case_type_id, **kwargs)
-        self.trade_control_licence = case_type_id in [str(CaseTypeEnum.SICL.id), str(CaseTypeEnum.OICL.id)]
-
-        # Remove fields from serializer depending on the application being for a Trade Control Licence
-        if self.trade_control_licence:
-            self.fields.pop("export_type")
-            self.fields.pop("have_you_been_informed")
-            self.fields.pop("reference_number_on_information_form")
-
-            if not self.initial_data.get("trade_control_activity") == TradeControlActivity.OTHER:
-                self.fields.pop("trade_control_activity_other")
-        else:
-            self.fields.pop("trade_control_activity")
-            self.fields.pop("trade_control_activity_other")
-            self.fields.pop("trade_control_product_categories")
+        super().__init__(**kwargs)
+        self.initial_data["case_type"] = case_type_id
+        self.initial_data["organisation"] = self.context.id
 
     def create(self, validated_data):
-        # Trade Control Licences are always permanent
-        if self.trade_control_licence:
-            validated_data["export_type"] = ApplicationExportType.PERMANENT
-
+        validated_data["status"] = get_case_status_by_status(CaseStatusEnum.DRAFT)
         return super().create(validated_data)
 
 
-class StandardApplicationUpdateSerializer(GenericApplicationUpdateSerializer):
+class StandardApplicationUpdateSerializer(serializers.ModelSerializer):
+    name = CharField(
+        max_length=100,
+        required=True,
+        allow_blank=False,
+        allow_null=False,
+        error_messages={"blank": strings.Applications.Generic.MISSING_REFERENCE_NAME_ERROR},
+    )
+    reasons = serializers.PrimaryKeyRelatedField(queryset=DenialReason.objects.all(), many=True, write_only=True)
+    reason_details = serializers.CharField(required=False, allow_blank=True)
+    status = serializers.PrimaryKeyRelatedField(queryset=CaseStatus.objects.all())
     export_type = KeyValueChoiceField(
         choices=ApplicationExportType.choices, required=False, allow_blank=True, allow_null=True
     )
@@ -346,7 +349,11 @@ class StandardApplicationUpdateSerializer(GenericApplicationUpdateSerializer):
 
     class Meta:
         model = StandardApplication
-        fields = GenericApplicationUpdateSerializer.Meta.fields + (
+        fields = (
+            "name",
+            "status",
+            "reasons",
+            "reason_details",
             "export_type",
             "have_you_been_informed",
             "reference_number_on_information_form",
@@ -371,12 +378,17 @@ class StandardApplicationUpdateSerializer(GenericApplicationUpdateSerializer):
             if hasattr(self, "initial_data"):
                 self.initial_data["non_waybill_or_lading_route_details"] = None
 
-        if self.instance.case_type.id == CaseTypeEnum.SICL.id:
-            self.fields.pop("have_you_been_informed")
-            self.fields.pop("reference_number_on_information_form")
-
     def update(self, instance, validated_data):
         self._update_have_you_been_informed_linked_fields(instance, validated_data)
+
+        instance.name = validated_data.get("name", instance.name)
+        instance.status = validated_data.get("status", instance.status)
+        instance.clearance_level = validated_data.get("clearance_level", instance.clearance_level)
+
+        # Remove any previous denial reasons
+        if validated_data.get("status") == get_case_status_by_status(CaseStatusEnum.FINALISED):
+            ApplicationDenialReason.objects.filter(application=get_application(instance.id)).delete()
+            instance.last_closed_at = timezone.now()
 
         instance = super().update(instance, validated_data)
         return instance
