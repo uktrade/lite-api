@@ -30,7 +30,7 @@ pytestmark = pytest.mark.django_db
 
 class HawkClient(APIClient):
     def post(self, url, data, **kwargs):
-        assert settings.HAWK_AUTHENTICATION_ENABLED
+        assert settings.HAWK_AUTHENTICATION_ENABLED  # nosec
 
         # Without this hawk sender gets data as string whereas
         # receiver gets it as bytes resulting in failure because
@@ -58,7 +58,7 @@ def api_client():
 @pytest.fixture
 def get_hawk_client():
     def _get_hawk_client(method, url, data=None):
-        assert settings.HAWK_AUTHENTICATION_ENABLED
+        assert settings.HAWK_AUTHENTICATION_ENABLED  # nosec
         client = HawkClient()
         url = parse.urljoin("http://testserver", url)
         sender = get_hawk_sender(method, url, data, settings.HAWK_LITE_API_CREDENTIALS)
