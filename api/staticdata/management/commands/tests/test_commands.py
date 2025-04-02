@@ -6,7 +6,6 @@ from parameterized import parameterized
 from tempfile import NamedTemporaryFile
 
 from api.cases.enums import CaseTypeEnum
-from api.cases.models import CaseType
 from api.core.constants import GovPermissions, ExporterPermissions, Teams
 from api.conf.settings import BASE_DIR
 from api.letter_templates.models import LetterTemplate
@@ -20,7 +19,6 @@ from api.staticdata.management.SeedCommand import SeedCommandTest
 from api.staticdata.management.commands import (
     seedlayouts,
     seedcasestatuses,
-    seedcasetypes,
     seedcountries,
     seeddenialreasons,
     seedlettertemplates,
@@ -43,16 +41,7 @@ class SeedingTests(SeedCommandTest):
             RoleFactory(name=name, type=UserType.INTERNAL)
 
     @pytest.mark.seeding
-    def test_seed_case_types(self):
-        self.seed_command(seedcasetypes.Command)
-        enum = CaseTypeEnum.CASE_TYPE_LIST
-        self.assertEqual(CaseType.objects.count(), len(enum))
-        for item in enum:
-            self.assertTrue(CaseType.objects.get(id=item.id))
-
-    @pytest.mark.seeding
     def test_seed_case_statuses(self):
-        self.seed_command(seedcasetypes.Command)
         self.seed_command(seedcasestatuses.Command, "--force")
         self.assertTrue(
             CaseStatus.objects.count() >= len(seedcasestatuses.Command.read_csv(seedcasestatuses.STATUSES_FILE))
@@ -128,12 +117,21 @@ class SeedingTests(SeedCommandTest):
     @pytest.mark.seeding
     @parameterized.expand(
         [
-            ([{"email": "admin@example.co.uk", "role": "Super User"}],),
-            ([{"email": "manager@example.co.uk", "role": "Manager", "first_name": "LU", "last_name": "Manager"}],),
+            ([{"email": "admin@example.co.uk", "role": "Super User"}],),  # /PS-IGNORE
             (
                 [
                     {
-                        "email": "senior_manager@example.co.uk",
+                        "email": "manager@example.co.uk",  # /PS-IGNORE
+                        "role": "Manager",
+                        "first_name": "LU",
+                        "last_name": "Manager",
+                    },
+                ],
+            ),
+            (
+                [
+                    {
+                        "email": "senior_manager@example.co.uk",  # /PS-IGNORE
                         "role": "Senior Manager",
                         "team_id": TeamIdEnum.LICENSING_UNIT,
                     }
@@ -142,7 +140,7 @@ class SeedingTests(SeedCommandTest):
             (
                 [
                     {
-                        "email": "case_officer@example.co.uk",
+                        "email": "case_officer@example.co.uk",  # /PS-IGNORE
                         "role": "Case officer",
                         "team_id": TeamIdEnum.LICENSING_UNIT,
                         "default_queue": "00000000-0000-0000-0000-000000000004",
