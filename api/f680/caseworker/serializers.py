@@ -124,7 +124,8 @@ class SecurityReleaseOutcomeSerializer(serializers.ModelSerializer):
     case = PrimaryKeyRelatedField(queryset=Case.objects.all())
     user = PrimaryKeyRelatedField(queryset=GovUser.objects.filter(status=UserStatuses.ACTIVE))
     team = PrimaryKeyRelatedField(queryset=Team.objects.all())
-    security_release_requests = PrimaryKeyRelatedField(queryset=SecurityReleaseRequest.objects.all(), many=True)
+    security_release_requests = SecurityReleaseRequestSerializer(many=True)
+    approval_types = serializers.ListField(child=KeyValueChoiceField(choices=enums.ApprovalTypes.choices))
 
     def validate_approve(self, data):
         if not data.get("security_grading"):

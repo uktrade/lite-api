@@ -38,6 +38,9 @@ from api.licences.models import Licence
 from api.organisations.models import Site, ExternalLocation
 from api.queries.end_user_advisories.models import EndUserAdvisoryQuery
 from api.queries.goods_query.models import GoodsQuery
+from api.f680.caseworker.serializers import SecurityReleaseOutcomeSerializer
+from api.f680.models import SecurityReleaseOutcome
+from api.f680.enums import SecurityReleaseOutcomes
 
 from api.staticdata.countries.models import Country
 
@@ -593,13 +596,21 @@ class ComplianceSiteCaseSerializer(serializers.ModelSerializer):
 class F680Serializer(serializers.ModelSerializer):
     class Meta:
         model = Case
-        fields = ["application"]
+        fields = ["application", "security_release_outcomes"]
 
     application = serializers.SerializerMethodField()
+    security_release_outcomes = serializers.SerializerMethodField()
 
     def get_application(self, obj):
         # Expose the application JSON to the template
         return obj.get_application().application
+
+    def get_security_release_outcomes(self, obj):
+        data = {}
+        for key, _ in SecurityReleaseOutcomes.choices:
+            sros = SecurityReleaseOutcome.objects.filter(case=obj, outcome=key)
+            data[key] = SecurityReleaseOutcomeSerializer(sros, many=True).data
+        return data
 
 
 class ComplianceSiteLicenceSerializer(serializers.ModelSerializer):
