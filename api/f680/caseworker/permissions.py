@@ -42,7 +42,4 @@ class CaseReadyForOutcome(permissions.BasePermission):
 class CanUserMakeOutcome(permissions.BasePermission):
     def has_permission(self, request, view):
         user = request.user
-        if str(user.govuser.team.id) != TeamIdEnum.MOD_ECJU:
-            return False
-
-        return True
+        return str(user.govuser.team.id) == TeamIdEnum.MOD_ECJU
