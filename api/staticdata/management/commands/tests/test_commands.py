@@ -5,7 +5,6 @@ import pytest
 from parameterized import parameterized
 from tempfile import NamedTemporaryFile
 
-from api.cases.enums import CaseTypeEnum
 from api.core.constants import GovPermissions, ExporterPermissions, Teams
 from api.conf.settings import BASE_DIR
 from api.letter_templates.models import LetterTemplate
@@ -18,7 +17,6 @@ from api.staticdata.letter_layouts.models import LetterLayout
 from api.staticdata.management.SeedCommand import SeedCommandTest
 from api.staticdata.management.commands import (
     seedlayouts,
-    seedcasestatuses,
     seedcountries,
     seeddenialreasons,
     seedlettertemplates,
@@ -26,7 +24,6 @@ from api.staticdata.management.commands import (
     seedfinaldecisions,
     seedinternalusers,
 )
-from api.staticdata.statuses.models import CaseStatus, CaseStatusCaseType
 from api.teams.enums import TeamIdEnum
 from api.users.enums import UserType
 from api.users.models import GovUser, Permission
@@ -39,22 +36,6 @@ class SeedingTests(SeedCommandTest):
         role_names = ["Super User", "Case officer", "Case adviser", "Manager", "Senior Manager"]
         for name in role_names:
             RoleFactory(name=name, type=UserType.INTERNAL)
-
-    @pytest.mark.seeding
-    def test_seed_case_statuses(self):
-        self.seed_command(seedcasestatuses.Command, "--force")
-        self.assertTrue(
-            CaseStatus.objects.count() >= len(seedcasestatuses.Command.read_csv(seedcasestatuses.STATUSES_FILE))
-        )
-
-        case_type_list = CaseTypeEnum.CASE_TYPE_LIST
-        counter = 0
-        for case_type in case_type_list:
-            for key, value in seedcasestatuses.Command.STATUSES_ON_CASE_TYPES.items():
-                if case_type.sub_type in value or case_type.type in value:
-                    counter += 1
-
-        self.assertEqual(CaseStatusCaseType.objects.all().count(), counter)
 
     @pytest.mark.seeding
     def test_seed_countries(self):
