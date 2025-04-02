@@ -109,7 +109,4 @@ class F680OutcomeViewSet(viewsets.ModelViewSet):
     def destroy(self, request, *args, **kwargs):
         response = super().destroy(request, *args, **kwargs)
         # The following makes 204 no content responses play nicely with hawk authentication
-        if response.status_code == status.HTTP_204_NO_CONTENT:
-            return HttpResponse(status=response.status_code)
-        else:
-            return response
+        return HttpResponse(status=response.status_code)
