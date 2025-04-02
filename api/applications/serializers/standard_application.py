@@ -32,7 +32,6 @@ from api.gov_users.serializers import GovUserSimpleSerializer
 from api.licences.models import Licence
 from lite_content.lite_api import strings
 from api.organisations.serializers import (
-    ExternalLocationSerializer,
     OrganisationDetailSerializer,
     SiteListSerializer,
 )
@@ -194,11 +193,6 @@ class StandardApplicationViewSerializer(PartiesSerializerMixin, serializers.Mode
         if sites:
             serializer = SiteListSerializer(sites, many=True)
             return {"type": "sites", "data": serializer.data}
-
-        external_locations = [eoa.site for eoa in application.external_application_sites.all()]
-        if external_locations:
-            serializer = ExternalLocationSerializer(external_locations, many=True)
-            return {"type": "external_locations", "data": serializer.data}
 
         return {}
 
