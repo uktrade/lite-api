@@ -490,7 +490,7 @@ class TestF680OutcomeViewSet:
         response = api_client.post(target_url, post_data, **headers)
         assert response.status_code == 403
 
-    def test_POST_existing_outcome_responds_400(self, api_client, get_f680_application, team_case_advisor_headers):
+    def test_POST_existing_outcome_responds_400(self, get_hawk_client, get_f680_application, team_case_advisor_headers):
         f680_application = get_f680_application()
         f680_application.status = CaseStatus.objects.get(status=CaseStatusEnum.UNDER_FINAL_REVIEW)
         f680_application.save()
@@ -510,7 +510,8 @@ class TestF680OutcomeViewSet:
             "refusal_reasons": "my reasons",
             "security_release_requests": release_request_ids,
         }
-        response = api_client.post(url, post_data, **headers)
+        api_client, target_url = get_hawk_client("POST", url, data=post_data)
+        response = api_client.post(target_url, post_data, **headers)
         assert response.status_code == 400
         assert response.json() == {
             "errors": {
