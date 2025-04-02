@@ -3,8 +3,6 @@ from django.core.management import call_command
 from django.db import migrations
 from django.db.models import F
 
-from api.cases.enums import CaseTypeEnum
-from api.cases.models import CaseType
 from api.compliance.helpers import generate_compliance_site_case
 from api.licences.enums import LicenceStatus
 
@@ -25,10 +23,6 @@ def forward_migration(apps, schema_editor):
         baseapplication__application_sites__site__site_records_located_at__compliance__isnull=True,
         baseapplication__licences__status__in=[LicenceStatus.ISSUED, LicenceStatus.REINSTATED],
     ).distinct()
-
-    # Get or create case type & status because seeding may not have run yet
-    if not CaseType.objects.filter(id=CaseTypeEnum.COMPLIANCE_SITE.id).exists():
-        call_command("seedcasetypes")
 
     if not CaseStatus.objects.filter(status=CaseStatusEnum.OPEN).exists():
         call_command("seedcasestatuses", "--force")
