@@ -10,6 +10,11 @@ OGDS_FOR_F680 = (
 )
 
 
+class ReadOnly(permissions.BasePermission):
+    def has_permission(self, request, view):
+        return request.method == "GET"
+
+
 class CaseCanAcceptRecommendations(permissions.BasePermission):
     def has_permission(self, request, view):
         return view.get_case().status.status == CaseStatusEnum.OGD_ADVICE
@@ -27,3 +32,14 @@ class CaseCanUserMakeRecommendations(permissions.BasePermission):
             return False
 
         return True
+
+
+class CaseReadyForOutcome(permissions.BasePermission):
+    def has_permission(self, request, view):
+        return view.get_case().status.status == CaseStatusEnum.UNDER_FINAL_REVIEW
+
+
+class CanUserMakeOutcome(permissions.BasePermission):
+    def has_permission(self, request, view):
+        user = request.user
+        return str(user.govuser.team.id) == TeamIdEnum.MOD_ECJU

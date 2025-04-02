@@ -7,22 +7,25 @@ from api.applications.libraries.get_applications import get_application
 from api.core.authentication import GovAuthentication
 from api.core.exceptions import NotFoundError
 
-from api.f680.models import Recommendation
-from api.f680.caseworker.filters import CurrentCaseRecommendationFilter
-from api.f680.caseworker.permissions import CaseCanAcceptRecommendations, CaseCanUserMakeRecommendations
-from api.f680.caseworker.serializers import F680RecommendationSerializer
-from api.f680.caseworker.read_only_serializers import F680RecommendationViewSerializer
+from api.f680.models import Recommendation, SecurityReleaseOutcome
+from api.f680.caseworker import filters
+from api.f680.caseworker import permissions
+from api.f680.caseworker import serializers
+from api.f680.caseworker import read_only_serializers
 
 
 class F680RecommendationViewSet(viewsets.ModelViewSet):
     authentication_classes = (GovAuthentication,)
-    permission_classes = (CaseCanAcceptRecommendations, CaseCanUserMakeRecommendations)
-    filter_backends = (CurrentCaseRecommendationFilter,)
+    permission_classes = [
+        permissions.CaseCanAcceptRecommendations & permissions.CaseCanUserMakeRecommendations | permissions.ReadOnly
+    ]
+    filter_backends = (filters.CurrentCaseFilter,)
     queryset = Recommendation.objects.all()
-    serializer_class = F680RecommendationSerializer
+    serializer_class = serializers.F680RecommendationSerializer
     pagination_class = None
 
     def dispatch(self, request, *args, **kwargs):
+        # TODO: Review dispatch methods in LTD-6085
         try:
             self.application = get_application(self.kwargs["pk"])
         except (ObjectDoesNotExist, NotFoundError):
@@ -55,7 +58,7 @@ class F680RecommendationViewSet(viewsets.ModelViewSet):
 
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
-        serializer = F680RecommendationViewSerializer(queryset, many=True)
+        serializer = read_only_serializers.F680RecommendationViewSerializer(queryset, many=True)
         return Response(serializer.data)
 
     def destroy(self, request, *args, **kwargs):
@@ -64,3 +67,46 @@ class F680RecommendationViewSet(viewsets.ModelViewSet):
         if qs.exists:
             qs.delete()
         return HttpResponse(status=status.HTTP_204_NO_CONTENT)
+
+
+class F680OutcomeViewSet(viewsets.ModelViewSet):
+    authentication_classes = (GovAuthentication,)
+    permission_classes = [permissions.CaseReadyForOutcome & permissions.CanUserMakeOutcome | permissions.ReadOnly]
+    filter_backends = (filters.CurrentCaseFilter,)
+    queryset = SecurityReleaseOutcome.objects.all()
+    serializer_class = serializers.SecurityReleaseOutcomeSerializer
+    lookup_url_kwarg = "outcome_id"
+    pagination_class = None
+
+    def dispatch(self, request, *args, **kwargs):
+        # TODO: Review dispatch methods in LTD-6085
+        try:
+            self.application = get_application(self.kwargs["pk"])
+        except (ObjectDoesNotExist, NotFoundError):
+            raise Http404()
+
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_case(self):
+        return self.application
+
+    def prepare_data(self, request_data):
+        return {
+            "case": self.kwargs["pk"],
+            "user": str(self.request.user.id),
+            "team": str(self.request.user.govuser.team.id),
+            **request_data,
+        }
+
+    def create(self, request, *args, **kwargs):
+        data = self.prepare_data(request.data.copy())
+        serializer = self.get_serializer(data=data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
+    def destroy(self, request, *args, **kwargs):
+        response = super().destroy(request, *args, **kwargs)
+        # The following makes 204 no content responses play nicely with hawk authentication
+        return HttpResponse(status=response.status_code)
