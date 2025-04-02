@@ -16,7 +16,9 @@ from api.f680.caseworker import read_only_serializers
 
 class F680RecommendationViewSet(viewsets.ModelViewSet):
     authentication_classes = (GovAuthentication,)
-    permission_classes = (permissions.CaseCanAcceptRecommendations, permissions.CaseCanUserMakeRecommendations)
+    permission_classes = [
+        permissions.CaseCanAcceptRecommendations & permissions.CaseCanUserMakeRecommendations | permissions.ReadOnly
+    ]
     filter_backends = (filters.CurrentCaseFilter,)
     queryset = Recommendation.objects.all()
     serializer_class = serializers.F680RecommendationSerializer
@@ -68,7 +70,7 @@ class F680RecommendationViewSet(viewsets.ModelViewSet):
 
 class F680OutcomeViewSet(viewsets.ModelViewSet):
     authentication_classes = (GovAuthentication,)
-    permission_classes = (permissions.CaseReadyForOutcome, permissions.CanUserMakeOutcome)
+    permission_classes = [permissions.CaseReadyForOutcome & permissions.CanUserMakeOutcome | permissions.ReadOnly]
     filter_backends = (filters.CurrentCaseFilter,)
     queryset = SecurityReleaseOutcome.objects.all()
     serializer_class = serializers.SecurityReleaseOutcomeSerializer
