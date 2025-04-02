@@ -174,7 +174,7 @@ class TestCreateRecommendations:
         assert response.status_code == 201
         assert f680_application.recommendations.count() == f680_application.security_release_requests.count()
 
-    def test_POST_recommendation_again_raises_error(
+    def test_POST_recommendation_again_raises_no_error(
         self, get_hawk_client, get_f680_application, url, team_case_advisor_headers
     ):
         f680_application = get_f680_application()
@@ -191,15 +191,15 @@ class TestCreateRecommendations:
         ]
 
         headers = team_case_advisor_headers(TeamIdEnum.MOD_CAPPROT)
-        api_client, target_url = get_hawk_client("POST", url(f680_application), data=data)
-        response = api_client.post(target_url, data, **headers)
+        api_client, target_url = get_hawk_client("POST", url(f680_application), data=data[:1])
+        response = api_client.post(target_url, data[:1], **headers)
+        assert response.status_code == 201
+        assert f680_application.recommendations.count() == 1
+
+        api_client, target_url = get_hawk_client("POST", url(f680_application), data=data[1:])
+        response = api_client.post(target_url, data[1:], **headers)
         assert response.status_code == 201
         assert f680_application.recommendations.count() == f680_application.security_release_requests.count()
-
-        api_client, target_url = get_hawk_client("POST", url(f680_application), data=data)
-        response = api_client.post(target_url, data, **headers)
-        assert response.status_code == 403
-        assert response.json() == {"errors": {"detail": "You do not have permission to perform this action."}}
 
     def test_POST_recommendation_another_case_success(
         self, get_hawk_client, get_f680_application, url, team_case_advisor
