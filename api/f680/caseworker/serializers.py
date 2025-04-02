@@ -131,7 +131,6 @@ class SecurityReleaseOutcomeSerializer(serializers.ModelSerializer):
     # security_release_requests = PrimaryKeyRelatedField(queryset=SecurityReleaseRequest.objects.all(), many=True)
     security_release_requests = SecurityReleaseRequestSerializer(many=True)
     approval_types = serializers.ListField(child=KeyValueChoiceField(choices=enums.ApprovalTypes.choices))
-    security_release_requests
 
     def validate(self, data):
         if data["outcome"] == enums.SecurityReleaseOutcomes.APPROVE:

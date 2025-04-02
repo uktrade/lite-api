@@ -5,6 +5,7 @@ from django.contrib.humanize.templatetags.humanize import intcomma
 from django.utils import timezone
 
 from api.f680.caseworker.serializers import SecurityReleaseOutcomeSerializer
+from api.f680.enums import SecurityReleaseOutcomes
 from api.f680.models import SecurityReleaseOutcome
 from rest_framework import serializers
 
@@ -595,13 +596,21 @@ class ComplianceSiteCaseSerializer(serializers.ModelSerializer):
 class F680Serializer(serializers.ModelSerializer):
     class Meta:
         model = Case
-        fields = ["application"]
+        fields = ["application", "security_release_outcomes"]
 
     application = serializers.SerializerMethodField()
+    security_release_outcomes = serializers.SerializerMethodField()
 
     def get_application(self, obj):
         # Expose the application JSON to the template
         return obj.get_application().application
+
+    def get_security_release_outcomes(self, obj):
+        data = {}
+        for key, _ in SecurityReleaseOutcomes.choices:
+            sros = SecurityReleaseOutcome.objects.filter(case=obj, outcome=key)
+            data[key] = SecurityReleaseOutcomeSerializer(sros, many=True).data
+        return data
 
 
 class ComplianceSiteLicenceSerializer(serializers.ModelSerializer):
@@ -716,9 +725,7 @@ def get_document_context(case, addressee=None):
 
         if base_application.submitted_at:
             date_application_submitted = base_application.submitted_at.strftime("%d %B %Y")
-    # F680 Outcomes
-    sro = SecurityReleaseOutcome.objects.get(case=case)
-    secuirty_release_outcomes = SecurityReleaseOutcomeSerializer(sro).data
+
     context = {
         "case_reference": case.reference_code,
         "case_submitted_at": case.submitted_at,
@@ -727,7 +734,6 @@ def get_document_context(case, addressee=None):
         "current_date": date,
         "current_time": time,
         "details": _get_details_context(case),
-        "security_release_outcomes": secuirty_release_outcomes,
         "addressee": AddresseeSerializer(addressee).data,
         "organisation": OrganisationSerializer(case.organisation).data,
         "licence": LicenceSerializer(licence).data if licence else None,
