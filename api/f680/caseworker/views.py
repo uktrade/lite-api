@@ -25,6 +25,7 @@ class F680RecommendationViewSet(viewsets.ModelViewSet):
     pagination_class = None
 
     def dispatch(self, request, *args, **kwargs):
+        # TODO: Review dispatch methods in LTD-6085
         try:
             self.application = get_application(self.kwargs["pk"])
         except (ObjectDoesNotExist, NotFoundError):
@@ -78,6 +79,7 @@ class F680OutcomeViewSet(viewsets.ModelViewSet):
     pagination_class = None
 
     def dispatch(self, request, *args, **kwargs):
+        # TODO: Review dispatch methods in LTD-6085
         try:
             self.application = get_application(self.kwargs["pk"])
         except (ObjectDoesNotExist, NotFoundError):
