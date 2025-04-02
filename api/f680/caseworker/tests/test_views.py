@@ -148,7 +148,9 @@ class TestF680RecommendationViewSet:
                 case=f680_application, security_release_request=release_request, conditions="No concerns"
             )
         headers = team_case_advisor_headers(TeamIdEnum.MOD_CAPPROT)
-        url = reverse("caseworker_f680:recommendation", kwargs={"pk": "138d3a5f-5b5d-457d-8db0-723e14b36de4"})
+        url = reverse(
+            "caseworker_f680:recommendation", kwargs={"pk": "138d3a5f-5b5d-457d-8db0-723e14b36de4"}  # /PS-IGNORE
+        )
         api_client, target_url = get_hawk_client("GET", url)
         response = api_client.get(target_url, **headers)
         assert response.status_code == 404
@@ -200,7 +202,9 @@ class TestF680RecommendationViewSet:
         assert response.status_code == 403
         assert response.json() == {"errors": {"detail": "You do not have permission to perform this action."}}
 
-    def test_POST_recommendation_another_case_success(self, get_hawk_client, get_f680_application, url, team_case_advisor):
+    def test_POST_recommendation_another_case_success(
+        self, get_hawk_client, get_f680_application, url, team_case_advisor
+    ):
         f680_applications = [get_f680_application(static_release_request_ids=False) for _ in range(4)]
         gov_user = team_case_advisor(TeamIdEnum.MOD_CAPPROT)
 
@@ -288,7 +292,9 @@ class TestF680RecommendationViewSet:
         assert response.json()["errors"] == errors
 
     def test_POST_recommendation_invalid_application_raises_error(self, get_hawk_client, team_case_advisor_headers):
-        url = reverse("caseworker_f680:recommendation", kwargs={"pk": "138d3a5f-5b5d-457d-8db0-723e14b36de4"})
+        url = reverse(
+            "caseworker_f680:recommendation", kwargs={"pk": "138d3a5f-5b5d-457d-8db0-723e14b36de4"}  # /PS-IGNORE
+        )
         headers = team_case_advisor_headers(TeamIdEnum.MOD_CAPPROT)
         # Data is intentionally empty as we fail before validating the data
         api_client, target_url = get_hawk_client("POST", url, data=[])
@@ -364,7 +370,9 @@ class TestF680OutcomeViewSet:
         response = api_client.get(target_url, **headers)
         assert response.status_code == 404
 
-    def test_POST_create_single_item_group_success(self, get_hawk_client, get_f680_application, team_case_advisor_headers):
+    def test_POST_create_single_item_group_success(
+        self, get_hawk_client, get_f680_application, team_case_advisor_headers
+    ):
         f680_application = get_f680_application()
         f680_application.status = CaseStatus.objects.get(status=CaseStatusEnum.UNDER_FINAL_REVIEW)
         f680_application.save()
@@ -404,7 +412,9 @@ class TestF680OutcomeViewSet:
             "user": str(outcome.user.baseuser_ptr.id),
         }
 
-    def test_POST_create_multiple_item_group_success(self, get_hawk_client, get_f680_application, team_case_advisor_headers):
+    def test_POST_create_multiple_item_group_success(
+        self, get_hawk_client, get_f680_application, team_case_advisor_headers
+    ):
         f680_application = get_f680_application()
         f680_application.status = CaseStatus.objects.get(status=CaseStatusEnum.UNDER_FINAL_REVIEW)
         f680_application.save()
