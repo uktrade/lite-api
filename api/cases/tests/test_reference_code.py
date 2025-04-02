@@ -35,17 +35,6 @@ class ReferenceCode(DataTestClient):
         )
         self.assertEqual(standard_application.reference_code, expected_reference)
 
-    def test_standard_individual_transhipment_application_reference_code(self):
-        standard_application = self.create_draft_standard_application(
-            self.organisation, case_type_id=CaseTypeEnum.SITL.id
-        )
-        standard_application = self.submit_application(standard_application)
-
-        expected_reference = build_expected_reference(
-            CaseTypeEnum.SITL.reference, is_licence_type=True, export_type=PERMANENT
-        )
-        self.assertEqual(standard_application.reference_code, expected_reference)
-
     def test_end_user_advisory_reference_code(self):
         end_user_advisory_query = self.create_end_user_advisory_case("", "", self.organisation)
         expected_reference = build_expected_reference(CaseTypeEnum.EUA.reference)
@@ -63,17 +52,6 @@ class ReferenceCode(DataTestClient):
 
         expected_reference = build_expected_reference(
             CaseTypeEnum.SIEL.reference, is_licence_type=True, export_type=TEMPORARY
-        )
-        self.assertEqual(standard_application.reference_code, expected_reference)
-
-    def test_trade_control_application_reference_code(self):
-        standard_application = self.create_draft_standard_application(
-            self.organisation, case_type_id=CaseTypeEnum.SICL.id
-        )
-        standard_application = self.submit_application(standard_application)
-
-        expected_reference = build_expected_reference(
-            CaseTypeEnum.SICL.reference, is_licence_type=True, export_type=PERMANENT
         )
         self.assertEqual(standard_application.reference_code, expected_reference)
 
