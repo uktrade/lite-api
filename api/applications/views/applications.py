@@ -206,7 +206,10 @@ class ApplicationDetail(RetrieveUpdateDestroyAPIView):
         case = application.get_case()
         data = request.data.copy()
         serializer = StandardApplicationUpdateSerializer(
-            application, data=data, context=get_request_user_organisation(request), partial=True
+            application,
+            data=data,
+            context=get_request_user_organisation(request),
+            partial=True,
         )
 
         # Prevent minor edits of the clearance level
@@ -218,10 +221,6 @@ class ApplicationDetail(RetrieveUpdateDestroyAPIView):
 
         if not serializer.is_valid():
             return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
-
-        if application.case_type.sub_type == CaseTypeSubTypeEnum.HMRC:
-            serializer.save()
-            return JsonResponse(data={}, status=status.HTTP_200_OK)
 
         # Audit block
         if request.data.get("name"):
@@ -241,9 +240,8 @@ class ApplicationDetail(RetrieveUpdateDestroyAPIView):
             serializer.save()
             return JsonResponse(data={}, status=status.HTTP_200_OK)
 
-        if application.case_type.sub_type == CaseTypeSubTypeEnum.STANDARD:
-            save_and_audit_have_you_been_informed_ref(request, application, serializer)
-            serializer.save()
+        save_and_audit_have_you_been_informed_ref(request, application, serializer)
+        serializer.save()
 
         return JsonResponse(data={}, status=status.HTTP_200_OK)
 
