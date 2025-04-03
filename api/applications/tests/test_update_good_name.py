@@ -4,7 +4,9 @@ from django.core.management import call_command
 from tempfile import NamedTemporaryFile
 import pytest
 from api.goods.models import Good
+from api.goods.tests.factories import GoodFactory
 from test_helpers.clients import DataTestClient
+from parameterized import parameterized
 
 
 class UpdateGoodFromCSVTests(DataTestClient):
@@ -63,3 +65,36 @@ class UpdateGoodFromCSVTests(DataTestClient):
 
             with pytest.raises(Good.DoesNotExist):
                 call_command("update_good_name", tmp_file.name)
+
+    @parameterized.expand(
+        [
+            ("This-good\thas-a-tab", "this is the new name"),
+            ('This has quotes" and should still match', "this is the new name"),
+        ]
+    )
+    def test_update_good_name_from_csv_escape_character(self, old_goodname, new_goodname):
+        good = GoodFactory(name=old_goodname, organisation=self.organisation)
+        with NamedTemporaryFile(suffix=".csv", delete=True) as tmp_file:
+            rows = [
+                "good_id,name,new_name,additional_text",
+                f"""{good.id},{good.name},{new_goodname},added by John Smith as per LTD-XXX""",
+            ]
+            tmp_file.write("\n".join(rows).encode("utf-8"))
+            tmp_file.flush()
+
+            call_command("update_good_name", tmp_file.name)
+            good.refresh_from_db()
+            self.assertEqual(good.name, new_goodname)
+
+            audit = Audit.objects.get()
+
+            self.assertEqual(audit.actor, self.system_user)
+            self.assertEqual(audit.target.id, good.id)
+            self.assertEqual(audit.verb, AuditType.DEVELOPER_INTERVENTION)
+            self.assertEqual(
+                audit.payload,
+                {
+                    "name": {"new": good.name, "old": old_goodname},
+                    "additional_text": "added by John Smith as per LTD-XXX",
+                },
+            )
