@@ -25,7 +25,6 @@ from api.applications import constants
 from api.applications.creators import validate_application_ready_for_submission, _validate_agree_to_declaration
 from api.applications.helpers import (
     get_application_view_serializer,
-    get_application_update_serializer,
     validate_and_create_goods_on_licence,
     auto_match_sanctions,
 )
@@ -53,6 +52,7 @@ from api.applications.serializers.generic_application import GenericApplicationC
 from api.applications.serializers.standard_application import (
     StandardApplicationCreateSerializer,
     StandardApplicationRequiresSerialNumbersSerializer,
+    StandardApplicationUpdateSerializer,
 )
 from api.audit_trail import service as audit_trail_service
 from api.audit_trail.enums import AuditType
@@ -197,10 +197,9 @@ class ApplicationDetail(RetrieveUpdateDestroyAPIView):
         Update an application instance
         """
         application = get_application(pk)
-        update_serializer = get_application_update_serializer(application)
         case = application.get_case()
         data = request.data.copy()
-        serializer = update_serializer(
+        serializer = StandardApplicationUpdateSerializer(
             application, data=data, context=get_request_user_organisation(request), partial=True
         )
 
@@ -739,11 +738,12 @@ class ApplicationRouteOfGoods(UpdateAPIView):
         """Update an application instance with route of goods data."""
 
         application = get_application(pk)
-        serializer = get_application_update_serializer(application)
         case = application.get_case()
         data = request.data.copy()
 
-        serializer = serializer(application, data=data, context=get_request_user_organisation(request), partial=True)
+        serializer = StandardApplicationUpdateSerializer(
+            application, data=data, context=get_request_user_organisation(request), partial=True
+        )
         if not serializer.is_valid():
             return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
