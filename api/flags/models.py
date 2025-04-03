@@ -2,15 +2,28 @@ import uuid
 
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
+from django.db.models import Q
 
 from api.common.models import TimestampableModel
 from api.flags.enums import FlagLevels, FlagStatuses, FlagColours, FlagPermissions
 from api.teams.models import Team
 
 
+class FlagQuerySet(models.QuerySet):
+    def filter_by_applicable_team(self, team):
+        return self.filter(Q(team=team) | Q(applicable_by_team=team))
+
+
 class FlagManager(models.Manager):
+
+    def get_queryset(self):
+        return FlagQuerySet(self.model, using=self._db)
+
     def get_by_natural_key(self, name):
         return self.get(name=name)
+
+    def filter_by_applicable_team(self, team):
+        return self.get_queryset().filter_by_applicable_team(team)
 
 
 class Flag(TimestampableModel):
@@ -25,6 +38,7 @@ class Flag(TimestampableModel):
     priority = models.PositiveSmallIntegerField(default=0)
     blocks_finalising = models.BooleanField(default=False)
     removable_by = models.CharField(choices=FlagPermissions.choices, default=FlagPermissions.DEFAULT, max_length=50)
+    applicable_by_team = models.ManyToManyField(to="teams.Team", related_name="applicable_flags")
     remove_on_finalised = models.BooleanField(default=False)
 
     objects = FlagManager()

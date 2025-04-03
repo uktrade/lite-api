@@ -1,6 +1,7 @@
 from rest_framework import viewsets
 from rest_framework.pagination import LimitOffsetPagination
 
+from api.conf.pagination import CreatedAtCursorPagination
 from api.core.authentication import DataWorkspaceOnlyAuthentication
 from api.organisations.models import Organisation
 from api.organisations.serializers import OrganisationDetailSerializer
@@ -17,27 +18,15 @@ from api.survey.models import SurveyResponse
 class OrganisationListView(viewsets.ReadOnlyModelViewSet):
     authentication_classes = (DataWorkspaceOnlyAuthentication,)
     serializer_class = OrganisationDetailSerializer
-    pagination_class = LimitOffsetPagination
-    # We ensure that organisations with the same name always come out
-    # in the same order by additionally ordering by created_at
-    # and by id. If just name is used, the order is non-deterministic
-    # when multiple organisations have the same name. This can mean the
-    # same organisation being emitted on different pages, causing
-    # primary key violations in Data Workspace.
-    queryset = Organisation.objects.order_by("name", "created_at", "id")
+    pagination_class = CreatedAtCursorPagination
+    queryset = Organisation.objects.all()
 
 
 class PartyListView(viewsets.ReadOnlyModelViewSet):
     authentication_classes = (DataWorkspaceOnlyAuthentication,)
     serializer_class = PartyViewSerializer
-    pagination_class = LimitOffsetPagination
-    # We ensure that parties with the same name always come out
-    # in the same order by additionally ordering by created_at
-    # and by id. If just name is used, the order is non-deterministic
-    # when multiple parties have the same name. This can mean the
-    # same party being emitted on different pages, causing
-    # primary key violations in Data Workspace.
-    queryset = Party.objects.order_by("name", "created_at", "id")
+    pagination_class = CreatedAtCursorPagination
+    queryset = Party.objects.all()
 
 
 class QueueListView(viewsets.ReadOnlyModelViewSet):
