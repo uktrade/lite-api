@@ -22,7 +22,7 @@ from rest_framework.views import APIView
 from api.appeals.models import Appeal
 from api.appeals.serializers import AppealSerializer
 from api.applications import constants
-from api.applications.creators import validate_application_ready_for_submission, _validate_agree_to_declaration
+from api.applications.creators import validate_application_ready_for_submission, validate_agree_to_declaration
 from api.applications.helpers import (
     get_application_view_serializer,
     validate_and_create_goods_on_licence,
@@ -312,7 +312,7 @@ class ApplicationSubmission(APIView):
             CaseTypeSubTypeEnum.EXHIBITION,
         ]:
             if request.data.get("submit_declaration"):
-                errors = _validate_agree_to_declaration(request, errors)
+                errors = validate_agree_to_declaration(request, errors)
                 if errors:
                     return JsonResponse(data={"errors": errors}, status=status.HTTP_400_BAD_REQUEST)
 
