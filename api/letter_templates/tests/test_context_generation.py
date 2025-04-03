@@ -1,3 +1,4 @@
+from api.f680.caseworker.serializers import SecurityReleaseRequestSerializer
 import pytest
 
 from datetime import date
@@ -7,7 +8,11 @@ from parameterized import parameterized
 from api.applications.enums import ApplicationExportType, ApplicationExportLicenceOfficialType
 from api.applications.models import ExternalLocationOnApplication, GoodOnApplication
 from api.applications.tests.factories import GoodOnApplicationFactory
-from api.f680.tests.factories import SubmittedF680ApplicationFactory
+from api.f680.tests.factories import (
+    F680SecurityReleaseOutcomeFactory,
+    F680SecurityReleaseRequestFactory,
+    SubmittedF680ApplicationFactory,
+)
 from api.cases.enums import AdviceType
 from api.licences.tests.factories import StandardLicenceFactory
 from api.letter_templates.context_generator import EcjuQuerySerializer
@@ -693,11 +698,49 @@ class DocumentContextGenerationTests(DataTestClient):
         self._assert_standard_application_details(context["details"], case)
 
     def test_generate_context_with_f680_details(self):
-        application = SubmittedF680ApplicationFactory(application={"some": "json"})
-        case = application.case_ptr
+        f680_application = SubmittedF680ApplicationFactory(application={"some": "json"})
 
-        context = get_document_context(case)
-        assert context["details"] == {"application": {"some": "json"}}
+        approved_release = F680SecurityReleaseRequestFactory(application=f680_application)
+        refused_release = F680SecurityReleaseRequestFactory(application=f680_application)
+
+        approval_outcome = F680SecurityReleaseOutcomeFactory(case=f680_application, outcome="approve")
+        approval_outcome.security_release_requests.set([approved_release])
+
+        refusal_outcome = F680SecurityReleaseOutcomeFactory(case=f680_application, outcome="refuse")
+        refusal_outcome.security_release_requests.set([refused_release])
+
+        approval_security_release_data = SecurityReleaseRequestSerializer(
+            approval_outcome.security_release_requests.all(), many=True
+        ).data
+        refusal_security_release_data = SecurityReleaseRequestSerializer(
+            refusal_outcome.security_release_requests.all(), many=True
+        ).data
+
+        context = get_document_context(f680_application)
+
+        assert context["details"]["application"] == {"some": "json"}
+        assert context["details"]["security_release_outcomes"] == {
+            "approve": [
+                {
+                    "security_release_requests": approval_security_release_data,
+                    "outcome": approval_outcome.outcome,
+                    "conditions": approval_outcome.conditions,
+                    "refusal_reasons": approval_outcome.refusal_reasons,
+                    "security_grading": approval_outcome.security_grading,
+                    "approval_types": approval_outcome.approval_types,
+                }
+            ],
+            "refuse": [
+                {
+                    "security_release_requests": refusal_security_release_data,
+                    "outcome": refusal_outcome.outcome,
+                    "conditions": refusal_outcome.conditions,
+                    "refusal_reasons": refusal_outcome.refusal_reasons,
+                    "security_grading": refusal_outcome.security_grading,
+                    "approval_types": refusal_outcome.approval_types,
+                }
+            ],
+        }
 
     def test_generate_context_with_end_user_advisory_query_details(self):
         case = self.create_end_user_advisory(note="abc", reasoning="def", organisation=self.organisation)

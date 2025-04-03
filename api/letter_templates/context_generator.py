@@ -38,7 +38,7 @@ from api.licences.models import Licence
 from api.organisations.models import Site, ExternalLocation
 from api.queries.end_user_advisories.models import EndUserAdvisoryQuery
 from api.queries.goods_query.models import GoodsQuery
-from api.f680.caseworker.serializers import SecurityReleaseOutcomeSerializer
+from api.f680.caseworker.serializers import SecurityReleaseOutcomeLetterSerializer
 from api.f680.models import SecurityReleaseOutcome
 from api.f680.enums import SecurityReleaseOutcomes
 
@@ -609,7 +609,7 @@ class F680Serializer(serializers.ModelSerializer):
         data = {}
         for key, _ in SecurityReleaseOutcomes.choices:
             sros = SecurityReleaseOutcome.objects.filter(case=obj, outcome=key)
-            data[key] = SecurityReleaseOutcomeSerializer(sros, many=True).data
+            data[key] = SecurityReleaseOutcomeLetterSerializer(sros, many=True).data
         return data
 
 
