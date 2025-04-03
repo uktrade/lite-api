@@ -77,6 +77,29 @@ class CaseFlagsManagementTests(DataTestClient):
         self.assertEqual(len(flags_to_add["flags"]), len(self.case.flags.all()))
         self.assertTrue(self.team_case_flag_1 in self.case.flags.all())
 
+    def test_user_can_add_case_level_flags_as_applicable_team(self):
+        """
+        Given a Case with no Flags assigned
+        When a user attempts to add a case-level Flag which are applicable by their Team to the Case
+        Then the Flag is successfully added
+        """
+        owner_team = self.create_team("OwnerTeam")
+
+        applicable_flag_flag = self.create_flag("Flag1", "Case", owner_team)
+        applicable_flag_flag.applicable_by_team.set([self.team])
+        applicable_flag_flag.save()
+
+        flags_to_add = {
+            "level": "cases",
+            "objects": [self.case.id],
+            "flags": [applicable_flag_flag.pk],
+        }
+
+        self.client.put(self.case_flag_url, flags_to_add, **self.gov_headers)
+
+        self.assertEqual(len(flags_to_add["flags"]), len(self.case.flags.all()))
+        self.assertTrue(applicable_flag_flag in self.case.flags.all())
+
     def test_user_cannot_assign_flags_that_are_not_owned_by_their_team(self):
         """
         Given a Case with no Flags assigned
@@ -88,6 +111,9 @@ class CaseFlagsManagementTests(DataTestClient):
             "objects": [self.case.id],
             "flags": [self.other_team_case_flag.pk],
         }
+        other_team_2 = self.create_team("Team2")
+        self.other_team_case_flag.applicable_by_team.set([other_team_2])
+        self.other_team_case_flag.save()
 
         response = self.client.put(self.case_flag_url, flags_to_add, **self.gov_headers)
 

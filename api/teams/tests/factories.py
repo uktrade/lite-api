@@ -8,14 +8,14 @@ faker = Faker()
 
 
 class DepartmentFactory(factory.django.DjangoModelFactory):
-    name = factory.LazyAttribute(lambda n: faker.name())
+    name = factory.LazyAttribute(lambda _: faker.unique.name())
 
     class Meta:
         model = Department
 
 
 class TeamFactory(factory.django.DjangoModelFactory):
-    name = factory.LazyAttribute(lambda n: faker.name())
+    name = factory.LazyAttribute(lambda _: faker.unique.name())
     department = factory.SubFactory(DepartmentFactory)
 
     class Meta:

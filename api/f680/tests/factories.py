@@ -15,8 +15,22 @@ from api.staticdata.countries.factories import CountryFactory
 from api.teams.tests.factories import TeamFactory
 from api.users.tests.factories import GovUserFactory
 
-from api.f680.enums import ApprovalTypes, RecipientRole, RecipientType, RecommendationType, SecurityGrading
-from api.f680.models import F680Application, Product, Recipient, Recommendation, SecurityReleaseRequest
+from api.f680.enums import (
+    ApprovalTypes,
+    RecipientRole,
+    RecipientType,
+    RecommendationType,
+    SecurityGrading,
+    SecurityReleaseOutcomes,
+)
+from api.f680.models import (
+    F680Application,
+    Product,
+    Recipient,
+    Recommendation,
+    SecurityReleaseRequest,
+    SecurityReleaseOutcome,
+)
 
 faker = Faker()
 
@@ -94,3 +108,15 @@ class F680RecommendationFactory(factory.django.DjangoModelFactory):
 
     class Meta:
         model = Recommendation
+
+
+class F680SecurityReleaseOutcomeFactory(factory.django.DjangoModelFactory):
+    outcome = factory.fuzzy.FuzzyChoice(SecurityReleaseOutcomes.choices, getter=lambda t: t[0])
+    case = factory.SubFactory(SubmittedF680ApplicationFactory)
+    security_grading = factory.fuzzy.FuzzyChoice(SecurityGrading.security_release_choices, getter=lambda t: t[0])
+    conditions = factory.LazyAttribute(lambda n: faker.sentence())
+    user = factory.SubFactory(GovUserFactory)
+    team = factory.SubFactory(TeamFactory)
+
+    class Meta:
+        model = SecurityReleaseOutcome
