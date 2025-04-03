@@ -155,7 +155,7 @@ class TestF680RecommendationViewSet:
         response = api_client.get(target_url, **headers)
         assert response.status_code == 404
 
-    def test_f680_cases_list(api_client, get_f680_application, team_case_advisor):
+    def test_f680_cases_list(self, get_hawk_client, get_f680_application, team_case_advisor):
         gov_user = team_case_advisor(TeamIdEnum.MOD_CAPPROT)
         f680_application = get_f680_application()
         for release_request in f680_application.security_release_requests.all():
@@ -171,7 +171,8 @@ class TestF680RecommendationViewSet:
 
         url = reverse("cases:search")
         headers = {"HTTP_GOV_USER_TOKEN": user_to_token(gov_user.baseuser_ptr)}
-        response = api_client.get(url, **headers)
+        api_client, target_url = get_hawk_client("GET", url)
+        response = api_client.get(target_url, **headers)
         assert response.status_code == 200
         assert response.json()["count"] == 1
         actual = response.json()["results"]["cases"][0]["f680_data"]
@@ -180,25 +181,15 @@ class TestF680RecommendationViewSet:
         assert product.name == actual["product"]["name"]
         assert product.description == actual["product"]["description"]
 
-        for index, release_request in enumerate(f680_application.security_release_requests.all()):
-            assert release_request.recipient.name == actual["security_release_requests"][index]["recipient"]["name"]
-            assert (
-                release_request.recipient.country.id
-                == actual["security_release_requests"][index]["recipient"]["country"]["id"]
-            )
-            assert (
-                release_request.recipient.country.name
-                == actual["security_release_requests"][index]["recipient"]["country"]["name"]
-            )
-            assert (
-                release_request.recipient.type == actual["security_release_requests"][index]["recipient"]["type"]["key"]
-            )
-            assert (
-                release_request.security_grading
-                == actual["security_release_requests"][index]["security_grading"]["key"]
-            )
-            assert release_request.approval_types == actual["security_release_requests"][index]["approval_types"]
-            assert release_request.intended_use == actual["security_release_requests"][index]["intended_use"]
+        for item in actual["security_release_requests"]:
+            release_request = f680_application.security_release_requests.get(id=item["id"])
+            assert release_request.recipient.country.id == item["recipient"]["country"]["id"]
+            assert release_request.recipient.country.name == item["recipient"]["country"]["name"]
+            assert release_request.recipient.name == item["recipient"]["name"]
+            assert release_request.recipient.type == item["recipient"]["type"]["key"]
+            assert release_request.security_grading == item["security_grading"]["key"]
+            assert release_request.approval_types == item["approval_types"]
+            assert release_request.intended_use == item["intended_use"]
 
         expected_recommendations = [
             {
