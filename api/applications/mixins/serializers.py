@@ -4,7 +4,6 @@ from rest_framework import serializers
 
 from django.db.models import Min, Case, When, BinaryField
 
-from api.cases.enums import CaseTypeSubTypeEnum
 from api.external_data.models import SanctionMatch
 from api.external_data.serializers import SanctionMatchSerializer
 from api.flags.serializers import FlagSerializer
@@ -51,9 +50,6 @@ class PartiesSerializerMixin(metaclass=serializers.SerializerMetaclass):
                 self.__cache[party["type"]].append(party)
 
     def __parties(self, instance, party_type):
-        if not CaseTypeSubTypeEnum.has_parties(instance.case_type.sub_type):
-            return
-
         if self.__cache and isinstance(self.__cache, defaultdict):
             try:
                 return self.__cache[party_type]

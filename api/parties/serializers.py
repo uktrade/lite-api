@@ -1,7 +1,6 @@
 from django.core.validators import URLValidator
 from rest_framework import serializers, relations
 
-from api.cases.enums import CaseTypeSubTypeEnum
 from api.core.serializers import KeyValueChoiceField, CountrySerializerField
 from api.documents.libraries.process_document import process_document
 from api.flags.serializers import FlagSerializer
@@ -76,7 +75,6 @@ class PartySerializer(serializers.ModelSerializer):
         )
 
     def __init__(self, *args, **kwargs):
-        application_type = kwargs.pop("application_type", None)
         super(PartySerializer, self).__init__(*args, **kwargs)
 
         if hasattr(self, "initial_data"):
@@ -93,9 +91,6 @@ class PartySerializer(serializers.ModelSerializer):
                 self.fields["sub_type_other"].allow_null = False
             else:
                 self.fields.pop("sub_type_other")
-
-            if application_type == CaseTypeSubTypeEnum.F680:
-                self.fields["clearance_level"].required = True
 
             if party_type == PartyType.THIRD_PARTY:
                 self.fields["role"].required = True
