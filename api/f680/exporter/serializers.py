@@ -103,3 +103,4 @@ class SectionSerializer(serializers.Serializer):
 
 class SubmittedApplicationJSONSerializer(serializers.Serializer):
     sections = SectionSerializer()
+    agreed_to_foi = serializers.BooleanField()
