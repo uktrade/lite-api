@@ -185,11 +185,8 @@ class CaseListSerializer(serializers.Serializer):
 
     def to_representation(self, instance):
         representation = super().to_representation(instance)
-        representation["f680_data"] = {}
-        if instance.case_type.sub_type != CaseTypeSubTypeEnum.F680:
-            return representation
-
-        representation["f680_data"] = F680CaseDataViewSerializer(instance.get_application()).data
+        if instance.case_type.sub_type == CaseTypeSubTypeEnum.F680:
+            representation["f680_data"] = F680CaseDataViewSerializer(instance.get_application()).data
 
         return representation
 
