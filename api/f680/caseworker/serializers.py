@@ -179,7 +179,6 @@ class SecurityReleaseOutcomeSerializer(serializers.ModelSerializer):
 
 class SecurityReleaseOutcomeLetterSerializer(serializers.ModelSerializer):
     security_release_requests = SecurityReleaseRequestSerializer(many=True)
-    approval_types = serializers.ListField(child=KeyValueChoiceField(choices=enums.ApprovalTypes.choices))
 
     class Meta:
         model = SecurityReleaseOutcome

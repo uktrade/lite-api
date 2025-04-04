@@ -719,6 +719,7 @@ class DocumentContextGenerationTests(DataTestClient):
         context = get_document_context(f680_application)
 
         assert context["details"]["application"] == {"some": "json"}
+
         assert context["details"]["security_release_outcomes"] == {
             "approve": [
                 {

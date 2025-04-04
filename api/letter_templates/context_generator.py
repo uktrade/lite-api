@@ -607,9 +607,9 @@ class F680Serializer(serializers.ModelSerializer):
 
     def get_security_release_outcomes(self, obj):
         data = {}
-        for key, _ in SecurityReleaseOutcomes.choices:
-            sros = SecurityReleaseOutcome.objects.filter(case=obj, outcome=key)
-            data[key] = SecurityReleaseOutcomeLetterSerializer(sros, many=True).data
+        for outcome, _ in SecurityReleaseOutcomes.choices:
+            sros = SecurityReleaseOutcome.objects.filter(case=obj, outcome=outcome)
+            data[outcome] = SecurityReleaseOutcomeLetterSerializer(sros, many=True).data
         return data
 
 
