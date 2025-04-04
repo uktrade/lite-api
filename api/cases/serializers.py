@@ -32,6 +32,7 @@ from api.core.serializers import KeyValueChoiceField, PrimaryKeyRelatedSerialize
 from api.documents.libraries.process_document import process_document
 from api.flags.serializers import CaseListFlagSerializer
 from api.flags.models import Flag
+from api.f680.caseworker.read_only_serializers import F680CaseDataViewSerializer
 from api.gov_users.serializers import GovUserSimpleSerializer
 from api.organisations.models import Organisation
 from api.organisations.serializers import TinyOrganisationViewSerializer
@@ -181,6 +182,13 @@ class CaseListSerializer(serializers.Serializer):
 
     def has_end_users(self, instance):
         return hasattr(instance, "baseapplication") and hasattr(instance.baseapplication, "end_user_parties")
+
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        if instance.case_type.sub_type == CaseTypeSubTypeEnum.F680:
+            representation["f680_data"] = F680CaseDataViewSerializer(instance.get_application()).data
+
+        return representation
 
 
 class GoodOnApplicationSummarySerializer(serializers.Serializer):
