@@ -14,6 +14,7 @@ from api.cases.notify import (
 )
 from api.licences.tests.factories import StandardLicenceFactory
 from api.users.tests.factories import ExporterUserFactory
+from api.f680.tests.factories import SubmittedF680ApplicationFactory
 from gov_notify.enums import TemplateType
 from gov_notify.payloads import (
     ExporterECJUQuery,
@@ -132,6 +133,27 @@ class NotifyTests(DataTestClient):
         mock_send_email.assert_called_with(
             application.submitted_by.email,
             TemplateType.EXPORTER_ECJU_QUERY,
+            expected_payload,
+        )
+        assert mock_send_email.called == 1
+
+    @override_settings(EXPORTER_BASE_URL="https://exporter.lite.example.com")
+    @mock.patch("api.cases.notify.send_email")
+    def test_notify_exporter_f680_ecju_query(self, mock_send_email):
+        application = SubmittedF680ApplicationFactory(organisation=self.organisation)
+        application.submitted_by = ExporterUserFactory()
+        application.save()
+
+        notify_exporter_ecju_query(application.pk)
+
+        expected_payload = ExporterECJUQuery(
+            exporter_first_name=application.submitted_by.first_name,
+            case_reference=application.reference_code,
+            exporter_frontend_url="https://exporter.lite.example.com/",
+        )
+        mock_send_email.assert_called_with(
+            application.submitted_by.email,
+            TemplateType.EXPORTER_F680_ECJU_QUERY,
             expected_payload,
         )
         assert mock_send_email.called == 1
