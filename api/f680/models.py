@@ -127,8 +127,6 @@ class Recommendation(TimestampableModel):
     type = models.CharField(choices=enums.RecommendationType.choices, max_length=30)
     conditions = models.TextField(default="", blank=True, null=True)
     refusal_reasons = models.TextField(default="", blank=True, null=True)
-    security_grading = models.CharField(choices=enums.SecurityGrading.security_release_choices, max_length=50)
-    security_grading_other = models.TextField(default="", blank=True, null=True)
     user = models.ForeignKey(GovUser, on_delete=models.PROTECT, related_name="recommendations")
     team = models.ForeignKey(Team, on_delete=models.PROTECT, related_name="recommendations", null=True)
     security_release_request = models.ForeignKey(
