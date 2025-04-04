@@ -8,12 +8,10 @@ from api.audit_trail.enums import AuditType
 from api.audit_trail.models import Audit
 from api.cases.models import Case, CaseQueue
 from lite_routing.routing_rules_internal.enums import FlagsEnum
-from parameterized import parameterized
 from rest_framework import status
 from freezegun import freeze_time
 
 from api.applications.models import PartyOnApplication
-from api.cases.enums import CaseTypeEnum
 from api.cases.tests.factories import CaseAssignmentFactory, FinalAdviceFactory, CountersignAdviceFactory
 from api.f680.tests.factories import (
     SubmittedF680ApplicationFactory,
@@ -24,7 +22,6 @@ from api.flags.enums import SystemFlags
 from api.flags.models import Flag
 from api.flags.tests.factories import FlagFactory
 from api.parties.enums import PartyType
-from api.staticdata.trade_control.enums import TradeControlActivity, TradeControlProductCategory
 from test_helpers.clients import DataTestClient
 from api.staticdata.statuses.models import CaseStatus, CaseSubStatus
 from api.users.models import ExporterUser
@@ -282,32 +279,6 @@ class CaseGetTests(DataTestClient):
         self.assertEqual(response[0]["order"], countersign_advice.order)
         self.assertEqual(response[0]["outcome_accepted"], countersign_advice.outcome_accepted)
         self.assertEqual(response[0]["reasons"], countersign_advice.reasons)
-
-    @parameterized.expand(
-        [
-            (CaseTypeEnum.SICL.id, DataTestClient.create_draft_standard_application),
-        ]
-    )
-    def test_trade_control_case(self, case_type_id, create_function):
-        application = create_function(self, self.organisation, case_type_id=case_type_id)
-        application.trade_control_activity = TradeControlActivity.OTHER
-        application.trade_control_activity_other = "other activity"
-        application.trade_control_product_categories = [key for key, _ in TradeControlProductCategory.choices]
-        case = self.submit_application(application)
-
-        url = reverse("cases:case", kwargs={"pk": case.id})
-        response = self.client.get(url, **self.gov_headers)
-
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        case_application = response.json()["case"]["data"]
-
-        trade_control_activity = case_application["trade_control_activity"]["value"]
-        self.assertEqual(trade_control_activity, case.trade_control_activity_other)
-
-        trade_control_product_categories = [
-            category["key"] for category in case_application["trade_control_product_categories"]
-        ]
-        self.assertEqual(trade_control_product_categories, case.trade_control_product_categories)
 
     def test_countries_ordered_as_expected_on_standard_application(self):
         highest_priority_flag = FlagFactory(

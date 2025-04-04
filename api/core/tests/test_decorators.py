@@ -8,7 +8,7 @@ from django.test import RequestFactory
 from rest_framework import status
 
 from api.applications.libraries.case_status_helpers import get_case_statuses
-from api.cases.enums import CaseTypeSubTypeEnum
+from api.cases.enums import CaseTypeReferenceEnum
 from api.core.authentication import ORGANISATION_ID
 from api.core.decorators import (
     allowed_application_types,
@@ -39,7 +39,7 @@ class DecoratorTests(DataTestClient):
     def test_allowed_application_types_success(self):
         application = self.create_standard_application_case(self.organisation)
 
-        @allowed_application_types(application_types=[CaseTypeSubTypeEnum.STANDARD])
+        @allowed_application_types(application_types=[CaseTypeReferenceEnum.SIEL])
         def a_view(request, *args, **kwargs):
             return HttpResponse()
 

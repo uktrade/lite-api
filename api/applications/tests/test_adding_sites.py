@@ -8,8 +8,6 @@ from api.applications.models import (
     SiteOnApplication,
     ExternalLocationOnApplication,
 )
-from api.cases.enums import CaseTypeEnum
-from lite_content.lite_api.strings import ExternalLocations
 from api.organisations.tests.factories import SiteFactory
 from api.staticdata.countries.helpers import get_country
 from api.addresses.tests.factories import AddressFactoryGB
@@ -170,35 +168,3 @@ class SitesOnDraftTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(application.application_sites.count(), 1)
-
-    @parameterized.expand(
-        [
-            (CaseTypeEnum.SITL.id, DataTestClient.create_draft_standard_application),
-            (CaseTypeEnum.SICL.id, DataTestClient.create_draft_standard_application),
-        ]
-    )
-    def test_add_gb_sites_failure(self, case_type_id, create_function):
-        """
-        Assert that it isn't possible to add sites based in GB to transhipment & trade control applications
-        """
-
-        # Organisation is on GB site
-        site = SiteFactory(organisation=self.organisation, address=AddressFactoryGB())
-        assert site.address.country.id == "GB"  # assumption
-
-        # Organisation is on GB site
-        transhipment = create_function(self, organisation=self.organisation, case_type_id=case_type_id)
-        assert transhipment.organisation.primary_site.address.country.id == "GB"  # assumption
-
-        url = reverse("applications:application_sites", kwargs={"pk": transhipment.id})
-        data = {"sites": [site.id]}
-        response = self.client.post(url, data, **self.exporter_headers)
-
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(transhipment.application_sites.count(), 1)
-        self.assertEqual(
-            response.json()["errors"]["sites"][0],
-            ExternalLocations.Errors.COUNTRY_ON_APPLICATION
-            % (site.address.country.id, transhipment.case_type.reference),
-        )
-        self.assertNotEqual(transhipment.application_sites.get().site.id, site.id)
