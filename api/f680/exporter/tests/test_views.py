@@ -293,6 +293,7 @@ class TestF680ApplicationViewSet:
         assert f680_application.sla_days == 0
         assert f680_application.submitted_by == exporter_user
         assert f680_application.reference_code.startswith("F680")
+        assert f680_application.agreed_to_foi == False
 
         expected_result = {
             "id": str(f680_application.id),
@@ -318,7 +319,15 @@ class TestF680ApplicationViewSet:
     @pytest.mark.parametrize(
         "application_json, expected_result",
         (
-            ({}, {"errors": {"sections": [ErrorDetail(string="This field is required.", code="required")]}}),
+            (
+                {},
+                {
+                    "errors": {
+                        "sections": [ErrorDetail(string="This field is required.", code="required")],
+                        "agreed_to_foi": [ErrorDetail(string="This field is required.", code="required")],
+                    }
+                },
+            ),
             (
                 {
                     "sections": {
@@ -326,7 +335,8 @@ class TestF680ApplicationViewSet:
                         "product_information": {},
                         "user_information": {},
                         "general_application_details": {},
-                    }
+                    },
+                    "agreed_to_foi": None,
                 },
                 {
                     "errors": {
@@ -347,7 +357,8 @@ class TestF680ApplicationViewSet:
                                 "type": [ErrorDetail(string="This field is required.", code="required")],
                                 "fields": [ErrorDetail(string="This field is required.", code="required")],
                             },
-                        }
+                        },
+                        "agreed_to_foi": [ErrorDetail(string="This field may not be null.", code="null")],
                     }
                 },
             ),
@@ -358,7 +369,8 @@ class TestF680ApplicationViewSet:
                         "product_information": {"type": "single", "fields": {}},
                         "user_information": {"type": "multiple", "items": []},
                         "general_application_details": {"type": "single", "fields": {}},
-                    }
+                    },
+                    "agreed_to_foi": None,
                 },
                 {
                     "errors": {
@@ -391,7 +403,8 @@ class TestF680ApplicationViewSet:
                                     "approval_choices": [ErrorDetail(string="This field is required.", code="required")]
                                 },
                             },
-                        }
+                        },
+                        "agreed_to_foi": [ErrorDetail(string="This field may not be null.", code="null")],
                     }
                 },
             ),
