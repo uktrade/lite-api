@@ -15,7 +15,7 @@ class Command(BaseCommand):
     def handle(self, *args, **kwargs):
         csv_file = kwargs["csv_file"]
 
-        reader = csv.DictReader(csv_file)
+        reader = csv.DictReader(csv_file, escapechar=None)
         with developer_intervention(dry_run=False) as audit_log:
             for row in reader:
                 good_id = row["good_id"]
