@@ -3,7 +3,7 @@ import pytest
 from .factories import F680ApplicationFactory
 
 from api.f680.models import Product, SecurityReleaseRequest
-from api.f680.exporter.serializers import SubmittedApplicationJSONSerializer, FoiDeclarationSerializer
+from api.f680.exporter.serializers import SubmittedApplicationJSONSerializer
 
 
 pytestmark = pytest.mark.django_db
@@ -11,27 +11,16 @@ pytestmark = pytest.mark.django_db
 
 class TestF680Application:
 
-    def test_on_submit_fields_present_in_application(
+    def test_on_submit_fields_present_in_application_json(
         self, data_application_json, data_australia_release_id, data_france_release_id, data_uae_release_id
     ):
         f680_application = F680ApplicationFactory(application=data_application_json)
-
         assert f680_application.name is None
-        json_serializer = SubmittedApplicationJSONSerializer(data=f680_application.application)
-        json_serializer.is_valid(raise_exception=True)
-        application_data = json_serializer.data
-
-        request_data = {"agreed_to_foi": True, "foi_reason": "Some reason"}
-        declaration_serializer = FoiDeclarationSerializer(data=request_data)
-        declaration_serializer.is_valid(raise_exception=True)
-        application_data.update(declaration_serializer.data)
-
-        f680_application.on_submit(application_data)
+        serializer = SubmittedApplicationJSONSerializer(data=f680_application.application)
+        serializer.is_valid(raise_exception=True)
+        f680_application.on_submit(serializer.data)
         f680_application.refresh_from_db()
-
         assert f680_application.name == "some name"
-        assert f680_application.agreed_to_foi == True
-        assert f680_application.foi_reason == "Some reason"
 
         assert Product.objects.all().count() == 1
         product = Product.objects.first()

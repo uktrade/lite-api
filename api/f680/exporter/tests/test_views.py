@@ -289,13 +289,12 @@ class TestF680ApplicationViewSet:
         response = api_client.post(url, request_data, **exporter_headers)
         assert response.status_code == status.HTTP_200_OK
         f680_application.refresh_from_db()
-
         assert f680_application.status.status == "submitted"
         assert f680_application.submitted_at == timezone.now()
         assert f680_application.sla_days == 0
         assert f680_application.submitted_by == exporter_user
         assert f680_application.reference_code.startswith("F680")
-        assert f680_application.agreed_to_foi == True
+        assert f680_application.agreed_to_foi
         assert f680_application.foi_reason == "Some reason"
 
         expected_result = {
@@ -322,14 +321,7 @@ class TestF680ApplicationViewSet:
     @pytest.mark.parametrize(
         "application_json, expected_result",
         (
-            (
-                {},
-                {
-                    "errors": {
-                        "sections": [ErrorDetail(string="This field is required.", code="required")],
-                    }
-                },
-            ),
+            ({}, {"errors": {"sections": [ErrorDetail(string="This field is required.", code="required")]}}),
             (
                 {
                     "sections": {
@@ -337,7 +329,7 @@ class TestF680ApplicationViewSet:
                         "product_information": {},
                         "user_information": {},
                         "general_application_details": {},
-                    },
+                    }
                 },
                 {
                     "errors": {
@@ -358,7 +350,7 @@ class TestF680ApplicationViewSet:
                                 "type": [ErrorDetail(string="This field is required.", code="required")],
                                 "fields": [ErrorDetail(string="This field is required.", code="required")],
                             },
-                        },
+                        }
                     }
                 },
             ),
@@ -369,7 +361,7 @@ class TestF680ApplicationViewSet:
                         "product_information": {"type": "single", "fields": {}},
                         "user_information": {"type": "multiple", "items": []},
                         "general_application_details": {"type": "single", "fields": {}},
-                    },
+                    }
                 },
                 {
                     "errors": {
@@ -402,7 +394,7 @@ class TestF680ApplicationViewSet:
                                     "approval_choices": [ErrorDetail(string="This field is required.", code="required")]
                                 },
                             },
-                        },
+                        }
                     }
                 },
             ),
