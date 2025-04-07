@@ -289,6 +289,7 @@ class TestF680ApplicationViewSet:
         response = api_client.post(url, request_data, **exporter_headers)
         assert response.status_code == status.HTTP_200_OK
         f680_application.refresh_from_db()
+
         assert f680_application.status.status == "submitted"
         assert f680_application.submitted_at == timezone.now()
         assert f680_application.sla_days == 0
