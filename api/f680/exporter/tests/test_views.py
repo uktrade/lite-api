@@ -284,9 +284,9 @@ class TestF680ApplicationViewSet:
             application=data_application_json,
             reference_code=None,
         )
-        request_data = {"agreed_to_foi": True, "foi_reason": "Some reason"}
+
         url = reverse("exporter_f680:application_submit", kwargs={"f680_application_id": f680_application.id})
-        response = api_client.post(url, request_data, **exporter_headers)
+        response = api_client.post(url, **exporter_headers)
         assert response.status_code == status.HTTP_200_OK
         f680_application.refresh_from_db()
 
@@ -295,8 +295,6 @@ class TestF680ApplicationViewSet:
         assert f680_application.sla_days == 0
         assert f680_application.submitted_by == exporter_user
         assert f680_application.reference_code.startswith("F680")
-        assert f680_application.agreed_to_foi == True
-        assert f680_application.foi_reason == "Some reason"
 
         expected_result = {
             "id": str(f680_application.id),
