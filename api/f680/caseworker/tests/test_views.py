@@ -162,7 +162,6 @@ class TestF680RecommendationViewSet:
                 type=enums.RecommendationType.APPROVE,
                 user=gov_user,
                 team=gov_user.team,
-                security_grading="official",
                 conditions="No concerns",
             )
 
