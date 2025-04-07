@@ -284,8 +284,9 @@ class TestF680ApplicationViewSet:
             application=data_application_json,
             reference_code=None,
         )
+        request_data = {"agreed_to_foi": True, "foi_reason": "Some reason"}
         url = reverse("exporter_f680:application_submit", kwargs={"f680_application_id": f680_application.id})
-        response = api_client.post(url, **exporter_headers)
+        response = api_client.post(url, request_data, **exporter_headers)
         assert response.status_code == status.HTTP_200_OK
         f680_application.refresh_from_db()
         assert f680_application.status.status == "submitted"
@@ -293,7 +294,8 @@ class TestF680ApplicationViewSet:
         assert f680_application.sla_days == 0
         assert f680_application.submitted_by == exporter_user
         assert f680_application.reference_code.startswith("F680")
-        assert f680_application.agreed_to_foi == False
+        assert f680_application.agreed_to_foi == True
+        assert f680_application.foi_reason == "Some reason"
 
         expected_result = {
             "id": str(f680_application.id),
@@ -324,7 +326,6 @@ class TestF680ApplicationViewSet:
                 {
                     "errors": {
                         "sections": [ErrorDetail(string="This field is required.", code="required")],
-                        "agreed_to_foi": [ErrorDetail(string="This field is required.", code="required")],
                     }
                 },
             ),
@@ -336,7 +337,6 @@ class TestF680ApplicationViewSet:
                         "user_information": {},
                         "general_application_details": {},
                     },
-                    "agreed_to_foi": None,
                 },
                 {
                     "errors": {
@@ -358,7 +358,6 @@ class TestF680ApplicationViewSet:
                                 "fields": [ErrorDetail(string="This field is required.", code="required")],
                             },
                         },
-                        "agreed_to_foi": [ErrorDetail(string="This field may not be null.", code="null")],
                     }
                 },
             ),
@@ -370,7 +369,6 @@ class TestF680ApplicationViewSet:
                         "user_information": {"type": "multiple", "items": []},
                         "general_application_details": {"type": "single", "fields": {}},
                     },
-                    "agreed_to_foi": None,
                 },
                 {
                     "errors": {
@@ -404,7 +402,6 @@ class TestF680ApplicationViewSet:
                                 },
                             },
                         },
-                        "agreed_to_foi": [ErrorDetail(string="This field may not be null.", code="null")],
                     }
                 },
             ),
