@@ -7,6 +7,10 @@ from lite_routing.routing_rules_internal.enums import TeamIdEnum
 OGDS_FOR_F680 = (
     TeamIdEnum.MOD_CAPPROT,
     TeamIdEnum.MOD_DSR,
+    TeamIdEnum.MOD_DI,
+    TeamIdEnum.NCSC,
+    TeamIdEnum.MOD_DSTL,
+    TeamIdEnum.FCDO,
 )
 
 
