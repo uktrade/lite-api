@@ -103,7 +103,7 @@ class SectionSerializer(serializers.Serializer):
 
 class FoiDeclarationSerializer(serializers.Serializer):
     agreed_to_foi = serializers.BooleanField()
-    foi_reason = serializers.CharField(max_length=200)
+    foi_reason = serializers.CharField(max_length=200, required=False)
 
 
 class SubmittedApplicationJSONSerializer(serializers.Serializer):
