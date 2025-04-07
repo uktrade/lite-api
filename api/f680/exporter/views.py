@@ -54,12 +54,11 @@ class F680ApplicationViewSet(viewsets.ModelViewSet):
         application.sla_remaining_days = get_application_target_sla(application.case_type.sub_type)
         application.sla_days = 0
         application.submitted_by = request.user.exporteruser
+        application.agreed_to_foi = application_declaration_serializer.data["agreed_to_foi"]
+        application.foi_reason = application_declaration_serializer.data["foi_reason"]
 
         application.save()
-
-        application_data = application_json_serializer.data
-        application_data.update(application_declaration_serializer.data)
-        application.on_submit(application_data)
+        application.on_submit(application_json_serializer.data)
 
         apply_flagging_rules_to_case(application)
         queues_assigned = run_routing_rules(application)
