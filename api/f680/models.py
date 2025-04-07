@@ -28,6 +28,7 @@ class F680Application(BaseApplication):  # /PS-IGNORE
     def on_submit(self, application_data):
         self.name = application_data["sections"]["general_application_details"]["fields"]["name"]["raw_answer"]
         self.agreed_to_foi = application_data["agreed_to_foi"]
+        self.foi_reason = application_data["foi_reason"]
         self.save()
 
         product_information_fields = application_data["sections"]["product_information"]["fields"]
