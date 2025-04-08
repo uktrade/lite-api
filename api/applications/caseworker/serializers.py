@@ -10,7 +10,7 @@ class ApplicationChangeStatusSerializer(serializers.Serializer):
     note = serializers.CharField(required=False, allow_blank=True, allow_null=True, max_length=2000)
 
 
-class ApplicationDocumentSerializer(serializers.Serializer):
+class ApplicationDocumentSerializer(serializers.ModelSerializer):
     class Meta:
         model = ApplicationDocument
         fields = "__all__"

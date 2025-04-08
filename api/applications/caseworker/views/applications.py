@@ -1,6 +1,6 @@
 from django.http import JsonResponse
 from django.db import transaction
-from rest_framework.generics import GenericAPIView
+from rest_framework.generics import GenericAPIView, ListAPIView
 from rest_framework import status
 
 from api.applications.caseworker.permissions import CaseStatusCaseworkerChangeable
@@ -34,9 +34,8 @@ class ApplicationChangeStatus(CaseworkerApplicationMixin, GenericAPIView):
         return JsonResponse(data=response_data, status=status.HTTP_200_OK)
 
 
-class ApplicationDocumentView(CaseworkerApplicationMixin, GenericAPIView):
+class ApplicationDocumentView(CaseworkerApplicationMixin, ListAPIView):
     serializer_class = ApplicationDocumentSerializer
-    lookup_url_kwarg = "pk"
 
     def get_queryset(self):
         return ApplicationDocument.objects.filter(application_id=self.application.pk)
