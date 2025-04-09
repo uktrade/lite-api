@@ -171,3 +171,18 @@ class SecurityReleaseOutcomeSerializer(serializers.ModelSerializer):
             "security_grading",
             "approval_types",
         ]
+
+
+class SecurityReleaseOutcomeLetterSerializer(serializers.ModelSerializer):
+    security_release_requests = SecurityReleaseRequestSerializer(many=True)
+
+    class Meta:
+        model = SecurityReleaseOutcome
+        fields = [
+            "security_release_requests",
+            "outcome",
+            "conditions",
+            "refusal_reasons",
+            "security_grading",
+            "approval_types",
+        ]
