@@ -93,7 +93,6 @@ class TestF680RecommendationViewSet:
                 case=f680_application,
                 security_release_request=release_request,
                 type=enums.RecommendationType.APPROVE,
-                security_grading="official",
                 conditions="No concerns",
             )
         for release_request in another_f680_application.security_release_requests.all():
@@ -118,8 +117,6 @@ class TestF680RecommendationViewSet:
                 "case": str(item.case_id),
                 "type": {"key": "approve", "value": "Approve"},
                 "created_at": item.created_at.strftime("%Y-%m-%dT%H:%M:%SZ"),
-                "security_grading": {"key": "official", "value": "Official"},
-                "security_grading_other": item.security_grading_other,
                 "conditions": item.conditions,
                 "refusal_reasons": item.refusal_reasons,
                 "security_release_request": str(item.security_release_request_id),
@@ -155,13 +152,56 @@ class TestF680RecommendationViewSet:
         response = api_client.get(target_url, **headers)
         assert response.status_code == 404
 
+    def test_f680_cases_list(self, get_hawk_client, get_f680_application, team_case_advisor):
+        gov_user = team_case_advisor(TeamIdEnum.MOD_CAPPROT)
+        f680_application = get_f680_application()
+        for release_request in f680_application.security_release_requests.all():
+            F680RecommendationFactory(
+                case=f680_application,
+                security_release_request=release_request,
+                type=enums.RecommendationType.APPROVE,
+                user=gov_user,
+                team=gov_user.team,
+                conditions="No concerns",
+            )
+
+        url = reverse("cases:search")
+        headers = {"HTTP_GOV_USER_TOKEN": user_to_token(gov_user.baseuser_ptr)}
+        api_client, target_url = get_hawk_client("GET", url)
+        response = api_client.get(target_url, **headers)
+        assert response.status_code == 200
+        assert response.json()["count"] == 1
+        actual = response.json()["results"]["cases"][0]["f680_data"]
+
+        product = f680_application.get_product()
+        assert product.name == actual["product"]["name"]
+        assert product.description == actual["product"]["description"]
+
+        for item in actual["security_release_requests"]:
+            release_request = f680_application.security_release_requests.get(id=item["id"])
+            assert release_request.recipient.country.id == item["recipient"]["country"]["id"]
+            assert release_request.recipient.country.name == item["recipient"]["country"]["name"]
+            assert release_request.recipient.name == item["recipient"]["name"]
+            assert release_request.recipient.type == item["recipient"]["type"]["key"]
+            assert release_request.security_grading == item["security_grading"]["key"]
+            assert release_request.approval_types == item["approval_types"]
+            assert release_request.intended_use == item["intended_use"]
+
+        expected_recommendations = [
+            {
+                "type": item.type,
+                "team": item.team.name,
+            }
+            for item in Recommendation.objects.filter(case=f680_application).distinct("type", "team")
+        ]
+        assert expected_recommendations == actual["recommendations"]
+
     def test_POST_recommendation_success(self, get_hawk_client, get_f680_application, url, team_case_advisor_headers):
         f680_application = get_f680_application()
 
         data = [
             {
                 "type": enums.RecommendationType.APPROVE,
-                "security_grading": enums.SecurityGrading.OFFICIAL_SENSITIVE,
                 "conditions": f"Conditions for {rr.recipient.country.name}",
                 "refusal_reasons": "",
                 "security_release_request": str(rr.id),
@@ -175,7 +215,7 @@ class TestF680RecommendationViewSet:
         assert response.status_code == 201
         assert f680_application.recommendations.count() == f680_application.security_release_requests.count()
 
-    def test_POST_recommendation_again_raises_error(
+    def test_POST_recommendation_again_raises_no_error(
         self, get_hawk_client, get_f680_application, url, team_case_advisor_headers
     ):
         f680_application = get_f680_application()
@@ -183,7 +223,6 @@ class TestF680RecommendationViewSet:
         data = [
             {
                 "type": enums.RecommendationType.APPROVE,
-                "security_grading": enums.SecurityGrading.OFFICIAL_SENSITIVE,
                 "conditions": f"Conditions for {rr.recipient.country.name}",
                 "refusal_reasons": "",
                 "security_release_request": str(rr.id),
@@ -192,15 +231,15 @@ class TestF680RecommendationViewSet:
         ]
 
         headers = team_case_advisor_headers(TeamIdEnum.MOD_CAPPROT)
-        api_client, target_url = get_hawk_client("POST", url(f680_application), data=data)
-        response = api_client.post(target_url, data, **headers)
+        api_client, target_url = get_hawk_client("POST", url(f680_application), data=data[:1])
+        response = api_client.post(target_url, data[:1], **headers)
+        assert response.status_code == 201
+        assert f680_application.recommendations.count() == 1
+
+        api_client, target_url = get_hawk_client("POST", url(f680_application), data=data[1:])
+        response = api_client.post(target_url, data[1:], **headers)
         assert response.status_code == 201
         assert f680_application.recommendations.count() == f680_application.security_release_requests.count()
-
-        api_client, target_url = get_hawk_client("POST", url(f680_application), data=data)
-        response = api_client.post(target_url, data, **headers)
-        assert response.status_code == 403
-        assert response.json() == {"errors": {"detail": "You do not have permission to perform this action."}}
 
     def test_POST_recommendation_another_case_success(
         self, get_hawk_client, get_f680_application, url, team_case_advisor
@@ -212,7 +251,6 @@ class TestF680RecommendationViewSet:
             data = [
                 {
                     "type": enums.RecommendationType.APPROVE,
-                    "security_grading": enums.SecurityGrading.OFFICIAL_SENSITIVE,
                     "conditions": f"Conditions for {rr.recipient.country.name}",
                     "refusal_reasons": "",
                     "security_release_request": str(rr.id),
@@ -230,7 +268,6 @@ class TestF680RecommendationViewSet:
         (
             (
                 {
-                    "security_grading": enums.SecurityGrading.OFFICIAL_SENSITIVE,
                     "conditions": "Conditions for Australia",
                     "refusal_reasons": "",
                 },
@@ -239,16 +276,7 @@ class TestF680RecommendationViewSet:
             (
                 {
                     "type": enums.RecommendationType.APPROVE,
-                    "conditions": "Conditions for Australia",
                     "refusal_reasons": "",
-                },
-                [{"security_grading": ["This field is required."]}],
-            ),
-            (
-                {
-                    "type": enums.RecommendationType.APPROVE,
-                    "refusal_reasons": "",
-                    "security_grading": enums.SecurityGrading.OFFICIAL_SENSITIVE,
                 },
                 [{"conditions": ["This field is required."]}],
             ),
@@ -256,7 +284,6 @@ class TestF680RecommendationViewSet:
                 {
                     "type": enums.RecommendationType.APPROVE,
                     "conditions": "No concerns",
-                    "security_grading": enums.SecurityGrading.OFFICIAL_SENSITIVE,
                 },
                 [{"refusal_reasons": ["This field is required."]}],
             ),
@@ -265,7 +292,6 @@ class TestF680RecommendationViewSet:
                     "type": enums.RecommendationType.APPROVE,
                     "conditions": "No concerns",
                     "refusal_reasons": "",
-                    "security_grading": enums.SecurityGrading.OFFICIAL_SENSITIVE,
                     "security_release_request": "138d3a5f-5b5d-457d-8db0-723e14b36de4",  # /PS-IGNORE
                 },
                 [
@@ -308,7 +334,6 @@ class TestF680RecommendationViewSet:
         for release_request in f680_application.security_release_requests.all():
             F680RecommendationFactory(
                 case=f680_application,
-                security_grading=enums.SecurityGrading.OFFICIAL_SENSITIVE,
                 security_release_request=release_request,
                 conditions="No concerns",
                 user=gov_user,

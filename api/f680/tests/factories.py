@@ -1,5 +1,7 @@
 import factory
 import factory.fuzzy
+import factory.random
+import pytest
 
 from faker import Faker
 
@@ -31,6 +33,11 @@ from api.f680.models import (
 )
 
 faker = Faker()
+
+
+@pytest.fixture(autouse=True, scope="session")
+def set_factory_seed():
+    factory.random.reseed_random(1234)
 
 
 class F680ApplicationFactory(factory.django.DjangoModelFactory):
@@ -92,8 +99,6 @@ class F680SecurityReleaseRequestFactory(factory.django.DjangoModelFactory):
 class F680RecommendationFactory(factory.django.DjangoModelFactory):
     type = factory.fuzzy.FuzzyChoice(RecommendationType.choices, getter=lambda t: t[0])
     case = factory.SubFactory(SubmittedF680ApplicationFactory)
-    security_grading = factory.fuzzy.FuzzyChoice(SecurityGrading.security_release_choices, getter=lambda t: t[0])
-    security_grading_other = factory.LazyAttribute(lambda n: faker.word())
     conditions = factory.LazyAttribute(lambda n: faker.sentence())
     security_release_request = factory.SubFactory(F680SecurityReleaseRequestFactory)
     user = factory.SubFactory(GovUserFactory)
