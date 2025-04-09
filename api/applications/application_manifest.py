@@ -3,6 +3,7 @@ from api.applications.serializers.standard_application import StandardApplicatio
 from api.application_manifests.base import BaseManifest
 from api.application_manifests.registry import application_manifest_registry
 from api.cases.enums import ApplicationFeatures, CaseTypeSubTypeEnum
+from gov_notify.enums import TemplateType
 
 
 @application_manifest_registry.register(CaseTypeSubTypeEnum.STANDARD)
@@ -12,4 +13,10 @@ class StandardApplicationManifest(BaseManifest):
     features = {
         ApplicationFeatures.LICENCE_ISSUE: True,
         ApplicationFeatures.ROUTE_TO_COUNTERSIGNING_QUEUES: True,
+    }
+    ecju_max_days = 20
+    frontend_urls = {"ecju_queries": "/applications/{case_id}/ecju-queries/"}
+    email_templates = {
+        "ecju_query": TemplateType.EXPORTER_ECJU_QUERY,
+        "ecju_query_chaser": TemplateType.EXPORTER_ECJU_QUERY_CHASER,
     }

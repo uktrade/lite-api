@@ -1,5 +1,3 @@
-from django.db.models import F
-
 from api.core.helpers import get_exporter_frontend_url
 from api.cases.models import Case, EcjuQuery
 from gov_notify.enums import TemplateType
@@ -15,18 +13,11 @@ from gov_notify.payloads import (
     ExporterLicenceSuspended,
 )
 from gov_notify.service import send_email
-from api.cases.enums import CaseTypeEnum
-
-
-F680_ECJU_QUERY_MAX_DAYS = 30
-STANDARD_APPLICATION_ECJU_QUERY_MAX_DAYS = 20
 
 
 def should_send_ecju_chaser_email(ecju_query):
-    if ecju_query.is_f680_query:
-        max_days = F680_ECJU_QUERY_MAX_DAYS
-    else:
-        max_days = STANDARD_APPLICATION_ECJU_QUERY_MAX_DAYS
+    application_manifest = ecju_query.case.get_application_manifest()
+    max_days = application_manifest.ecju_max_days
     return max_days - 5 <= ecju_query.open_working_days <= max_days
 
 
@@ -116,41 +107,30 @@ def notify_exporter_licence_suspended(licence):
 
 
 def notify_exporter_ecju_query(case_pk):
-    case_info = (
-        Case.objects.annotate(
-            email=F("submitted_by__baseuser_ptr__email"), first_name=F("submitted_by__baseuser_ptr__first_name")
-        )
-        .values("id", "email", "first_name", "reference_code", "case_type")
-        .get(id=case_pk)
-    )
-
+    case = Case.objects.get(pk=case_pk)
+    application_manifest = case.get_application_manifest()
     # This deliberately avoids using a more specific URL since there are a few possible here,
     # so the likelihood of them changing in the exporter app is higher
     exporter_frontend_url = get_exporter_frontend_url("/")
 
     _notify_exporter_ecju_query(
-        case_info["email"],
+        case.submitted_by.email,
         {
-            "exporter_first_name": case_info["first_name"] or "",
-            "case_reference": case_info["reference_code"],
+            "exporter_first_name": case.submitted_by.first_name or "",
+            "case_reference": case.reference_code,
             "exporter_frontend_url": exporter_frontend_url,
         },
-        case_info["case_type"],
+        application_manifest.email_templates["ecju_query"],
     )
 
 
 def notify_exporter_ecju_query_chaser(ecju_query_id, callback):
     ecju_query = EcjuQuery.objects.get(id=ecju_query_id)
-    if ecju_query.is_f680_query:
-        exporter_frontend_ecju_queries_url = get_exporter_frontend_url(
-            f"/f680/{ecju_query.case_id}/summary/ecju-queries/"
-        )
-        max_days = F680_ECJU_QUERY_MAX_DAYS
-    else:
-        exporter_frontend_ecju_queries_url = get_exporter_frontend_url(
-            f"/applications/{ecju_query.case_id}/ecju-queries/"
-        )
-        max_days = STANDARD_APPLICATION_ECJU_QUERY_MAX_DAYS
+    application_manifest = ecju_query.case.get_application_manifest()
+
+    ecju_query_url = application_manifest.frontend_urls["ecju_queries"]
+    exporter_frontend_ecju_queries_url = get_exporter_frontend_url(ecju_query_url.format(case_id=ecju_query.case.id))
+    max_days = application_manifest.ecju_max_days
 
     _notify_exporter_ecju_query_chaser(
         ecju_query.case.submitted_by.email,
@@ -161,26 +141,18 @@ def notify_exporter_ecju_query_chaser(ecju_query_id, callback):
             "open_working_days": ecju_query.open_working_days,
             "exporter_first_name": ecju_query.case.submitted_by.first_name,
         },
-        ecju_query.case.case_type.id,
+        application_manifest.email_templates["ecju_query_chaser"],
         callback,
     )
 
 
-def _notify_exporter_ecju_query(email, data, case_type_id):
+def _notify_exporter_ecju_query(email, data, email_template):
     payload = ExporterECJUQuery(**data)
-    if str(case_type_id) == str(CaseTypeEnum.F680.id):
-        email_template = TemplateType.EXPORTER_F680_ECJU_QUERY
-    else:
-        email_template = TemplateType.EXPORTER_ECJU_QUERY
     send_email(email, email_template, payload)
 
 
-def _notify_exporter_ecju_query_chaser(email, data, case_type_id, callback):
+def _notify_exporter_ecju_query_chaser(email, data, email_template, callback):
     payload = ExporterECJUQueryChaser(**data)
-    if str(case_type_id) == str(CaseTypeEnum.F680.id):
-        email_template = TemplateType.EXPORTER_F680_ECJU_QUERY_CHASER
-    else:
-        email_template = TemplateType.EXPORTER_ECJU_QUERY_CHASER
     send_email(email, email_template, payload, callback)
 
 
