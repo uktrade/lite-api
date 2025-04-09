@@ -17,7 +17,11 @@ from lite_routing.routing_rules_internal.flagging_engine import apply_flagging_r
 from lite_routing.routing_rules_internal.routing_engine import run_routing_rules
 
 from api.f680.models import F680Application
-from api.f680.exporter.serializers import F680ApplicationSerializer, SubmittedApplicationJSONSerializer
+from api.f680.exporter.serializers import (
+    F680ApplicationSerializer,
+    SubmittedApplicationJSONSerializer,
+    FoiDeclarationSerializer,
+)
 from api.f680.exporter.filters import DraftApplicationFilter
 
 
@@ -37,8 +41,11 @@ class F680ApplicationViewSet(viewsets.ModelViewSet):
         #   to depend on a model method, a library utility, or something else.  We should also think about
         #   commonality with StandardApplication
         application = self.get_object()
-        application_serializer = SubmittedApplicationJSONSerializer(data=application.application)
-        application_serializer.is_valid(raise_exception=True)
+
+        application_json_serializer = SubmittedApplicationJSONSerializer(data=application.application)
+        application_json_serializer.is_valid(raise_exception=True)
+        application_declaration_serializer = FoiDeclarationSerializer(data=request.data)
+        application_declaration_serializer.is_valid(raise_exception=True)
 
         # TODO: some sort of validation that we have everything we need on the application -
         #   this may duplicate frontend validation in some way so needs some consideration.
@@ -47,8 +54,11 @@ class F680ApplicationViewSet(viewsets.ModelViewSet):
         application.sla_remaining_days = get_application_target_sla(application.case_type.sub_type)
         application.sla_days = 0
         application.submitted_by = request.user.exporteruser
+        application.agreed_to_foi = application_declaration_serializer.data["agreed_to_foi"]
+        application.foi_reason = application_declaration_serializer.data["foi_reason"]
+
         application.save()
-        application.on_submit(application_serializer.data)
+        application.on_submit(application_json_serializer.data)
 
         apply_flagging_rules_to_case(application)
         queues_assigned = run_routing_rules(application)
