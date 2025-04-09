@@ -1,3 +1,4 @@
+import pytest
 from parameterized import parameterized
 
 from django.urls import reverse
@@ -5,11 +6,16 @@ from rest_framework import status
 
 from api.audit_trail.models import Audit
 from api.audit_trail.enums import AuditType
-from api.applications.tests.factories import StandardApplicationFactory
+from api.applications.tests.factories import StandardApplicationFactory, ApplicationDocumentFactory
+from api.f680.tests.factories import F680ApplicationFactory
 from api.staticdata.statuses.enums import CaseStatusEnum
 from api.staticdata.statuses.models import CaseStatus
 
 from test_helpers.clients import DataTestClient
+
+pytest_plugins = [
+    "api.tests.unit.fixtures.core",
+]
 
 
 class TestChangeStatus(DataTestClient):
@@ -84,3 +90,34 @@ class TestChangeStatus(DataTestClient):
 
         response = self.client.post(self.url, **self.exporter_headers, data={"status": CaseStatusEnum.SUBMITTED})
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+
+class TestApplicationDocuments:
+
+    @pytest.mark.parametrize("application_factory", [StandardApplicationFactory, F680ApplicationFactory])
+    def test_GET_success(self, application_factory, api_client, gov_headers, organisation):
+
+        my_application = application_factory(organisation=organisation)
+        my_doc_1 = ApplicationDocumentFactory(application=my_application)
+        my_doc_2 = ApplicationDocumentFactory(application=my_application)
+        other_doc = ApplicationDocumentFactory()
+
+        url = reverse(
+            "caseworker_applications:document",
+            kwargs={
+                "pk": str(my_application.pk),
+            },
+        )
+        response = api_client.get(url, **gov_headers)
+
+        assert response.status_code == status.HTTP_200_OK
+        response_json = response.json()
+
+        assert response_json["count"] == 2
+
+        result_doc_ids = [r["id"] for r in response_json["results"]]
+        result_doc_applications = [r["application"] for r in response_json["results"]]
+
+        assert [str(my_doc_1.id), str(my_doc_2.id)] == result_doc_ids
+        assert str(my_application.id) in result_doc_applications
+        assert str(other_doc.id) not in result_doc_ids
