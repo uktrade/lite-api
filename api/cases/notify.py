@@ -103,9 +103,9 @@ def notify_exporter_licence_suspended(licence):
 def notify_exporter_ecju_query(case_pk):
     case = Case.objects.get(pk=case_pk)
     application_manifest = case.get_application_manifest()
-    # This deliberately avoids using a more specific URL since there are a few possible here,
-    # so the likelihood of them changing in the exporter app is higher
-    exporter_frontend_url = get_exporter_frontend_url("/")
+    notification_config = application_manifest.notification_config["ecju_query"]
+    exporter_frontend_url = get_exporter_frontend_url(notification_config["frontend_url"])
+    email_template = notification_config["template"]
 
     _notify_exporter_ecju_query(
         case.submitted_by.email,
@@ -114,28 +114,32 @@ def notify_exporter_ecju_query(case_pk):
             "case_reference": case.reference_code,
             "exporter_frontend_url": exporter_frontend_url,
         },
-        application_manifest.email_templates["ecju_query"],
+        email_template,
     )
 
 
 def notify_exporter_ecju_query_chaser(ecju_query_id, callback):
     ecju_query = EcjuQuery.objects.get(id=ecju_query_id)
-    application_manifest = ecju_query.case.get_application_manifest()
 
-    ecju_query_url = application_manifest.frontend_urls["ecju_queries"]
-    exporter_frontend_ecju_queries_url = get_exporter_frontend_url(ecju_query_url.format(case_id=ecju_query.case.id))
+    application_manifest = ecju_query.case.get_application_manifest()
+    notification_config = application_manifest.notification_config["ecju_query_chaser"]
+    exporter_frontend_url = get_exporter_frontend_url(
+        notification_config["frontend_url"].format(case_id=ecju_query.case.id)
+    )
+    email_template = notification_config["template"]
+
     max_days = application_manifest.ecju_max_days
 
     _notify_exporter_ecju_query_chaser(
         ecju_query.case.submitted_by.email,
         {
             "case_reference": ecju_query.case.reference_code,
-            "exporter_frontend_ecju_queries_url": exporter_frontend_ecju_queries_url,
+            "exporter_frontend_ecju_queries_url": exporter_frontend_url,
             "remaining_days": max_days - ecju_query.open_working_days,
             "open_working_days": ecju_query.open_working_days,
             "exporter_first_name": ecju_query.case.submitted_by.first_name,
         },
-        application_manifest.email_templates["ecju_query_chaser"],
+        email_template,
         callback,
     )
 

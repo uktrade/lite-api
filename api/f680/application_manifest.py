@@ -15,8 +15,10 @@ class F680ApplicationManifest(BaseManifest):
         ApplicationFeatures.ROUTE_TO_COUNTERSIGNING_QUEUES: False,
     }
     ecju_max_days = 30
-    email_templates = {
-        "ecju_query": TemplateType.EXPORTER_F680_ECJU_QUERY,
-        "ecju_query_chaser": TemplateType.EXPORTER_F680_ECJU_QUERY_CHASER,
+    notification_config = {
+        "ecju_query": {"template": TemplateType.EXPORTER_F680_ECJU_QUERY, "frontend_url": "/"},
+        "ecju_query_chaser": {
+            "template": TemplateType.EXPORTER_F680_ECJU_QUERY_CHASER,
+            "frontend_url": "/f680/{case_id}/summary/ecju-queries/",
+        },
     }
-    frontend_urls = {"ecju_queries": "/f680/{case_id}/summary/ecju-queries/"}
