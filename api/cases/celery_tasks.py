@@ -14,7 +14,7 @@ from api.cases.models import Case, CaseAssignmentSLA, CaseQueue, DepartmentSLA, 
 from api.common.dates import is_weekend, is_bank_holiday
 from api.staticdata.statuses.enums import CaseStatusEnum
 from api.staticdata.statuses.models import CaseStatus
-from api.cases.notify import notify_exporter_ecju_query_chaser, should_send_ecju_chaser_email
+from api.cases.notify import notify_exporter_ecju_query_chaser
 
 
 # DST safe version of midnight
@@ -161,6 +161,7 @@ def update_cases_sla():
 def schedule_all_ecju_query_chaser_emails():
     """
     Sends an ECJU  reminder 5 days before Max days allowed
+    Max days for each case type set in the application manifest
     Runs as a background task daily at a given time.
     Can accommodate reruns and can send reminders if any have been missed upto 20 days after ECJU Query created
     """
@@ -174,7 +175,7 @@ def schedule_all_ecju_query_chaser_emails():
         )
 
         for ecju_query in ecju_queries:
-            if should_send_ecju_chaser_email(ecju_query):
+            if ecju_query.should_send_chaser_email():
                 ecju_query_reminders.append(ecju_query.id)
 
         for ecju_query_id in ecju_query_reminders:

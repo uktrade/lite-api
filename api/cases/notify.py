@@ -15,12 +15,6 @@ from gov_notify.payloads import (
 from gov_notify.service import send_email
 
 
-def should_send_ecju_chaser_email(ecju_query):
-    application_manifest = ecju_query.case.get_application_manifest()
-    max_days = application_manifest.ecju_max_days
-    return max_days - 5 <= ecju_query.open_working_days <= max_days
-
-
 def _notify_exporter_licence_issued(email, data):
     payload = ExporterLicenceIssued(**data)
     send_email(

@@ -26,7 +26,6 @@ from api.cases.enums import (
     EnforcementXMLEntityTypes,
     LicenceDecisionType,
 )
-from api.cases.enums import CaseTypeEnum
 from api.cases.helpers import working_days_in_range
 from api.cases.libraries.reference_code import generate_reference_code
 from api.cases.managers import CaseManager, CaseReferenceCodeManager, AdviceManager
@@ -850,9 +849,10 @@ class EcjuQuery(TimestampableModel):
         end_date = self.responded_at if self.responded_at else timezone.now()
         return working_days_in_range(start_date=start_date, end_date=end_date)
 
-    @property
-    def is_f680_query(self):
-        return self.case.case_type.id == CaseTypeEnum.F680.id
+    def should_send_chaser_email(self):
+        application_manifest = self.case.get_application_manifest()
+        max_days = application_manifest.ecju_max_days
+        return max_days - 5 <= self.open_working_days <= max_days
 
     notifications = GenericRelation(ExporterNotification, related_query_name="ecju_query")
 
