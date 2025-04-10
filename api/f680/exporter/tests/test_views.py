@@ -280,6 +280,7 @@ class TestF680ApplicationViewSet:
         (
             ({"agreed_to_foi": True, "foi_reason": "Some reason"}, True, "Some reason"),
             ({"agreed_to_foi": False}, False, ""),
+            ({"agreed_to_foi": False, "foi_reason": ""}, False, ""),
         ),
     )
     @freeze_time("2025-01-01 12:00:01")
@@ -426,6 +427,33 @@ class TestF680ApplicationViewSet:
         )
         url = reverse("exporter_f680:application_submit", kwargs={"f680_application_id": f680_application.id})
         response = api_client.post(url, **exporter_headers)
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert response.data == expected_result
+
+    @pytest.mark.parametrize(
+        "request_data, expected_result",
+        (({}, {"errors": {"agreed_to_foi": [ErrorDetail(string="This field is required.", code="required")]}}),),
+    )
+    @freeze_time("2025-01-01 12:00:01")
+    def test_POST_submit_incorrect_declaration_json_format(
+        self,
+        api_client,
+        exporter_headers,
+        exporter_user,
+        organisation,
+        data_application_json,
+        request_data,
+        expected_result,
+    ):
+        f680_application = F680ApplicationFactory(
+            organisation=organisation,
+            application=data_application_json,
+            reference_code=None,
+        )
+
+        url = reverse("exporter_f680:application_submit", kwargs={"f680_application_id": f680_application.id})
+        response = api_client.post(url, request_data, **exporter_headers)
+
         assert response.status_code == status.HTTP_400_BAD_REQUEST
         assert response.data == expected_result
 
