@@ -275,18 +275,34 @@ class F680ApplicationViewSetTests(DataTestClient):  # /PS-IGNORE
 
 class TestF680ApplicationViewSet:
 
+    @pytest.mark.parametrize(
+        "request_data, expected_agreed_to_foi, expected_foi_reason",
+        (
+            ({"agreed_to_foi": True, "foi_reason": "Some reason"}, True, "Some reason"),
+            ({"agreed_to_foi": False}, False, ""),
+        ),
+    )
     @freeze_time("2025-01-01 12:00:01")
     def test_POST_submit_success(
-        self, api_client, exporter_headers, exporter_user, organisation, data_application_json
+        self,
+        api_client,
+        exporter_headers,
+        exporter_user,
+        organisation,
+        data_application_json,
+        request_data,
+        expected_agreed_to_foi,
+        expected_foi_reason,
     ):
         f680_application = F680ApplicationFactory(
             organisation=organisation,
             application=data_application_json,
             reference_code=None,
         )
-        request_data = {"agreed_to_foi": True, "foi_reason": "Some reason"}
+
         url = reverse("exporter_f680:application_submit", kwargs={"f680_application_id": f680_application.id})
         response = api_client.post(url, request_data, **exporter_headers)
+
         assert response.status_code == status.HTTP_200_OK
         f680_application.refresh_from_db()
         assert f680_application.status.status == "submitted"
@@ -294,8 +310,8 @@ class TestF680ApplicationViewSet:
         assert f680_application.sla_days == 0
         assert f680_application.submitted_by == exporter_user
         assert f680_application.reference_code.startswith("F680")
-        assert f680_application.agreed_to_foi
-        assert f680_application.foi_reason == "Some reason"
+        assert f680_application.agreed_to_foi == expected_agreed_to_foi
+        assert f680_application.foi_reason == expected_foi_reason
 
         expected_result = {
             "id": str(f680_application.id),
