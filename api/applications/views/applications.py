@@ -22,7 +22,7 @@ from rest_framework.views import APIView
 from api.appeals.models import Appeal
 from api.appeals.serializers import AppealSerializer
 from api.applications import constants
-from api.applications.creators import validate_application_ready_for_submission, _validate_agree_to_declaration
+from api.applications.creators import validate_application_ready_for_submission, validate_agree_to_declaration
 from api.applications.helpers import (
     get_application_view_serializer,
     validate_and_create_goods_on_licence,
@@ -30,7 +30,6 @@ from api.applications.helpers import (
 )
 from api.applications.libraries.application_helpers import (
     can_status_be_set_by_gov_user,
-    create_submitted_audit,
 )
 from api.applications.libraries.case_status_helpers import submit_application
 from api.applications.libraries.edit_applications import (
@@ -56,7 +55,13 @@ from api.applications.serializers.standard_application import (
 )
 from api.audit_trail import service as audit_trail_service
 from api.audit_trail.enums import AuditType
-from api.cases.enums import AdviceLevel, AdviceType, CaseTypeSubTypeEnum, CaseTypeEnum
+from api.cases.enums import (
+    AdviceLevel,
+    AdviceType,
+    CaseTypeSubTypeEnum,
+    CaseTypeEnum,
+    CaseTypeReferenceEnum,
+)
 from api.cases.models import CaseQueueMovement
 from api.cases.generated_documents.models import GeneratedCaseDocument
 from api.cases.generated_documents.helpers import auto_generate_case_document
@@ -200,7 +205,10 @@ class ApplicationDetail(RetrieveUpdateDestroyAPIView):
         case = application.get_case()
         data = request.data.copy()
         serializer = StandardApplicationUpdateSerializer(
-            application, data=data, context=get_request_user_organisation(request), partial=True
+            application,
+            data=data,
+            context=get_request_user_organisation(request),
+            partial=True,
         )
 
         # Prevent minor edits of the clearance level
@@ -212,10 +220,6 @@ class ApplicationDetail(RetrieveUpdateDestroyAPIView):
 
         if not serializer.is_valid():
             return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
-
-        if application.case_type.sub_type == CaseTypeSubTypeEnum.HMRC:
-            serializer.save()
-            return JsonResponse(data={}, status=status.HTTP_200_OK)
 
         # Audit block
         if request.data.get("name"):
@@ -235,9 +239,8 @@ class ApplicationDetail(RetrieveUpdateDestroyAPIView):
             serializer.save()
             return JsonResponse(data={}, status=status.HTTP_200_OK)
 
-        if application.case_type.sub_type == CaseTypeSubTypeEnum.STANDARD:
-            save_and_audit_have_you_been_informed_ref(request, application, serializer)
-            serializer.save()
+        save_and_audit_have_you_been_informed_ref(request, application, serializer)
+        serializer.save()
 
         return JsonResponse(data={}, status=status.HTTP_200_OK)
 
@@ -273,80 +276,51 @@ class ApplicationSubmission(APIView):
         application = get_application(pk)
         old_status = application.status.status
 
-        if application.case_type.sub_type != CaseTypeSubTypeEnum.HMRC:
-            assert_user_has_permission(
-                request.user.exporteruser, ExporterPermissions.SUBMIT_LICENCE_APPLICATION, application.organisation
-            )
-
+        assert_user_has_permission(
+            request.user.exporteruser,
+            ExporterPermissions.SUBMIT_LICENCE_APPLICATION,
+            application.organisation,
+        )
         errors = validate_application_ready_for_submission(application)
 
         if errors:
             return JsonResponse(data={"errors": errors}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Queries are completed directly when submit is clicked on the task list
-        # HMRC are completed when submit is clicked on the summary page (page after task list)
-        # Applications are completed when submit is clicked on the declaration page (page after summary page)
+        if request.data.get("submit_declaration"):
+            errors = validate_agree_to_declaration(request, errors)
+            if errors:
+                return JsonResponse(data={"errors": errors}, status=status.HTTP_400_BAD_REQUEST)
 
-        if application.case_type.sub_type in [CaseTypeSubTypeEnum.EUA, CaseTypeSubTypeEnum.GOODS] or (
-            CaseTypeSubTypeEnum.HMRC and request.data.get("submit_hmrc")
-        ):
+            # If a valid declaration is provided, save the application
             application.submitted_by = request.user.exporteruser
-            create_submitted_audit(request, application, old_status)
+            application.agreed_to_foi = request.data.get("agreed_to_foi")
+            application.foi_reason = request.data.get("foi_reason", "")
             submit_application(application)
-            if request.data.get("submit_hmrc"):
-                auto_generate_case_document(
-                    "application_form",
-                    application,
-                    AutoGeneratedDocuments.APPLICATION_FORM,
-                    request.build_absolute_uri(),
-                )
 
-        elif application.case_type.sub_type in [
-            CaseTypeSubTypeEnum.STANDARD,
-            CaseTypeSubTypeEnum.F680,
-            CaseTypeSubTypeEnum.GIFTING,
-            CaseTypeSubTypeEnum.EXHIBITION,
-        ]:
-            if request.data.get("submit_declaration"):
-                errors = _validate_agree_to_declaration(request, errors)
-                if errors:
-                    return JsonResponse(data={"errors": errors}, status=status.HTTP_400_BAD_REQUEST)
+            set_case_flags_on_submitted_standard_application(application)
+            application.on_submit(old_status)
 
-                # If a valid declaration is provided, save the application
-                application.submitted_by = request.user.exporteruser
-                application.agreed_to_foi = request.data.get("agreed_to_foi")
-                application.foi_reason = request.data.get("foi_reason", "")
-                submit_application(application)
+            add_goods_flags_to_submitted_application(application)
+            apply_flagging_rules_to_case(application)
+            auto_generate_case_document(
+                "application_form",
+                application,
+                AutoGeneratedDocuments.APPLICATION_FORM,
+                request.build_absolute_uri(),
+            )
+            queues_assigned = run_routing_rules(application)
+            created_at = timezone.now()
+            for queue in queues_assigned:
+                CaseQueueMovement.objects.create(case=application.case_ptr, queue_id=queue, created_at=created_at)
 
-                if application.case_type.sub_type == CaseTypeSubTypeEnum.STANDARD:
-                    set_case_flags_on_submitted_standard_application(application)
-                application.on_submit(old_status)
+            # Set the sites on this application as used so their name/site records located at are no longer editable
+            sites_on_application = SiteOnApplication.objects.filter(application=application)
+            Site.objects.filter(id__in=sites_on_application.values_list("site_id", flat=True)).update(
+                is_used_on_application=True
+            )
 
-                add_goods_flags_to_submitted_application(application)
-                apply_flagging_rules_to_case(application)
-                auto_generate_case_document(
-                    "application_form",
-                    application,
-                    AutoGeneratedDocuments.APPLICATION_FORM,
-                    request.build_absolute_uri(),
-                )
-                queues_assigned = run_routing_rules(application)
-                created_at = timezone.now()
-                for queue in queues_assigned:
-                    CaseQueueMovement.objects.create(case=application.case_ptr, queue_id=queue, created_at=created_at)
-
-                # Set the sites on this application as used so their name/site records located at are no longer editable
-                sites_on_application = SiteOnApplication.objects.filter(application=application)
-                Site.objects.filter(id__in=sites_on_application.values_list("site_id", flat=True)).update(
-                    is_used_on_application=True
-                )
-
-        if application.case_type.sub_type in [
-            CaseTypeSubTypeEnum.STANDARD,
-            CaseTypeSubTypeEnum.HMRC,
-        ]:
-            if UUID(SystemFlags.ENFORCEMENT_CHECK_REQUIRED) not in application.flags.values_list("id", flat=True):
-                application.flags.add(SystemFlags.ENFORCEMENT_CHECK_REQUIRED)
+        if UUID(SystemFlags.ENFORCEMENT_CHECK_REQUIRED) not in application.flags.values_list("id", flat=True):
+            application.flags.add(SystemFlags.ENFORCEMENT_CHECK_REQUIRED)
 
         if application.case_type.sub_type in [CaseTypeSubTypeEnum.STANDARD]:
             auto_match_sanctions(application)
@@ -733,7 +707,12 @@ class ApplicationRouteOfGoods(UpdateAPIView):
 
     @authorised_to_view_application(ExporterUser)
     @application_is_major_editable
-    @allowed_application_types([CaseTypeSubTypeEnum.STANDARD])
+    @allowed_application_types(
+        [
+            CaseTypeReferenceEnum.EXPORT_LICENCE,
+            CaseTypeReferenceEnum.SIEL,
+        ]
+    )
     def put(self, request, pk):
         """Update an application instance with route of goods data."""
 

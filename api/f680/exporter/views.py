@@ -5,7 +5,11 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from api.core import viewsets
-from api.core.context_processors import ApplicationSerializerContextProcessor
+from api.core.context_processors import (
+    CaseTypeSerializerContextProcessor,
+    draft_status_serializer_context_processor,
+    organisation_serializer_context_processor,
+)
 from api.cases.enums import CaseTypeEnum
 from api.cases.celery_tasks import get_application_target_sla
 from api.cases.models import CaseQueueMovement
@@ -28,7 +32,11 @@ from api.f680.exporter.filters import DraftApplicationFilter
 class F680ApplicationViewSet(viewsets.ModelViewSet):
     authentication_classes = (ExporterAuthentication,)
     serializer_class = F680ApplicationSerializer
-    serializer_context_processors = (ApplicationSerializerContextProcessor(CaseTypeEnum.F680.id),)
+    serializer_context_processors = (
+        CaseTypeSerializerContextProcessor(CaseTypeEnum.F680.id),
+        draft_status_serializer_context_processor,
+        organisation_serializer_context_processor,
+    )
     queryset = F680Application.objects.all()
     lookup_url_kwarg = "f680_application_id"
     filter_backends = [CurrentExporterUserOrganisationFilter, DraftApplicationFilter]
