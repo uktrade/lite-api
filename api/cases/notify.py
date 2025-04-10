@@ -124,7 +124,7 @@ def notify_exporter_ecju_query_chaser(ecju_query_id, callback):
     application_manifest = ecju_query.case.get_application_manifest()
     notification_config = application_manifest.notification_config["ecju_query_chaser"]
     exporter_frontend_url = get_exporter_frontend_url(
-        notification_config["frontend_url"].format(case_id=ecju_query.case.id)
+        notification_config["frontend_url"].format(case_id=ecju_query.case_id)
     )
     email_template = notification_config["template"]
 
