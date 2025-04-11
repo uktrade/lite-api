@@ -1,15 +1,24 @@
+import pytest
+import uuid
+
 from parameterized import parameterized
+from freezegun import freeze_time
 
 from django.urls import reverse
 from rest_framework import status
 
 from api.audit_trail.models import Audit
 from api.audit_trail.enums import AuditType
-from api.applications.tests.factories import StandardApplicationFactory
+from api.applications.tests.factories import StandardApplicationFactory, ApplicationDocumentFactory
+from api.f680.tests.factories import F680ApplicationFactory
 from api.staticdata.statuses.enums import CaseStatusEnum
 from api.staticdata.statuses.models import CaseStatus
 
 from test_helpers.clients import DataTestClient
+
+pytest_plugins = [
+    "api.tests.unit.fixtures.core",
+]
 
 
 class TestChangeStatus(DataTestClient):
@@ -84,3 +93,106 @@ class TestChangeStatus(DataTestClient):
 
         response = self.client.post(self.url, **self.exporter_headers, data={"status": CaseStatusEnum.SUBMITTED})
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+
+class TestApplicationDocuments:
+
+    @pytest.mark.parametrize("application_factory", [StandardApplicationFactory, F680ApplicationFactory])
+    @freeze_time("2023-11-03 12:00:00")
+    def test_GET_success(self, application_factory, api_client, gov_headers, organisation):
+
+        application = application_factory(organisation=organisation)
+        doc_1 = ApplicationDocumentFactory(application=application)
+        doc_2 = ApplicationDocumentFactory(application=application)
+        other_doc = ApplicationDocumentFactory()
+
+        url = reverse(
+            "caseworker_applications:document",
+            kwargs={
+                "pk": str(application.pk),
+            },
+        )
+        response = api_client.get(url, **gov_headers)
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response.json() == {
+            "count": 2,
+            "total_pages": 1,
+            "results": [
+                {
+                    "id": str(doc_1.id),
+                    "created_at": "2023-11-03T12:00:00Z",
+                    "updated_at": "2023-11-03T12:00:00Z",
+                    "name": "",
+                    "s3_key": doc_1.s3_key,
+                    "size": None,
+                    "virus_scanned_at": None,
+                    "safe": None,
+                    "description": None,
+                    "document_type": None,
+                    "application": str(application.id),
+                },
+                {
+                    "id": str(doc_2.id),
+                    "created_at": "2023-11-03T12:00:00Z",
+                    "updated_at": "2023-11-03T12:00:00Z",
+                    "name": "",
+                    "s3_key": doc_2.s3_key,
+                    "size": None,
+                    "virus_scanned_at": None,
+                    "safe": None,
+                    "description": None,
+                    "document_type": None,
+                    "application": str(application.id),
+                },
+            ],
+        }
+
+        document_ids = [document["id"] for document in response.json()["results"]]
+        assert other_doc.id not in document_ids
+
+    @pytest.mark.parametrize("application_factory", [StandardApplicationFactory, F680ApplicationFactory])
+    def test_GET_success_no_documents(self, application_factory, api_client, gov_headers, organisation):
+
+        application = application_factory(organisation=organisation)
+
+        url = reverse(
+            "caseworker_applications:document",
+            kwargs={
+                "pk": str(application.pk),
+            },
+        )
+        response = api_client.get(url, **gov_headers)
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response.json() == {"count": 0, "total_pages": 1, "results": []}
+
+    def test_GET_fail_no_application_returns_404(self, api_client, gov_headers):
+
+        application_id = str(uuid.uuid4())
+
+        url = reverse(
+            "caseworker_applications:document",
+            kwargs={
+                "pk": application_id,
+            },
+        )
+        response = api_client.get(url, **gov_headers)
+
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+
+    @pytest.mark.parametrize("application_factory", [StandardApplicationFactory, F680ApplicationFactory])
+    def test_GET_fail_no_gov_headers_returns_403(self, application_factory, api_client, organisation):
+
+        application = application_factory(organisation=organisation)
+
+        url = reverse(
+            "caseworker_applications:document",
+            kwargs={
+                "pk": str(application.pk),
+            },
+        )
+        response = api_client.get(url)
+
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert response.json() == {"errors": {"error": "You must supply the correct token in your headers"}}
