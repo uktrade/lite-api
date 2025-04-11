@@ -849,6 +849,11 @@ class EcjuQuery(TimestampableModel):
         end_date = self.responded_at if self.responded_at else timezone.now()
         return working_days_in_range(start_date=start_date, end_date=end_date)
 
+    def should_send_chaser_email(self):
+        application_manifest = self.case.get_application_manifest()
+        max_days = application_manifest.ecju_max_days
+        return max_days - 5 <= self.open_working_days <= max_days
+
     notifications = GenericRelation(ExporterNotification, related_query_name="ecju_query")
 
     def save(self, *args, **kwargs):

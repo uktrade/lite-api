@@ -1,5 +1,3 @@
-from django.db.models import F
-
 from api.core.helpers import get_exporter_frontend_url
 from api.cases.models import Case, EcjuQuery
 from gov_notify.enums import TemplateType
@@ -103,53 +101,57 @@ def notify_exporter_licence_suspended(licence):
 
 
 def notify_exporter_ecju_query(case_pk):
-    case_info = (
-        Case.objects.annotate(
-            email=F("submitted_by__baseuser_ptr__email"), first_name=F("submitted_by__baseuser_ptr__first_name")
-        )
-        .values("id", "email", "first_name", "reference_code")
-        .get(id=case_pk)
-    )
-
-    # This deliberately avoids using a more specific URL since there are a few possible here,
-    # so the likelihood of them changing in the exporter app is higher
-    exporter_frontend_url = get_exporter_frontend_url("/")
+    case = Case.objects.get(pk=case_pk)
+    application_manifest = case.get_application_manifest()
+    notification_config = application_manifest.notification_config["ecju_query"]
+    exporter_frontend_url = get_exporter_frontend_url(notification_config["frontend_url"])
+    email_template = notification_config["template"]
 
     _notify_exporter_ecju_query(
-        case_info["email"],
+        case.submitted_by.email,
         {
-            "exporter_first_name": case_info["first_name"] or "",
-            "case_reference": case_info["reference_code"],
+            "exporter_first_name": case.submitted_by.first_name or "",
+            "case_reference": case.reference_code,
             "exporter_frontend_url": exporter_frontend_url,
         },
+        email_template,
     )
 
 
 def notify_exporter_ecju_query_chaser(ecju_query_id, callback):
     ecju_query = EcjuQuery.objects.get(id=ecju_query_id)
 
-    exporter_frontend_ecju_queries_url = get_exporter_frontend_url(f"/applications/{ecju_query.case_id}/ecju-queries/")
+    application_manifest = ecju_query.case.get_application_manifest()
+    notification_config = application_manifest.notification_config["ecju_query_chaser"]
+    exporter_frontend_url = get_exporter_frontend_url(
+        notification_config["frontend_url"].format(case_id=ecju_query.case_id)
+    )
+    email_template = notification_config["template"]
+
+    max_days = application_manifest.ecju_max_days
 
     _notify_exporter_ecju_query_chaser(
         ecju_query.case.submitted_by.email,
         {
             "case_reference": ecju_query.case.reference_code,
-            "exporter_frontend_ecju_queries_url": exporter_frontend_ecju_queries_url,
-            "remaining_days": 20 - ecju_query.open_working_days,
+            "exporter_frontend_ecju_queries_url": exporter_frontend_url,
+            "remaining_days": max_days - ecju_query.open_working_days,
             "open_working_days": ecju_query.open_working_days,
+            "exporter_first_name": ecju_query.case.submitted_by.first_name,
         },
+        email_template,
         callback,
     )
 
 
-def _notify_exporter_ecju_query(email, data):
+def _notify_exporter_ecju_query(email, data, email_template):
     payload = ExporterECJUQuery(**data)
-    send_email(email, TemplateType.EXPORTER_ECJU_QUERY, payload)
+    send_email(email, email_template, payload)
 
 
-def _notify_exporter_ecju_query_chaser(email, data, callback):
+def _notify_exporter_ecju_query_chaser(email, data, email_template, callback):
     payload = ExporterECJUQueryChaser(**data)
-    send_email(email, TemplateType.EXPORTER_ECJU_QUERY_CHASER, payload, callback)
+    send_email(email, email_template, payload, callback)
 
 
 def _notify_exporter_no_licence_required(email, data):
