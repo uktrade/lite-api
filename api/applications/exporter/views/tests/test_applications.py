@@ -1,7 +1,7 @@
 import pytest
 import uuid
 from django.utils import timezone
-from pytz import timezone as tz
+from freezegun import freeze_time
 
 from api.audit_trail.enums import AuditType
 from api.audit_trail.models import Audit
@@ -98,6 +98,7 @@ class TestChangeStatus(DataTestClient):
 
 class TestApplicationHistory(DataTestClient):
 
+    @freeze_time("2025-01-01 12:00:01")
     def setUp(self):
         super().setUp()
 
@@ -151,7 +152,7 @@ class TestApplicationHistory(DataTestClient):
                 {
                     "id": str(c.id),
                     "reference_code": c.reference_code,
-                    "submitted_at": c.submitted_at.astimezone(tz("UTC")).strftime("%Y-%m-%dT%H:%M:%S.%f") + "Z",
+                    "submitted_at": c.submitted_at.strftime("%Y-%m-%dT%H:%M:%SZ"),
                     "status": {"status": c.status.status, "status_display": CaseStatusEnum.get_text(c.status.status)},
                     "ecju_query_count": c.case_ecju_query.all().count(),
                 }

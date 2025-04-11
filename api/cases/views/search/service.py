@@ -53,17 +53,13 @@ def get_advice_types_list():
 
 def populate_goods_flags(cases: List[Dict]):
     case_ids = [case["id"] for case in cases]
-    qs1 = Flag.objects.filter(goods__goods_on_application__application_id__in=case_ids).annotate(
+    goods_flags = Flag.objects.filter(goods__goods_on_application__application_id__in=case_ids).annotate(
         case_id=F("goods__goods_on_application__application_id"),
     )
-    qs3 = Flag.objects.filter(goods__good__id__in=case_ids).annotate(
-        case_id=F("goods__good__id"),
-    )
-    flags = qs1.union(qs3)
-
     for case in cases:
         case["goods_flags"] = CaseListFlagSerializer(
-            {flag for flag in flags if str(flag.case_id) == str(case["id"])}, many=True
+            {flag for flag in goods_flags if str(flag.case_id) == str(case["id"])},
+            many=True,
         ).data
 
 

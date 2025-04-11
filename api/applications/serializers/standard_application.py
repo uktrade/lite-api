@@ -1,4 +1,6 @@
 from django.db.models import Q
+from django.utils import timezone
+
 from rest_framework import serializers
 from rest_framework.fields import CharField
 
@@ -10,31 +12,63 @@ from api.applications.enums import (
     GoodsStartingPoint,
     GoodsRecipients,
 )
+from api.applications.libraries.get_applications import get_application
 from api.applications.mixins.serializers import PartiesSerializerMixin
-from api.applications.models import StandardApplication
+from api.applications.models import (
+    ApplicationDenialReason,
+    StandardApplication,
+)
+from api.applications.serializers.document import ApplicationDocumentSerializer
 from api.licences.serializers.view_licence import CaseLicenceViewSerializer
 from api.applications.serializers.serializer_helper import validate_field
 from api.audit_trail.enums import AuditType
 from api.audit_trail.models import Audit
 from api.cases.enums import CaseTypeEnum
+from api.cases.models import CaseType
+from api.core.helpers import get_value_from_enum
 from api.core.serializers import KeyValueChoiceField
+from api.flags.serializers import FlagSerializer
+from api.gov_users.serializers import GovUserSimpleSerializer
 from api.licences.models import Licence
 from lite_content.lite_api import strings
+from api.organisations.serializers import (
+    OrganisationDetailSerializer,
+    SiteListSerializer,
+)
+from api.parties.serializers import PartySerializer
+from api.staticdata.denial_reasons.models import DenialReason
 from api.staticdata.statuses.enums import CaseStatusEnum
+from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
+from api.staticdata.statuses.models import CaseStatus
 from api.staticdata.statuses.serializers import CaseSubStatusSerializer
 from api.staticdata.trade_control.enums import TradeControlProductCategory, TradeControlActivity
+from api.users.libraries.notifications import get_exporter_user_notification_individual_count
+from api.users.models import ExporterUser
 
 from .denial import DenialMatchOnApplicationViewSerializer
-from .generic_application import (
-    GenericApplicationCreateSerializer,
-    GenericApplicationUpdateSerializer,
-    GenericApplicationViewSerializer,
-)
+from .generic_application import GenericApplicationListSerializer
 from .good import GoodOnApplicationViewSerializer
 from .fields import CaseStatusField
 
 
-class StandardApplicationViewSerializer(PartiesSerializerMixin, GenericApplicationViewSerializer):
+class StandardApplicationViewSerializer(PartiesSerializerMixin, serializers.ModelSerializer):
+    name = CharField(
+        max_length=100,
+        required=True,
+        allow_blank=False,
+        allow_null=False,
+        error_messages={"blank": strings.Applications.Generic.MISSING_REFERENCE_NAME_ERROR},
+    )
+    case_type = serializers.SerializerMethodField()
+    export_type = serializers.SerializerMethodField()
+    status = CaseStatusField()
+    organisation = OrganisationDetailSerializer()
+    case = serializers.SerializerMethodField()
+    exporter_user_notification_count = serializers.SerializerMethodField()
+    is_major_editable = serializers.SerializerMethodField(required=False)
+    goods_locations = serializers.SerializerMethodField()
+    case_officer = GovUserSimpleSerializer()
+    submitted_by = serializers.SerializerMethodField()
     goods = GoodOnApplicationViewSerializer(many=True, read_only=True)
     destinations = serializers.SerializerMethodField()
     denial_matches = serializers.SerializerMethodField()
@@ -53,53 +87,128 @@ class StandardApplicationViewSerializer(PartiesSerializerMixin, GenericApplicati
     class Meta:
         model = StandardApplication
         fields = (
-            GenericApplicationViewSerializer.Meta.fields
-            + PartiesSerializerMixin.Meta.fields
-            + (
-                "goods",
-                "have_you_been_informed",
-                "reference_number_on_information_form",
-                "activity",
-                "usage",
-                "destinations",
-                "denial_matches",
-                "additional_documents",
-                "is_military_end_use_controls",
-                "military_end_use_controls_ref",
-                "is_informed_wmd",
-                "informed_wmd_ref",
-                "is_suspected_wmd",
-                "suspected_wmd_ref",
-                "is_eu_military",
-                "is_compliant_limitations_eu",
-                "compliant_limitations_eu_ref",
-                "intended_end_use",
-                "licence",
-                "is_shipped_waybill_or_lading",
-                "non_waybill_or_lading_route_details",
-                "temp_export_details",
-                "is_temp_direct_control",
-                "temp_direct_control_details",
-                "proposed_return_date",
-                "trade_control_activity",
-                "trade_control_product_categories",
-                "sanction_matches",
-                "is_amended",
-                "goods_starting_point",
-                "goods_recipients",
-                "is_mod_security_approved",
-                "security_approvals",
-                "f680_reference_number",
-                "f1686_contracting_authority",
-                "f1686_reference_number",
-                "f1686_approval_date",
-                "other_security_approval_details",
-                "appeal_deadline",
-                "appeal",
-                "sub_status",
-                "subject_to_itar_controls",
-            )
+            "id",
+            "name",
+            "organisation",
+            "case_type",
+            "export_type",
+            "created_at",
+            "updated_at",
+            "submitted_at",
+            "submitted_by",
+            "status",
+            "case",
+            "exporter_user_notification_count",
+            "reference_code",
+            "is_major_editable",
+            "goods_locations",
+            "case_officer",
+            "agreed_to_foi",
+            "foi_reason",
+            "sla_days",
+            "sla_remaining_days",
+            "sla_updated_at",
+            "last_closed_at",
+            "goods",
+            "have_you_been_informed",
+            "reference_number_on_information_form",
+            "activity",
+            "usage",
+            "destinations",
+            "denial_matches",
+            "additional_documents",
+            "is_military_end_use_controls",
+            "military_end_use_controls_ref",
+            "is_informed_wmd",
+            "informed_wmd_ref",
+            "is_suspected_wmd",
+            "suspected_wmd_ref",
+            "is_eu_military",
+            "is_compliant_limitations_eu",
+            "compliant_limitations_eu_ref",
+            "intended_end_use",
+            "licence",
+            "is_shipped_waybill_or_lading",
+            "non_waybill_or_lading_route_details",
+            "temp_export_details",
+            "is_temp_direct_control",
+            "temp_direct_control_details",
+            "proposed_return_date",
+            "trade_control_activity",
+            "trade_control_product_categories",
+            "sanction_matches",
+            "is_amended",
+            "goods_starting_point",
+            "goods_recipients",
+            "is_mod_security_approved",
+            "security_approvals",
+            "f680_reference_number",
+            "f1686_contracting_authority",
+            "f1686_reference_number",
+            "f1686_approval_date",
+            "other_security_approval_details",
+            "appeal_deadline",
+            "appeal",
+            "sub_status",
+            "subject_to_itar_controls",
+        ) + PartiesSerializerMixin.Meta.fields
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.exporter_user = kwargs.get("context").get("exporter_user") if "context" in kwargs else None
+        self.organisation_id = kwargs.get("context").get("organisation_id") if "context" in kwargs else None
+        if not isinstance(self.exporter_user, ExporterUser):
+            self.fields.pop("exporter_user_notification_count")
+
+    def get_submitted_by(self, instance):
+        return f"{instance.submitted_by.first_name} {instance.submitted_by.last_name}" if instance.submitted_by else ""
+
+    def get_export_type(self, instance):
+        if hasattr(instance, "export_type"):
+            return {
+                "key": instance.export_type,
+                "value": get_value_from_enum(instance.export_type, ApplicationExportType),
+            }
+
+    def get_case_type(self, instance):
+        from api.cases.serializers import CaseTypeSerializer
+
+        return CaseTypeSerializer(instance.case_type).data
+
+    def get_case(self, instance):
+        return instance.pk
+
+    def get_exporter_user_notification_count(self, instance):
+        return get_exporter_user_notification_individual_count(
+            exporter_user=self.exporter_user,
+            organisation_id=self.organisation_id,
+            case=instance,
         )
+
+    def get_is_major_editable(self, instance):
+        return instance.is_major_editable()
+
+    def get_goods_locations(self, application):
+        sites = [soa.site for soa in application.application_sites.all()]
+        if sites:
+            serializer = SiteListSerializer(sites, many=True)
+            return {"type": "sites", "data": serializer.data}
+
+        return {}
+
+    def get_destinations(self, application):
+        if getattr(application, "end_user", None):
+            party = application.end_user.party
+            serializer = PartySerializer(party)
+            poa = party.parties_on_application.get(application=application)
+            serializer["flags"].value += FlagSerializer(poa.flags, many=True).data
+            return {"type": "end_user", "data": serializer.data}
+        else:
+            return {"type": "end_user", "data": ""}
+
+    def get_additional_documents(self, instance):
+        documents = instance.applicationdocument_set.all().order_by("created_at")
+        return ApplicationDocumentSerializer(documents, many=True).data
 
     def get_licence(self, instance):
         licence = Licence.objects.filter(case=instance).first()
@@ -278,65 +387,54 @@ class StandardApplicationDataWorkspaceSerializer(serializers.ModelSerializer):
         }
 
 
-class StandardApplicationCreateSerializer(GenericApplicationCreateSerializer):
+class StandardApplicationCreateSerializer(serializers.ModelSerializer):
+    name = CharField(
+        max_length=100,
+        required=True,
+        allow_blank=False,
+        allow_null=False,
+        error_messages={"blank": strings.Applications.Generic.MISSING_REFERENCE_NAME_ERROR},
+    )
     export_type = KeyValueChoiceField(choices=ApplicationExportType.choices, required=False)
     have_you_been_informed = KeyValueChoiceField(
         choices=ApplicationExportLicenceOfficialType.choices,
         error_messages={"required": strings.Goods.INFORMED},
     )
     reference_number_on_information_form = CharField(allow_blank=True)
-    trade_control_activity = KeyValueChoiceField(
-        choices=TradeControlActivity.choices,
-        error_messages={"required": strings.Applications.Generic.TRADE_CONTROL_ACTIVITY_ERROR},
-    )
-    trade_control_activity_other = CharField(
-        error_messages={
-            "blank": strings.Applications.Generic.TRADE_CONTROL_ACTIVITY_OTHER_ERROR,
-            "required": strings.Applications.Generic.TRADE_CONTROL_ACTIVITY_OTHER_ERROR,
-        }
-    )
-    trade_control_product_categories = serializers.MultipleChoiceField(
-        choices=TradeControlProductCategory.choices,
-        error_messages={"required": strings.Applications.Generic.TRADE_CONTROl_PRODUCT_CATEGORY_ERROR},
-    )
 
     class Meta:
         model = StandardApplication
-        fields = GenericApplicationCreateSerializer.Meta.fields + (
+        fields = (
+            "id",
+            "name",
             "export_type",
             "have_you_been_informed",
             "reference_number_on_information_form",
-            "trade_control_activity",
-            "trade_control_activity_other",
-            "trade_control_product_categories",
         )
 
-    def __init__(self, case_type_id, **kwargs):
-        super().__init__(case_type_id, **kwargs)
-        self.trade_control_licence = case_type_id in [str(CaseTypeEnum.SICL.id), str(CaseTypeEnum.OICL.id)]
-
-        # Remove fields from serializer depending on the application being for a Trade Control Licence
-        if self.trade_control_licence:
-            self.fields.pop("export_type")
-            self.fields.pop("have_you_been_informed")
-            self.fields.pop("reference_number_on_information_form")
-
-            if not self.initial_data.get("trade_control_activity") == TradeControlActivity.OTHER:
-                self.fields.pop("trade_control_activity_other")
-        else:
-            self.fields.pop("trade_control_activity")
-            self.fields.pop("trade_control_activity_other")
-            self.fields.pop("trade_control_product_categories")
-
     def create(self, validated_data):
-        # Trade Control Licences are always permanent
-        if self.trade_control_licence:
-            validated_data["export_type"] = ApplicationExportType.PERMANENT
-
+        validated_data["organisation"] = self.context["organisation"]
+        validated_data["status"] = get_case_status_by_status(CaseStatusEnum.DRAFT)
+        validated_data["case_type"] = CaseType.objects.get(pk=CaseTypeEnum.SIEL.id)
         return super().create(validated_data)
 
+    @classmethod
+    def many_init(cls, *args, **kwargs):
+        kwargs["child"] = GenericApplicationListSerializer()
+        return serializers.ListSerializer(*args, **kwargs)
 
-class StandardApplicationUpdateSerializer(GenericApplicationUpdateSerializer):
+
+class StandardApplicationUpdateSerializer(serializers.ModelSerializer):
+    name = CharField(
+        max_length=100,
+        required=True,
+        allow_blank=False,
+        allow_null=False,
+        error_messages={"blank": strings.Applications.Generic.MISSING_REFERENCE_NAME_ERROR},
+    )
+    reasons = serializers.PrimaryKeyRelatedField(queryset=DenialReason.objects.all(), many=True, write_only=True)
+    reason_details = serializers.CharField(required=False, allow_blank=True)
+    status = serializers.PrimaryKeyRelatedField(queryset=CaseStatus.objects.all())
     export_type = KeyValueChoiceField(
         choices=ApplicationExportType.choices, required=False, allow_blank=True, allow_null=True
     )
@@ -346,7 +444,11 @@ class StandardApplicationUpdateSerializer(GenericApplicationUpdateSerializer):
 
     class Meta:
         model = StandardApplication
-        fields = GenericApplicationUpdateSerializer.Meta.fields + (
+        fields = (
+            "name",
+            "status",
+            "reasons",
+            "reason_details",
             "export_type",
             "have_you_been_informed",
             "reference_number_on_information_form",
@@ -371,12 +473,17 @@ class StandardApplicationUpdateSerializer(GenericApplicationUpdateSerializer):
             if hasattr(self, "initial_data"):
                 self.initial_data["non_waybill_or_lading_route_details"] = None
 
-        if self.instance.case_type.id == CaseTypeEnum.SICL.id:
-            self.fields.pop("have_you_been_informed")
-            self.fields.pop("reference_number_on_information_form")
-
     def update(self, instance, validated_data):
         self._update_have_you_been_informed_linked_fields(instance, validated_data)
+
+        instance.name = validated_data.get("name", instance.name)
+        instance.status = validated_data.get("status", instance.status)
+        instance.clearance_level = validated_data.get("clearance_level", instance.clearance_level)
+
+        # Remove any previous denial reasons
+        if validated_data.get("status") == get_case_status_by_status(CaseStatusEnum.FINALISED):
+            ApplicationDenialReason.objects.filter(application=get_application(instance.id)).delete()
+            instance.last_closed_at = timezone.now()
 
         instance = super().update(instance, validated_data)
         return instance

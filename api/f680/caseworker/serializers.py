@@ -5,7 +5,14 @@ from api.cases.models import Case
 from api.core.serializers import CountrySerializerField, KeyValueChoiceField, PrimaryKeyRelatedField
 from api.organisations.exporter.serializers import RelatedOrganisationSerializer
 from api.f680 import enums
-from api.f680.models import F680Application, Product, Recipient, Recommendation, SecurityReleaseRequest
+from api.f680.models import (
+    F680Application,
+    Product,
+    Recipient,
+    Recommendation,
+    SecurityReleaseRequest,
+    SecurityReleaseOutcome,
+)
 from api.teams.models import Team
 from api.users.exporter.serializers import RelatedExporterUserSerializer
 from api.users.enums import UserStatuses
@@ -111,3 +118,60 @@ class F680RecommendationSerializer(serializers.ModelSerializer):
             "security_release_request",
         )
         read_only_fields = ["id"]
+
+
+class SecurityReleaseOutcomeSerializer(serializers.ModelSerializer):
+    case = PrimaryKeyRelatedField(queryset=Case.objects.all())
+    user = PrimaryKeyRelatedField(queryset=GovUser.objects.filter(status=UserStatuses.ACTIVE))
+    team = PrimaryKeyRelatedField(queryset=Team.objects.all())
+    security_release_requests = PrimaryKeyRelatedField(queryset=SecurityReleaseRequest.objects.all(), many=True)
+
+    def validate_approve(self, data):
+        if not data.get("security_grading"):
+            raise serializers.ValidationError("security_grading required for approve outcome")
+        if not data.get("approval_types"):
+            raise serializers.ValidationError("approval_types required for approve outcome")
+        if data.get("refusal_reasons"):
+            raise serializers.ValidationError("refusal_reasons invalid for approve outcome")
+
+    def validate_refuse(self, data):
+        if not data.get("refusal_reasons"):
+            raise serializers.ValidationError("refusal_reasons required for refuse outcome")
+        if data.get("security_grading"):
+            raise serializers.ValidationError("security_grading invalid for refuse outcome")
+        if data.get("approval_types"):
+            raise serializers.ValidationError("approval_types invalid for refuse outcome")
+        if data.get("conditions"):
+            raise serializers.ValidationError("conditions invalid for refuse outcome")
+
+    def validate(self, data):
+        if data["outcome"] == enums.SecurityReleaseOutcomes.APPROVE:
+            self.validate_approve(data)
+
+        if data["outcome"] == enums.SecurityReleaseOutcomes.REFUSE:
+            self.validate_refuse(data)
+
+        existing_outcomes = SecurityReleaseOutcome.objects.filter(
+            security_release_requests__in=data["security_release_requests"]
+        ).exists()
+        if existing_outcomes:
+            raise serializers.ValidationError(
+                "A SecurityReleaseOutcome record exists for one or more of the security release ids"
+            )
+
+        return data
+
+    class Meta:
+        model = SecurityReleaseOutcome
+        fields = [
+            "id",
+            "case",
+            "user",
+            "team",
+            "security_release_requests",
+            "outcome",
+            "conditions",
+            "refusal_reasons",
+            "security_grading",
+            "approval_types",
+        ]
