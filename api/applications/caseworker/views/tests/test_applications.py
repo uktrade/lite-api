@@ -1,4 +1,6 @@
 import pytest
+import uuid
+
 from parameterized import parameterized
 from freezegun import freeze_time
 
@@ -148,3 +150,49 @@ class TestApplicationDocuments:
 
         document_ids = [document["id"] for document in response.json()["results"]]
         assert other_doc.id not in document_ids
+
+    @pytest.mark.parametrize("application_factory", [StandardApplicationFactory, F680ApplicationFactory])
+    def test_GET_success_no_documents(self, application_factory, api_client, gov_headers, organisation):
+
+        application = application_factory(organisation=organisation)
+
+        url = reverse(
+            "caseworker_applications:document",
+            kwargs={
+                "pk": str(application.pk),
+            },
+        )
+        response = api_client.get(url, **gov_headers)
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response.json() == {"count": 0, "total_pages": 1, "results": []}
+
+    def test_GET_fail_no_application_returns_404(self, api_client, gov_headers):
+
+        application_id = str(uuid.uuid4())
+
+        url = reverse(
+            "caseworker_applications:document",
+            kwargs={
+                "pk": application_id,
+            },
+        )
+        response = api_client.get(url, **gov_headers)
+
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+
+    @pytest.mark.parametrize("application_factory", [StandardApplicationFactory, F680ApplicationFactory])
+    def test_GET_fail_no_gov_headers_returns_403(self, application_factory, api_client, organisation):
+
+        application = application_factory(organisation=organisation)
+
+        url = reverse(
+            "caseworker_applications:document",
+            kwargs={
+                "pk": str(application.pk),
+            },
+        )
+        response = api_client.get(url)
+
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert response.json() == {"errors": {"error": "You must supply the correct token in your headers"}}
