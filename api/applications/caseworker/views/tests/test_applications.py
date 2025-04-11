@@ -1,5 +1,6 @@
 import pytest
 from parameterized import parameterized
+from freezegun import freeze_time
 
 from django.urls import reverse
 from rest_framework import status
@@ -95,29 +96,55 @@ class TestChangeStatus(DataTestClient):
 class TestApplicationDocuments:
 
     @pytest.mark.parametrize("application_factory", [StandardApplicationFactory, F680ApplicationFactory])
+    @freeze_time("2023-11-03 12:00:00")
     def test_GET_success(self, application_factory, api_client, gov_headers, organisation):
 
-        my_application = application_factory(organisation=organisation)
-        my_doc_1 = ApplicationDocumentFactory(application=my_application)
-        my_doc_2 = ApplicationDocumentFactory(application=my_application)
+        application = application_factory(organisation=organisation)
+        doc_1 = ApplicationDocumentFactory(application=application)
+        doc_2 = ApplicationDocumentFactory(application=application)
         other_doc = ApplicationDocumentFactory()
 
         url = reverse(
             "caseworker_applications:document",
             kwargs={
-                "pk": str(my_application.pk),
+                "pk": str(application.pk),
             },
         )
         response = api_client.get(url, **gov_headers)
 
         assert response.status_code == status.HTTP_200_OK
-        response_json = response.json()
+        assert response.json() == {
+            "count": 2,
+            "total_pages": 1,
+            "results": [
+                {
+                    "id": str(doc_1.id),
+                    "created_at": "2023-11-03T12:00:00Z",
+                    "updated_at": "2023-11-03T12:00:00Z",
+                    "name": "",
+                    "s3_key": doc_1.s3_key,
+                    "size": None,
+                    "virus_scanned_at": None,
+                    "safe": None,
+                    "description": None,
+                    "document_type": None,
+                    "application": str(application.id),
+                },
+                {
+                    "id": str(doc_2.id),
+                    "created_at": "2023-11-03T12:00:00Z",
+                    "updated_at": "2023-11-03T12:00:00Z",
+                    "name": "",
+                    "s3_key": doc_2.s3_key,
+                    "size": None,
+                    "virus_scanned_at": None,
+                    "safe": None,
+                    "description": None,
+                    "document_type": None,
+                    "application": str(application.id),
+                },
+            ],
+        }
 
-        assert response_json["count"] == 2
-
-        result_doc_ids = [r["id"] for r in response_json["results"]]
-        result_doc_applications = [r["application"] for r in response_json["results"]]
-
-        assert [str(my_doc_1.id), str(my_doc_2.id)] == result_doc_ids
-        assert str(my_application.id) in result_doc_applications
-        assert str(other_doc.id) not in result_doc_ids
+        document_ids = [document["id"] for document in response.json()["results"]]
+        assert other_doc.id not in document_ids
