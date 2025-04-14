@@ -67,14 +67,22 @@ class GenerateDocumentTests(DataTestClient):
 
     @mock.patch("api.cases.generated_documents.views.html_to_pdf")
     @mock.patch("api.cases.generated_documents.views.s3_operations.upload_bytes_file")
-    def test_generate_document_success(self, upload_bytes_file_func, html_to_pdf_func):
+    @mock.patch("api.cases.generated_documents.views.s3_operations.generate_s3_key")
+    def test_generate_document_success(self, generate_s3_key_func, upload_bytes_file_func, html_to_pdf_func):
         html_to_pdf_func.return_value = None
         upload_bytes_file_func.return_value = None
+        generate_s3_key_func.return_value = "fake-s3-key.pdf"
         response = self.client.post(self.url, **self.gov_headers, data=self.data)
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         html_to_pdf_func.assert_called_once()
-        upload_bytes_file_func.assert_called_once()
+        upload_bytes_file_func.assert_has_calls(
+            [
+                mock.call(raw_file=mock.ANY, s3_key="fake-s3-key.css"),
+                mock.call(raw_file=mock.ANY, s3_key="fake-s3-key.html"),
+                mock.call(raw_file=mock.ANY, s3_key="fake-s3-key.pdf"),
+            ]
+        )
         self.assertEqual(GeneratedCaseDocument.objects.count(), 1)
         self.assertEqual(
             ExporterNotification.objects.filter(
@@ -117,9 +125,13 @@ class GenerateDocumentTests(DataTestClient):
     @mock.patch("api.cases.generated_documents.views.html_to_pdf")
     @mock.patch("api.cases.generated_documents.views.s3_operations.upload_bytes_file")
     @mock.patch("api.cases.generated_documents.views.sign_pdf")
-    def test_generate_document_with_signature_success(self, upload_bytes_file_func, html_to_pdf_func, sign_pdf_func):
+    @mock.patch("api.cases.generated_documents.views.s3_operations.generate_s3_key")
+    def test_generate_document_with_signature_success(
+        self, generate_s3_key_func, sign_pdf_func, upload_bytes_file_func, html_to_pdf_func
+    ):
         html_to_pdf_func.return_value = None
         upload_bytes_file_func.return_value = None
+        generate_s3_key_func.return_value = "fake-s3-key.pdf"
         sign_pdf_func.return_value = None
         template = self.create_letter_template(case_types=[CaseTypeEnum.SIEL.id], digital_signature=True)
         self.data["template"] = str(template.id)
@@ -129,7 +141,13 @@ class GenerateDocumentTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         html_to_pdf_func.assert_called_once()
-        upload_bytes_file_func.assert_called_once()
+        upload_bytes_file_func.assert_has_calls(
+            [
+                mock.call(raw_file=mock.ANY, s3_key="fake-s3-key.css"),
+                mock.call(raw_file=mock.ANY, s3_key="fake-s3-key.html"),
+                mock.call(raw_file=mock.ANY, s3_key="fake-s3-key.pdf"),
+            ]
+        )
         sign_pdf_func.assert_called_once()
         self.assertTrue(GeneratedCaseDocument.objects.count() == 1)
         self.assertTrue(
@@ -143,9 +161,13 @@ class GenerateDocumentTests(DataTestClient):
 
     @mock.patch("api.cases.generated_documents.views.html_to_pdf")
     @mock.patch("api.cases.generated_documents.views.s3_operations.upload_bytes_file")
-    def test_generate_document_with_hidden_template_success(self, upload_bytes_file_func, html_to_pdf_func):
+    @mock.patch("api.cases.generated_documents.views.s3_operations.generate_s3_key")
+    def test_generate_document_with_hidden_template_success(
+        self, generate_s3_key_func, upload_bytes_file_func, html_to_pdf_func
+    ):
         html_to_pdf_func.return_value = None
         upload_bytes_file_func.return_value = None
+        generate_s3_key_func.return_value = "fake-s3-key.pdf"
         template = self.create_letter_template(case_types=[CaseTypeEnum.SIEL.id], visible_to_exporter=False)
         self.data["template"] = str(template.id)
 
@@ -153,7 +175,13 @@ class GenerateDocumentTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         html_to_pdf_func.assert_called_once()
-        upload_bytes_file_func.assert_called_once()
+        upload_bytes_file_func.assert_has_calls(
+            [
+                mock.call(raw_file=mock.ANY, s3_key="fake-s3-key.css"),
+                mock.call(raw_file=mock.ANY, s3_key="fake-s3-key.html"),
+                mock.call(raw_file=mock.ANY, s3_key="fake-s3-key.pdf"),
+            ]
+        )
         self.assertEqual(GeneratedCaseDocument.objects.count(), 1)
         self.assertEqual(
             ExporterNotification.objects.filter(
@@ -174,8 +202,14 @@ class GenerateDocumentTests(DataTestClient):
     )
     @mock.patch("api.cases.generated_documents.views.html_to_pdf")
     @mock.patch("api.cases.generated_documents.views.s3_operations.upload_bytes_file")
+    @mock.patch("api.cases.generated_documents.views.s3_operations.generate_s3_key")
     def test_generate_decision_document_success(
-        self, advice_type, appeal_deadline_set, upload_bytes_file_func, html_to_pdf_func
+        self,
+        advice_type,
+        appeal_deadline_set,
+        generate_s3_key_func,
+        upload_bytes_file_func,
+        html_to_pdf_func,
     ):
         application = self.case
         licence = None
@@ -184,6 +218,7 @@ class GenerateDocumentTests(DataTestClient):
 
         html_to_pdf_func.return_value = None
         upload_bytes_file_func.return_value = None
+        generate_s3_key_func.return_value = "fake-s3-key.pdf"
         self.data["visible_to_exporter"] = True
 
         self.data["advice_type"] = advice_type
@@ -197,7 +232,13 @@ class GenerateDocumentTests(DataTestClient):
         application.refresh_from_db()
         assert bool(application.appeal_deadline) == appeal_deadline_set
 
-        upload_bytes_file_func.assert_called_once()
+        upload_bytes_file_func.assert_has_calls(
+            [
+                mock.call(raw_file=mock.ANY, s3_key="fake-s3-key.css"),
+                mock.call(raw_file=mock.ANY, s3_key="fake-s3-key.html"),
+                mock.call(raw_file=mock.ANY, s3_key="fake-s3-key.pdf"),
+            ]
+        )
         self.assertEqual(GeneratedCaseDocument.objects.filter(advice_type=advice_type, licence=licence).count(), 1)
         # Ensure decision documents are hidden until complete
         self.assertEqual(
@@ -218,11 +259,19 @@ class GenerateDocumentTests(DataTestClient):
     )
     @mock.patch("api.cases.generated_documents.views.html_to_pdf")
     @mock.patch("api.cases.generated_documents.views.s3_operations.upload_bytes_file")
+    @mock.patch("api.cases.generated_documents.views.s3_operations.generate_s3_key")
     def test_regenerate_decision_document_success(
-        self, template_name, decisions, appeal_deadline_set, upload_bytes_file_func, html_to_pdf_func
+        self,
+        template_name,
+        decisions,
+        appeal_deadline_set,
+        generate_s3_key_func,
+        upload_bytes_file_func,
+        html_to_pdf_func,
     ):
         html_to_pdf_func.return_value = None
         upload_bytes_file_func.return_value = None
+        generate_s3_key_func.return_value = "fake-s3-key.pdf"
 
         self.case.status = CaseStatus.objects.get(status=CaseStatusEnum.FINALISED)
         self.case.save()
@@ -243,15 +292,24 @@ class GenerateDocumentTests(DataTestClient):
         application.refresh_from_db()
         assert bool(application.appeal_deadline) == appeal_deadline_set
 
-        upload_bytes_file_func.assert_called_once()
+        upload_bytes_file_func.assert_has_calls(
+            [
+                mock.call(raw_file=mock.ANY, s3_key="fake-s3-key.css"),
+                mock.call(raw_file=mock.ANY, s3_key="fake-s3-key.html"),
+                mock.call(raw_file=mock.ANY, s3_key="fake-s3-key.pdf"),
+            ]
+        )
+
         self.assertEqual(GeneratedCaseDocument.objects.filter(template=template).count(), 1)
 
     @mock.patch("api.cases.generated_documents.views.html_to_pdf")
     @mock.patch("api.cases.generated_documents.views.s3_operations.upload_bytes_file")
-    def test_generate_licence_document_success(self, upload_bytes_file_func, html_to_pdf_func):
+    @mock.patch("api.cases.generated_documents.views.s3_operations.generate_s3_key")
+    def test_generate_licence_document_success(self, generate_s3_key_func, upload_bytes_file_func, html_to_pdf_func):
         licence = StandardLicenceFactory(case=self.case, status=LicenceStatus.DRAFT)
         html_to_pdf_func.return_value = None
         upload_bytes_file_func.return_value = None
+        generate_s3_key_func.return_value = "fake-s3-key.pdf"
         self.data["visible_to_exporter"] = True
         self.data["advice_type"] = AdviceType.APPROVE
 
@@ -259,7 +317,13 @@ class GenerateDocumentTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         html_to_pdf_func.assert_called_once()
-        upload_bytes_file_func.assert_called_once()
+        upload_bytes_file_func.assert_has_calls(
+            [
+                mock.call(raw_file=mock.ANY, s3_key="fake-s3-key.css"),
+                mock.call(raw_file=mock.ANY, s3_key="fake-s3-key.html"),
+                mock.call(raw_file=mock.ANY, s3_key="fake-s3-key.pdf"),
+            ]
+        )
         self.assertEqual(
             GeneratedCaseDocument.objects.filter(advice_type=AdviceType.APPROVE, licence=licence).count(), 1
         )
@@ -290,20 +354,32 @@ class GenerateDocumentTests(DataTestClient):
 
     @mock.patch("api.cases.generated_documents.views.html_to_pdf")
     @mock.patch("api.cases.generated_documents.views.s3_operations.upload_bytes_file")
-    def test_generate_new_licence_document_success(self, upload_bytes_file_func, html_to_pdf_func):
+    @mock.patch("api.cases.generated_documents.views.s3_operations.generate_s3_key")
+    def test_generate_new_licence_document_success(
+        self, generate_s3_key_func, upload_bytes_file_func, html_to_pdf_func
+    ):
         licence = StandardLicenceFactory(case=self.case, status=LicenceStatus.DRAFT)
         self.create_generated_case_document(
             self.case, self.letter_template, advice_type=AdviceType.APPROVE, licence=licence, visible_to_exporter=False
         )
+
         html_to_pdf_func.return_value = None
         upload_bytes_file_func.return_value = None
+        generate_s3_key_func.return_value = "fake-s3-key.pdf"
+
         self.data["visible_to_exporter"] = True
         self.data["advice_type"] = AdviceType.APPROVE
 
         response = self.client.post(self.url, **self.gov_headers, data=self.data)
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        upload_bytes_file_func.assert_called_once()
+        upload_bytes_file_func.assert_has_calls(
+            [
+                mock.call(raw_file=mock.ANY, s3_key="fake-s3-key.css"),
+                mock.call(raw_file=mock.ANY, s3_key="fake-s3-key.html"),
+                mock.call(raw_file=mock.ANY, s3_key="fake-s3-key.pdf"),
+            ]
+        )
         # Ensure the old licence document is deleted
         self.assertEqual(GeneratedCaseDocument.objects.filter(advice_type=AdviceType.APPROVE).count(), 1)
         document = GeneratedCaseDocument.objects.get(advice_type=AdviceType.APPROVE)
@@ -321,8 +397,12 @@ class GenerateDocumentTests(DataTestClient):
 
     @mock.patch("api.cases.generated_documents.views.html_to_pdf")
     @mock.patch("api.cases.generated_documents.views.s3_operations.upload_bytes_file")
-    def test_generate_document_when_html_to_pdf_throws_error_failure(self, upload_bytes_file_func, html_to_pdf_func):
+    @mock.patch("api.cases.generated_documents.views.s3_operations.generate_s3_key")
+    def test_generate_document_when_html_to_pdf_throws_error_failure(
+        self, generate_s3_key_func, upload_bytes_file_func, html_to_pdf_func
+    ):
         html_to_pdf_func.side_effect = Exception("Failed to convert html to pdf")
+        generate_s3_key_func.return_value = "fake-s3-key.pdf"
 
         response = self.client.post(self.url, **self.gov_headers, data=self.data)
 
@@ -338,13 +418,19 @@ class GenerateDocumentTests(DataTestClient):
             ).count(),
             0,
         )
-        upload_bytes_file_func.assert_not_called()
+        upload_bytes_file_func.assert_has_calls(
+            [
+                mock.call(raw_file=mock.ANY, s3_key="fake-s3-key.css"),
+                mock.call(raw_file=mock.ANY, s3_key="fake-s3-key.html"),
+            ],
+            any_order=True,
+        )
 
     @mock.patch("api.cases.generated_documents.views.html_to_pdf")
     @mock.patch("api.cases.generated_documents.views.s3_operations.upload_bytes_file")
     def test_generate_document_when_s3_throws_error_failure(self, upload_bytes_file_func, html_to_pdf_func):
         html_to_pdf_func.return_value = None
-        upload_bytes_file_func.side_effect = Exception("Failed to upload document")
+        upload_bytes_file_func.side_effect = [None, None, Exception("Failed to upload document")]
 
         response = self.client.post(self.url, **self.gov_headers, data=self.data)
 
