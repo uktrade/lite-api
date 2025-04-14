@@ -427,6 +427,7 @@ class StandardApplication(BaseApplication, Clonable):
         return amendment_application
 
     def get_required_decision_document_types(self):
+        case = self.case_ptr
         required_decisions = set(
             Advice.objects.filter(case=case, level=AdviceLevel.FINAL)
             .order_by("type")

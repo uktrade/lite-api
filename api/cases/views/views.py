@@ -831,6 +831,7 @@ class FinaliseView(UpdateAPIView):
 
         # When a case is finalised we don't move it forward from post-circ queue,
         # hence record the exit date after finalising it.
+        # TODO: Prevent LU post circ hardcoding..
         CaseQueueMovement.record_exit_date(case, QueuesEnum.LU_POST_CIRC)
 
         return JsonResponse({"case": pk, "licence": licence_id}, status=status.HTTP_201_CREATED)
