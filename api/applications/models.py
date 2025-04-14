@@ -20,8 +20,8 @@ from api.applications.libraries.application_helpers import create_submitted_audi
 from api.appeals.models import Appeal
 from api.audit_trail.models import AuditType
 from api.audit_trail import service as audit_trail_service
-from api.cases.enums import CaseTypeEnum
-from api.cases.models import Case, CaseQueue
+from api.cases.enums import AdviceType, AdviceLevel, CaseTypeEnum
+from api.cases.models import Advice, Case, CaseQueue
 from api.common.models import TimestampableModel
 from api.core.model_mixins import Clonable
 from api.documents.models import Document
@@ -270,6 +270,9 @@ class BaseApplication(ApplicationPartyMixin, Case):
     def create_amendment(self, user):
         raise NotImplementedError()
 
+    def get_required_decision_document_types(self):
+        raise NotImplementedError()
+
 
 # Licence     Applications
 class StandardApplication(BaseApplication, Clonable):
@@ -422,6 +425,31 @@ class StandardApplication(BaseApplication, Clonable):
         system_user = BaseUser.objects.get(id=SystemUser.id)
         self.case_ptr.change_status(system_user, get_case_status_by_status(CaseStatusEnum.SUPERSEDED_BY_EXPORTER_EDIT))
         return amendment_application
+
+    def get_required_decision_document_types(self):
+        required_decisions = set(
+            Advice.objects.filter(case=case, level=AdviceLevel.FINAL)
+            .order_by("type")
+            .distinct("type")
+            .values_list("type", flat=True)
+        )
+
+        # Map Proviso -> Approve advice (Proviso results in Approve document)
+        if AdviceType.PROVISO in required_decisions:
+            required_decisions.add(AdviceType.APPROVE)
+            required_decisions.remove(AdviceType.PROVISO)
+
+        # Ensure that REFUSE advice requires an inform document
+        if AdviceType.REFUSE in required_decisions:
+            required_decisions.add(AdviceType.INFORM)
+
+        # Check if no controlled good on application then no approval document required.
+        has_controlled_good = GoodOnApplication.objects.filter(application=case.id, is_good_controlled=True).exists()
+
+        if not has_controlled_good and AdviceType.NO_LICENCE_REQUIRED in required_decisions:
+            required_decisions.discard(AdviceType.APPROVE)
+
+        return required_decisions
 
 
 class ApplicationDocument(Document, Clonable):

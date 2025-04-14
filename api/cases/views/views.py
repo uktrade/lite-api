@@ -10,6 +10,7 @@ from rest_framework.generics import ListCreateAPIView, UpdateAPIView, ListAPIVie
 from rest_framework.views import APIView
 
 from api.applications.models import GoodOnApplication
+from api.applications.libraries.get_applications import get_application
 from api.users.models import BaseNotification, ExporterUser
 from api.applications.serializers.advice import (
     CountersignAdviceSerializer,
@@ -24,7 +25,6 @@ from api.cases.generated_documents.models import GeneratedCaseDocument
 from api.cases.generated_documents.serializers import AdviceDocumentGovSerializer
 from api.cases.helpers import create_system_mention
 from api.cases.libraries.advice import group_advice
-from api.cases.libraries.finalise import get_required_decision_document_types
 from api.cases.libraries.get_case import get_case, get_case_document
 from api.cases.libraries.get_destination import get_destination
 from api.cases.libraries.get_ecju_queries import get_ecju_query
@@ -403,7 +403,8 @@ class FinalAdviceDocuments(APIView):
         # Get all advice
         advice_values = AdviceType.as_dict()
 
-        final_advice = get_required_decision_document_types(get_case(pk))
+        application = get_application(pk)
+        final_advice = application.get_required_decision_document_types()
         if not final_advice:
             return JsonResponse(data={"documents": {}}, status=status.HTTP_200_OK)
 
@@ -802,8 +803,9 @@ class FinaliseView(UpdateAPIView):
         Finalise & grant a Licence
         """
         case = get_case(pk)
+        application = get_application(pk)
 
-        required_decisions = get_required_decision_document_types(case)
+        required_decisions = application.get_required_decision_document_types()
 
         # Inform letter isn't required for finalisation
         if AdviceType.INFORM in required_decisions:
