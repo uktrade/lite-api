@@ -1,4 +1,4 @@
-{% extends "letter_templates/dbt_letter_base.html" %}
+{% extends "letter_templates/f680_ecju_mod_letter_base.html" %}
 {% load static custom_tags %}
 
 {% block title %}F680 Approval{% endblock %}
@@ -8,26 +8,44 @@
 
 {% block body %}
 
-  <div class="govuk-body">We Have Approved Your F680 Application</div>
-  <p>{{user_content}}</p>
-  <h2 class="govuk-heading-l">Strategic Export Licensing Criteria</h3>
-  {% for section_key, section in details.application.sections.items %}
-    <h3>{{section.label}}</h3>
-    {% if section.type == "single" %}
-        {% for field in section.fields %}
-            {% if field.answer %}
-            <p>{{field.question}}: {{field.answer}}</p>
-            {% endif %}
-        {% endfor %}
-    {% else %}
-        {% for item in section.items %}
-            {% for field in item.fields %}
-                {% if field.answer %}
-                <p>{{field.question}}: {{field.answer}}</p>
-                {% endif %}
-            {% endfor %}
-        {% endfor %}
-    {% endif %}
+<div class="document">
+  <div class="govuk-body">
+    <p>We have carefully considered and approved your application for F680 security approval.</p>
+    <p>Below is information about what we have authorised and what conditions apply.  </p>
+    <p>This clearance can be reviewed, suspended or revoked at any time by the Ministry of Defence (MOD).</p>
+  </div>
+
+  {% for security_release_outcome in details.security_release_outcomes.approve %}
+    {% include "letter_templates/includes/f680_approval_conditions.html"  with security_release_outcome=security_release_outcome%}
   {% endfor %}
 
+  <h2>Next steps</h2>
+  <p>Manufacturing rights, selling rights and copyrights</p>
+  <p>It’s your responsibility to make sure your company has: </p>
+  <ul>
+    <li>the required manufacturing and selling rights to the material</li>
+    <li>reached an agreement with any other owners of the manufacturing and selling rights</li>
+    <li>approval from any copyright owners</li>
+  </ul>
+
+  <p>If the item is designed by or for the MOD, you must have a commercial exploitation agreement before it can be manufactured or sold commercially. This is the case regardless of whether MOD owns the commercial design right.</p>
+  <p>Get help with your commercial exploitation agreement by contacting:  </p>
+  <ul>
+    <li>IPRG, Poplar 2, MOD, Abbey Wood, Bristol BS34 8JH if the MOD owns intellectual property rights relating to the equipment</li>
+    <li>the MOD Contracts Branch who issued the original contract if the company owns the design rights (but MOD can claim a levy) </li>
+  </ul>
+  <h2>Export licences </h2>
+  <p>It is also your responsibility to apply for any export licences you need.</p><br>
+  <a href="https://www.gov.uk/find-licences/apply-for-a-standard-individual-export-licence-siel">Apply for a standard individual export licence (SIEL) <a>
+  <br>
+  <a href="https://www.spire.trade.gov.uk/spire/fox/espire/LOGIN/login">Apply or register for other licences<a>
+  <h3>F680 renewal</h3>
+  <p>
+    If needed, make sure you apply for a new F680 clearance at least 30 days before this
+  one expires on [DD month YYYY]
+  </p>
+  <p>Yours sincerely,</p>
+
+  <p>signature here</P>
+</div>
 {% endblock %}
