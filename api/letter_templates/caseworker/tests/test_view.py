@@ -1,5 +1,6 @@
 from rest_framework.reverse import reverse
 from rest_framework import status
+from urllib import parse
 
 from parameterized import parameterized
 
@@ -30,37 +31,55 @@ class LetterTemplatesListTests(DataTestClient):
 
     @parameterized.expand(
         [
-            [{"case_type": "f680_clearance"}, ["F680 Approval", "F680 Refusal"], ["Approve", "Refuse"], 2],
             [
-                {"decision": "approve"},
+                {"case_type": "bad_case_type"},
+                [],
+                [],
+                0,
+            ],
+            [
+                {"case_type": "f680_clearance"},
+                ["F680 Approval", "F680 Refusal"],
+                ["Approve", "Refuse"],
+                2,
+            ],
+            [
+                {"decision": AdviceType.APPROVE},
                 ["SIEL Approval", "F680 Approval"],
                 ["Approve"],
                 2,
             ],
             [
-                {"decision": "approve", "case_type": "f680_clearance"},
+                {"case_type": "f680_clearance", "decision": AdviceType.APPROVE},
                 ["F680 Approval"],
                 ["Approve"],
                 1,
             ],
             [
-                {"case_type": "bad_case_type"},
-                None,
-                None,
-                0,
+                {"case_type": "f680_clearance", "decision": AdviceType.REFUSE},
+                ["F680 Refusal"],
+                ["Refuse"],
+                1,
+            ],
+            [
+                {"case_type": "f680_clearance", "decision": [AdviceType.APPROVE, AdviceType.REFUSE]},
+                ["F680 Approval", "F680 Refusal"],
+                ["Approve", "Refuse"],
+                2,
             ],
         ]
     )
-    def test_letter_templates_list_filter(self, filter, expected_names, expected_descisions, expect_count):
+    def test_letter_templates_list_filter(self, filter, expected_names, expected_decisions, expect_count):
 
-        url = reverse("caseworker_letter_templates:list")
-        response = self.client.get(url, **self.gov_headers, data=filter)
+        url = f'{reverse("caseworker_letter_templates:list")}?{parse.urlencode(filter, doseq=True)}'
+        response = self.client.get(url, **self.gov_headers)
         response_data = response.json()
 
         self.assertEqual(response_data["count"], expect_count)
-        for item in response_data["results"]:
-            self.assertTrue(item["name"] in expected_names)
-            self.assertTrue(item["decisions"][0]["name"]["value"] in expected_descisions)
+        template_names = [item["name"] for item in response_data["results"]]
+        decisions = list({item["decisions"][0]["name"]["value"] for item in response_data["results"]})
+        assert sorted(template_names) == sorted(expected_names)
+        assert sorted(decisions) == sorted(expected_decisions)
 
     def test_letter_templates_list_not_allowed(self):
 
