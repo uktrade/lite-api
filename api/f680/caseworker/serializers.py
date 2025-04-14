@@ -175,6 +175,7 @@ class SecurityReleaseOutcomeSerializer(serializers.ModelSerializer):
 
 class SecurityReleaseOutcomeLetterSerializer(serializers.ModelSerializer):
     security_release_requests = SecurityReleaseRequestSerializer(many=True)
+    approval_types = serializers.MultipleChoiceField(choices=enums.ApprovalTypes.choices)
 
     class Meta:
         model = SecurityReleaseOutcome
@@ -186,3 +187,19 @@ class SecurityReleaseOutcomeLetterSerializer(serializers.ModelSerializer):
             "security_grading",
             "approval_types",
         ]
+
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        all_activities = instance.security_release_requests.first().approval_types
+        approved = instance.approval_types
+        refused = list(set(all_activities) - set(approved))
+        approval_types_dict = dict(enums.ApprovalTypes.choices)
+
+        representation["approval_types"] = [
+            {"key": key, "value": approval_types_dict[key], "status": "Approved"} for key in approved
+        ]
+        representation["approval_types"].extend(
+            [{"key": key, "value": approval_types_dict[key], "status": "Refused"} for key in refused]
+        )
+
+        return representation
