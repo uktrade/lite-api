@@ -7,6 +7,7 @@ from api.users.libraries.user_to_token import user_to_token
 from test_helpers.clients import DataTestClient
 from api.organisations.enums import OrganisationType
 from lite_content.lite_api.strings import Addresses
+from api.addresses.models import Address
 
 
 class AddressSerializerPostcodeValidationTest(DataTestClient):
@@ -76,10 +77,21 @@ class AddressSerializerPostcodeValidationTest(DataTestClient):
             " so1  1aa ",
             "G2 3wt",
             "EC1A 1BB",
-            "Ec1a1BB",
+            "Ec1a2BB",
         ]
 
-        for postcode in valid_postcodes:
+        expected_results = [
+            "BT32 4PX",
+            "GIR 0AA",
+            "BT324PX",
+            "SO11AA",
+            "SO11AA",
+            "G2 3WT",
+            "EC1A 1BB",
+            "EC1A2BB",
+        ]
+
+        for i, postcode in enumerate(valid_postcodes):
             data["site"]["address"]["postcode"] = postcode
             data["registration_number"] = "".join([str(randint(0, 9)) for _ in range(8)])
             response = self.client.post(
@@ -87,3 +99,6 @@ class AddressSerializerPostcodeValidationTest(DataTestClient):
             )
 
             self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+            addr = Address.objects.get(postcode=expected_results[i])
+
+            self.assertEqual(addr.postcode, expected_results[i])
