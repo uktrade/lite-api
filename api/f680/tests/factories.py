@@ -3,6 +3,7 @@ import factory.fuzzy
 import factory.random
 import pytest
 
+from dateutil.relativedelta import relativedelta
 from faker import Faker
 
 from django.utils import timezone
@@ -22,6 +23,7 @@ from api.f680.enums import (
     RecommendationType,
     SecurityGrading,
     SecurityReleaseOutcomes,
+    SecurityReleaseOutcomeDuration,
 )
 from api.f680.models import (
     F680Application,
@@ -115,6 +117,10 @@ class F680SecurityReleaseOutcomeFactory(factory.django.DjangoModelFactory):
     conditions = factory.LazyAttribute(lambda n: faker.sentence())
     user = factory.SubFactory(GovUserFactory)
     team = factory.SubFactory(TeamFactory)
+    validity_start_date = factory.LazyAttribute(lambda _: timezone.now().date())
+    validity_end_date = factory.LazyAttribute(
+        lambda _: timezone.now().date() + relativedelta(months=+SecurityReleaseOutcomeDuration.DEFAULT_DURATION_MONTHS)
+    )
 
     class Meta:
         model = SecurityReleaseOutcome

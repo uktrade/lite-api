@@ -147,3 +147,5 @@ class SecurityReleaseOutcome(TimestampableModel):
         choices=enums.SecurityGrading.security_release_outcome_choices, max_length=50, blank=True, null=True
     )
     approval_types = ArrayField(models.CharField(choices=enums.ApprovalTypes.choices, max_length=50), default=list)
+    validity_start_date = models.DateField(blank=True, null=True, help_text="Date the outcome validity starts")
+    validity_end_date = models.DateField(blank=True, null=True, help_text="Date the outcome is no longer valid")

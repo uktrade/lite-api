@@ -170,6 +170,8 @@ class SecurityReleaseOutcomeSerializer(serializers.ModelSerializer):
             "refusal_reasons",
             "security_grading",
             "approval_types",
+            "validity_start_date",
+            "validity_end_date",
         ]
 
 
