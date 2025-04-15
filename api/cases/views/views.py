@@ -63,7 +63,7 @@ from api.cases.serializers import (
 )
 from api.core.authentication import GovAuthentication, SharedAuthentication, ExporterAuthentication
 from api.core.exceptions import NotFoundError
-from api.core.permissions import CanCaseworkersIssueLicence
+from api.core.permissions import CanCaseworkersIssueLicence, CanCaseworkerFinaliseF680
 from api.documents.libraries.delete_documents_on_bad_request import delete_documents_on_bad_request
 from api.documents.libraries.s3_operations import document_download_stream
 from api.documents.models import Document
@@ -794,14 +794,17 @@ class CasesUpdateCaseOfficer(APIView):
 
 class FinaliseView(UpdateAPIView):
     authentication_classes = (GovAuthentication,)
-    permission_classes = [CanCaseworkersIssueLicence]
+    permission_classes = [CanCaseworkersIssueLicence | CanCaseworkerFinaliseF680]
+
+    def get_case(self):
+        return get_case(self.kwargs["pk"])
 
     @transaction.atomic
     def put(self, request, pk):
         """
         Finalise & grant a Licence
         """
-        case = get_case(pk)
+        case = self.get_case()
         application = get_application(pk)
 
         case_queues = list(CaseQueue.objects.filter(case=case))
