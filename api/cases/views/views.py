@@ -40,6 +40,7 @@ from api.cases.models import (
     Case,
     CaseAssignment,
     CaseDocument,
+    CaseQueue,
     CaseQueueMovement,
     CountersignAdvice,
     EcjuQuery,
@@ -79,8 +80,6 @@ from api.staticdata.statuses.enums import CaseStatusEnum
 from api.users.libraries.get_user import get_user_by_pk
 from lite_content.lite_api import strings
 from lite_content.lite_api.strings import Documents, Cases
-
-from lite_routing.routing_rules_internal.enums import QueuesEnum
 
 
 class CaseDetail(APIView):
@@ -805,6 +804,7 @@ class FinaliseView(UpdateAPIView):
         case = get_case(pk)
         application = get_application(pk)
 
+        case_queues = list(CaseQueue.objects.filter(case=case))
         required_decisions = application.get_required_decision_document_types()
 
         # Inform letter isn't required for finalisation
@@ -829,10 +829,10 @@ class FinaliseView(UpdateAPIView):
         # finalises case, grants licence and publishes decision documents
         licence_id = case.finalise(request.user, required_decisions, request.data.get("note"))
 
-        # When a case is finalised we don't move it forward from post-circ queue,
-        # hence record the exit date after finalising it.
-        # TODO: Prevent LU post circ hardcoding..
-        CaseQueueMovement.record_exit_date(case, QueuesEnum.LU_POST_CIRC)
+        # When a case is finalised we must manually set an exit date for the CaseQueueMovement
+        # records of the queues it was present on
+        for case_queue in case_queues:
+            CaseQueueMovement.record_exit_date(case, case_queue.queue_id)
 
         return JsonResponse({"case": pk, "licence": licence_id}, status=status.HTTP_201_CREATED)
 
