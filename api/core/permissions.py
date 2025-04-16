@@ -1,10 +1,13 @@
 from rest_framework import permissions
 
+from api.cases.enums import CaseTypeSubTypeEnum
 from api.core.constants import GovPermissions
 from api.core.exceptions import PermissionDeniedError
 from api.organisations.libraries.get_organisation import get_request_user_organisation
 from api.organisations.models import Organisation
 from api.users.models import GovUser
+from api.staticdata.statuses.enums import CaseStatusEnum
+from lite_routing.routing_rules_internal.enums import TeamIdEnum
 
 from lite_routing.routing_rules_internal.enums import QueuesEnum
 
@@ -63,6 +66,22 @@ class CanCaseworkersManageOrgainsation(permissions.BasePermission):
 class CanCaseworkersIssueLicence(permissions.BasePermission):
     def has_permission(self, request, view):
         return check_user_has_permission(request.user.govuser, GovPermissions.MANAGE_LICENCE_FINAL_ADVICE)
+
+
+class CanCaseworkerFinaliseF680(permissions.BasePermission):
+    def has_permission(self, request, view):
+        # TODO: this is a perfect candidate for a django rule - we should think about that
+        case = view.get_case()
+        if case.case_type.sub_type != CaseTypeSubTypeEnum.F680:
+            return False
+
+        if case.status.status != CaseStatusEnum.UNDER_FINAL_REVIEW:
+            return False
+
+        if str(request.user.govuser.team_id) != TeamIdEnum.MOD_ECJU:
+            return False
+
+        return True
 
 
 class CanCaseworkerBulkApprove(permissions.BasePermission):

@@ -25,6 +25,7 @@ from api.cases.enums import (
     AdviceLevel,
     EnforcementXMLEntityTypes,
     LicenceDecisionType,
+    ApplicationFeatures,
 )
 from api.cases.helpers import working_days_in_range
 from api.cases.libraries.reference_code import generate_reference_code
@@ -422,47 +423,15 @@ class Case(TimestampableModel):
         logging.info("Case is now finalised")
 
         decision_actions = self.get_decision_actions()
-        for advice_type in decisions:
-
+        # Ensure a consistent ordering of actions
+        # NOTE: reverse ordering important as it ensures that when there is a mixed decision
+        # (which can happen for F680s), "approve" actions happen last and thus the case is left
+        # with sub status approve
+        # TODO: Mixed decisions/decision actions need thinking about properly
+        ordered_decisions = sorted(decisions, reverse=True)
+        for advice_type in ordered_decisions:
             decision_actions[advice_type](self)
-
-            # NLR is not considered as licence decision
-            if advice_type in [AdviceType.APPROVE, AdviceType.REFUSE]:
-                decision = LicenceDecisionType.advice_type_to_decision(advice_type)
-                previous_licence_decision = self.licence_decisions.last()
-
-                previous_decision = None
-                current_decision = decision
-                if previous_licence_decision and decision == LicenceDecisionType.ISSUED:
-                    # In case if it is being issued after an appeal then we want to reflect that in the decision
-                    if previous_licence_decision.decision in [
-                        LicenceDecisionType.REFUSED,
-                        LicenceDecisionType.ISSUED_ON_APPEAL,
-                    ]:
-                        current_decision = LicenceDecisionType.ISSUED_ON_APPEAL
-
-                    # link up to previous instance if the decision remains same
-                    if previous_licence_decision.decision == current_decision:
-                        previous_decision = previous_licence_decision
-
-                licence_decision = LicenceDecision.objects.create(
-                    case=self,
-                    decision=current_decision,
-                    licence=licence,
-                    previous_decision=previous_decision,
-                )
-                if advice_type == AdviceType.REFUSE:
-                    denial_reasons = (
-                        self.advice.filter(
-                            level=AdviceLevel.FINAL,
-                            type=AdviceType.REFUSE,
-                        )
-                        .only("denial_reasons__id")
-                        .distinct()
-                        .values_list("denial_reasons__id", flat=True)
-                    )
-                    licence_decision.denial_reasons.set(denial_reasons)
-
+            self.create_licence_decisions(advice_type, licence)
             licence_reference = licence.reference_code if licence and advice_type == AdviceType.APPROVE else ""
             audit_trail_service.create(
                 actor=user,
@@ -482,6 +451,51 @@ class Case(TimestampableModel):
         remove_flags_from_audit_trail(self)
 
         return licence.id if licence else ""
+
+    def create_licence_decisions(self, advice_type, licence):
+        # Not every case type will have licences issued
+        application_manifest = self.get_application_manifest()
+        if not application_manifest.has_feature(ApplicationFeatures.LICENCE_ISSUE):
+            return
+
+        # NLR is not considered as licence decision
+        if advice_type not in [AdviceType.APPROVE, AdviceType.REFUSE]:
+            return
+
+        decision = LicenceDecisionType.advice_type_to_decision(advice_type)
+        previous_licence_decision = self.licence_decisions.last()
+
+        previous_decision = None
+        current_decision = decision
+        if previous_licence_decision and decision == LicenceDecisionType.ISSUED:
+            # In case if it is being issued after an appeal then we want to reflect that in the decision
+            if previous_licence_decision.decision in [
+                LicenceDecisionType.REFUSED,
+                LicenceDecisionType.ISSUED_ON_APPEAL,
+            ]:
+                current_decision = LicenceDecisionType.ISSUED_ON_APPEAL
+
+            # link up to previous instance if the decision remains same
+            if previous_licence_decision.decision == current_decision:
+                previous_decision = previous_licence_decision
+
+        licence_decision = LicenceDecision.objects.create(
+            case=self,
+            decision=current_decision,
+            licence=licence,
+            previous_decision=previous_decision,
+        )
+        if advice_type == AdviceType.REFUSE:
+            denial_reasons = (
+                self.advice.filter(
+                    level=AdviceLevel.FINAL,
+                    type=AdviceType.REFUSE,
+                )
+                .only("denial_reasons__id")
+                .distinct()
+                .values_list("denial_reasons__id", flat=True)
+            )
+            licence_decision.denial_reasons.set(denial_reasons)
 
     def publish_decision_documents(self):
         from api.cases.generated_documents.models import GeneratedCaseDocument

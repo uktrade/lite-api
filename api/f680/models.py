@@ -18,7 +18,7 @@ from api.f680.managers import F680ApplicationQuerySet
 from api.f680 import enums
 
 
-class F680Application(BaseApplication):  # /PS-IGNORE
+class F680Application(BaseApplication):
     objects = F680ApplicationQuerySet.as_manager()
 
     application = models.JSONField()
@@ -82,6 +82,16 @@ class F680Application(BaseApplication):  # /PS-IGNORE
                     "raw_answer"
                 ],
             )
+
+    def get_required_decision_document_types(self):
+        all_outcomes = set(
+            SecurityReleaseOutcome.objects.filter(case=self.case_ptr)
+            .order_by("outcome")
+            .distinct("outcome")
+            .values_list("outcome", flat=True)
+        )
+
+        return all_outcomes
 
 
 # TODO: Eventually we may want to use this model more widely.  We can do that

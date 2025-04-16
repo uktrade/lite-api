@@ -3,7 +3,7 @@ import factory
 from api.cases.enums import AdviceType
 from api.cases.generated_documents.models import GeneratedCaseDocument
 from api.cases.tests.factories import CaseSIELFactory
-from api.letter_templates.tests.factories import SIELLicenceTemplateFactory
+from api.letter_templates.tests.factories import SIELLicenceTemplateFactory, LetterTemplateFactory
 
 
 class GeneratedCaseDocumentFactory(factory.django.DjangoModelFactory):
@@ -22,3 +22,17 @@ class SIELLicenceDocumentFactory(GeneratedCaseDocumentFactory):
     template = factory.SubFactory(SIELLicenceTemplateFactory)
     licence = None
     advice_type = AdviceType.APPROVE
+
+
+class F680ApproveDocumentFactory(GeneratedCaseDocumentFactory):
+    text = factory.Faker("sentence")
+    template = factory.SubFactory(LetterTemplateFactory)
+    licence = None
+    advice_type = AdviceType.APPROVE
+
+
+class F680RefuseDocumentFactory(GeneratedCaseDocumentFactory):
+    text = factory.Faker("sentence")
+    template = factory.SubFactory(LetterTemplateFactory)
+    licence = None
+    advice_type = AdviceType.REFUSE
