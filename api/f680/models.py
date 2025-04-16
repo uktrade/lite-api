@@ -5,6 +5,7 @@ from dateutil.relativedelta import relativedelta
 
 from django.db import models
 from django.contrib.postgres.fields import ArrayField
+from copy import deepcopy
 
 from api.applications.models import BaseApplication
 from api.cases.models import Case
@@ -16,12 +17,62 @@ from api.users.models import GovUser
 
 from api.f680.managers import F680ApplicationQuerySet
 from api.f680 import enums
+from api.core.model_mixins import Clonable
+from api.staticdata.statuses.enums import CaseStatusIdEnum
 
 
-class F680Application(BaseApplication):
+class F680Application(BaseApplication, Clonable):
     objects = F680ApplicationQuerySet.as_manager()
 
     application = models.JSONField()
+
+    clone_exclusions = [
+        "appeal",
+        "appeal_deadline",
+        "id",
+        "flags",
+        "queues",
+        "reference_code",
+        "submitted_at",
+        "submitted_by",
+        "status",
+        "sub_status",
+        "case_officer",
+        "copy_of",
+        "amendment_of",
+        "sla_days",
+        "sla_remaining_days",
+        "sla_updated_at",
+        "additional_contacts",
+        "case_ptr",
+        "baseapplication_ptr",
+        "last_closed_at",
+        "foi_reason",
+        "agreed_to_foi",
+    ]
+    clone_mappings = {
+        "organisation": "organisation_id",
+        "case_type": "case_type_id",
+    }
+    clone_overrides = {
+        "status_id": CaseStatusIdEnum.DRAFT,
+    }
+
+    def clone(self, exclusions=None, **overrides):
+        cloned_application = super().clone(exclusions=exclusions, **overrides)
+        application_data = deepcopy(cloned_application.application)
+        try:
+            items = application_data["sections"]["user_information"]["items"]
+        except KeyError:
+            return cloned_application
+
+        for item in items:
+            item["id"] = str(uuid.uuid4())
+
+        application_data["sections"]["user_information"]["items"] = items
+        cloned_application.application = application_data
+        cloned_application.save()
+        return cloned_application
 
     def get_product(self):
         if self.security_release_requests.count() == 0:

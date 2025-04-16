@@ -13,6 +13,7 @@ from api.users.enums import UserType
 from queryable_properties.managers import QueryablePropertiesManager
 from queryable_properties.properties import queryable_property
 
+from api.applications.exceptions import AmendmentError
 from api.application_manifests.registry import application_manifest_registry
 from api.audit_trail.enums import AuditType
 from api.cases.enums import (
@@ -52,8 +53,12 @@ from api.users.models import (
     UserOrganisationRelationship,
     ExporterNotification,
 )
+from api.audit_trail import service as audit_trail_service
+from api.users.enums import SystemUser
 
 denial_reasons_logger = logging.getLogger(settings.DENIAL_REASONS_DELETION_LOGGER)
+
+logger = logging.getLogger(__name__)
 
 
 class CaseTypeManager(models.Manager):
@@ -527,6 +532,52 @@ class Case(TimestampableModel):
         model_class = application_manifest.model_class
 
         return model_class.objects.get_prepared_object(pk=self.pk)
+
+    @transaction.atomic
+    def create_amendment(self, user):
+        application_manifest = self.get_application_manifest()
+        model_class = application_manifest.model_class
+        # It's possible that we've arrived here multiple times simultaneously because multiple requests to create an
+        # amendment have been made at the same time.
+        # The views that call this may have already checked the status but it's possible that when they checked it was
+        # before the status has actually been updated on the application so we've got a potential race condition going.
+        # What we want to do here is lock the row to make sure that only one request can be trying to create an
+        # amendment at any one time and if we have multiple requests clashing we'll re-check the status once the lock
+        # has been removed from any other racing requests.
+        # To be helpful to the caller we'll return the amendment that did happen even if there are multiple requests.
+        original = model_class.objects.select_for_update().get(pk=self.pk)
+        if not CaseStatusEnum.can_invoke_major_edit(original.status.status):
+            logger.warning(
+                "Attempted to create an amendment from an already amended application %s with status %s",
+                original.pk,
+                original.status,
+            )
+            if original.superseded_by:
+                logger.info(
+                    "Found an amendment already: %s for the application: %s",
+                    original.superseded_by.pk,
+                    original.pk,
+                )
+                return model_class.objects.get(pk=original.superseded_by.pk)
+            raise AmendmentError(f"Failed to create an amendment from {original.pk}")
+
+        amendment_application = self.clone(amendment_of=self)
+        CaseQueue.objects.filter(case=self.case_ptr).delete()
+        audit_trail_service.create(
+            actor=user,
+            verb=AuditType.EXPORTER_CREATED_AMENDMENT,
+            target=self.get_case(),
+            payload={},
+        )
+        audit_trail_service.create_system_user_audit(
+            verb=AuditType.AMENDMENT_CREATED,
+            target=amendment_application.case_ptr,
+            payload={"superseded_case": {"reference_code": self.reference_code}},
+            ignore_case_status=True,
+        )
+        system_user = BaseUser.objects.get(id=SystemUser.id)
+        self.case_ptr.change_status(system_user, get_case_status_by_status(CaseStatusEnum.SUPERSEDED_BY_EXPORTER_EDIT))
+        return amendment_application
 
 
 class CaseQueue(TimestampableModel):
