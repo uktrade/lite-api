@@ -424,7 +424,11 @@ class Case(TimestampableModel):
 
         decision_actions = self.get_decision_actions()
         # Ensure a consistent ordering of actions
-        ordered_decisions = sorted(decisions)
+        # NOTE: reverse ordering important as it ensures that when there is a mixed decision
+        # (which can happen for F680s), "approve" actions happen last and thus the case is left
+        # with sub status approve
+        # TODO: Mixed decisions/decision actions need thinking about properly
+        ordered_decisions = sorted(decisions, reverse=True)
         for advice_type in ordered_decisions:
             decision_actions[advice_type](self)
             self.create_licence_decisions(advice_type, licence)

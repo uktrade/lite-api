@@ -6,8 +6,7 @@ from django.urls import reverse
 from rest_framework.exceptions import ErrorDetail
 
 from api.cases.models import LicenceDecision
-from api.cases.generated_documents.tests.factories import GeneratedCaseDocumentFactory
-from api.letter_templates.models import LetterTemplate
+from api.cases.generated_documents.tests.factories import F680ApproveDocumentFactory, F680RefuseDocumentFactory
 from api.f680.tests.factories import (
     F680RecipientFactory,
     F680SecurityReleaseRequestFactory,
@@ -140,10 +139,7 @@ class TestFinaliseView:
     ):
         f680_application = get_f680_application_with_approve_outcome()
         case = f680_application.case_ptr
-        f680_approve_letter_template = LetterTemplate.objects.get(name="F680 Approval")
-        generated_document = GeneratedCaseDocumentFactory(
-            template=f680_approve_letter_template, advice_type="approve", case=f680_application.case_ptr
-        )
+        generated_document = F680ApproveDocumentFactory(case=f680_application.case_ptr)
 
         gov_user = team_case_advisor(TeamIdEnum.MOD_ECJU)
         headers = {"HTTP_GOV_USER_TOKEN": user_to_token(gov_user.baseuser_ptr)}
@@ -169,10 +165,7 @@ class TestFinaliseView:
     ):
         f680_application = get_f680_application_with_refuse_outcome()
         case = f680_application.case_ptr
-        f680_refuse_letter_template = LetterTemplate.objects.get(name="F680 Refusal")
-        generated_document = GeneratedCaseDocumentFactory(
-            template=f680_refuse_letter_template, advice_type="refuse", case=f680_application.case_ptr
-        )
+        generated_document = F680RefuseDocumentFactory(case=f680_application.case_ptr)
 
         gov_user = team_case_advisor(TeamIdEnum.MOD_ECJU)
         headers = {"HTTP_GOV_USER_TOKEN": user_to_token(gov_user.baseuser_ptr)}
@@ -198,14 +191,8 @@ class TestFinaliseView:
     ):
         f680_application = get_f680_application_with_mixed_outcome()
         case = f680_application.case_ptr
-        f680_refuse_letter_template = LetterTemplate.objects.get(name="F680 Refusal")
-        generated_document = GeneratedCaseDocumentFactory(
-            template=f680_refuse_letter_template, advice_type="refuse", case=f680_application.case_ptr
-        )
-        f680_approve_letter_template = LetterTemplate.objects.get(name="F680 Approval")
-        generated_document = GeneratedCaseDocumentFactory(
-            template=f680_approve_letter_template, advice_type="approve", case=f680_application.case_ptr
-        )
+        generated_document = F680RefuseDocumentFactory(case=f680_application.case_ptr)
+        generated_document = F680ApproveDocumentFactory(case=f680_application.case_ptr)
 
         gov_user = team_case_advisor(TeamIdEnum.MOD_ECJU)
         headers = {"HTTP_GOV_USER_TOKEN": user_to_token(gov_user.baseuser_ptr)}
@@ -215,7 +202,7 @@ class TestFinaliseView:
         assert response.json() == {"case": str(f680_application.id), "licence": ""}
         f680_application.refresh_from_db()
         assert f680_application.status.status == CaseStatusEnum.FINALISED
-        # TODO: Should a case with a mixed outcome have sub status approved?
+        # TODO: Should a case with a mixed outcome have sub status refused or approved?
         assert f680_application.sub_status.name == "Approved"
         assert LicenceDecision.objects.all().count() == 0
         mock_notify.assert_called_with(case)
