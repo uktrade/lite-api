@@ -119,7 +119,7 @@ class F680SecurityReleaseOutcomeFactory(factory.django.DjangoModelFactory):
     team = factory.SubFactory(TeamFactory)
     validity_start_date = factory.LazyAttribute(lambda _: timezone.now().date())
     validity_end_date = factory.LazyAttribute(
-        lambda _: timezone.now().date() + relativedelta(months=+SecurityReleaseOutcomeDuration.DEFAULT_DURATION_MONTHS)
+        lambda _: timezone.now().date() + relativedelta(months=+SecurityReleaseOutcomeDuration.MONTHS_24)
     )
 
     class Meta:

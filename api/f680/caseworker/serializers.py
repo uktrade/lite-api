@@ -172,6 +172,7 @@ class SecurityReleaseOutcomeSerializer(serializers.ModelSerializer):
             "approval_types",
             "validity_start_date",
             "validity_end_date",
+            "validity_period",
         ]
 
 

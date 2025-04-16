@@ -108,4 +108,5 @@ class SecurityReleaseOutcomes:
 
 
 class SecurityReleaseOutcomeDuration:
-    DEFAULT_DURATION_MONTHS = 24
+    MONTHS_24 = 24
+    MONTHS_48 = 48
