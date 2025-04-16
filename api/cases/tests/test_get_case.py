@@ -474,7 +474,13 @@ class CaseGetTests(DataTestClient):
             "security_release_requests": [],
             "status": {"id": str(application.status.id), "key": "submitted", "value": "Submitted"},
             "submitted_at": "2025-01-01T12:00:01Z",
-            "submitted_by": None,
+            "submitted_by": {
+                "id": str(application.submitted_by.baseuser_ptr.id),
+                "first_name": application.submitted_by.first_name,
+                "last_name": application.submitted_by.last_name,
+                "email": application.submitted_by.email,
+                "pending": application.submitted_by.pending,
+            },
         }
         self.assertEqual(response_data["case"]["data"], expected_case_data)
 
@@ -544,6 +550,12 @@ class CaseGetTests(DataTestClient):
             ],
             "status": {"id": str(application.status.id), "key": "submitted", "value": "Submitted"},
             "submitted_at": "2025-01-01T12:00:01Z",
-            "submitted_by": None,
+            "submitted_by": {
+                "id": str(application.submitted_by.baseuser_ptr.id),
+                "first_name": application.submitted_by.first_name,
+                "last_name": application.submitted_by.last_name,
+                "email": application.submitted_by.email,
+                "pending": application.submitted_by.pending,
+            },
         }
         self.assertEqual(response_data["case"]["data"], expected_case_data)
