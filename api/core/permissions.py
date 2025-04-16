@@ -1,5 +1,6 @@
 from rest_framework import permissions
 
+from api.cases.enums import CaseTypeSubTypeEnum
 from api.core.constants import GovPermissions
 from api.core.exceptions import PermissionDeniedError
 from api.organisations.libraries.get_organisation import get_request_user_organisation
@@ -71,13 +72,13 @@ class CanCaseworkerFinaliseF680(permissions.BasePermission):
     def has_permission(self, request, view):
         # TODO: this is a perfect candidate for a django rule - we should think about that
         case = view.get_case()
-        if not case.case_type.sub_type == "f680_clearance":
+        if not case.case_type.sub_type == CaseTypeSubTypeEnum.F680:
             return False
 
-        if not case.status.status == CaseStatusEnum.UNDER_FINAL_REVIEW:
+        if case.status.status != CaseStatusEnum.UNDER_FINAL_REVIEW:
             return False
 
-        if not str(request.user.govuser.team_id) == TeamIdEnum.MOD_ECJU:
+        if str(request.user.govuser.team_id) != TeamIdEnum.MOD_ECJU:
             return False
 
         return True

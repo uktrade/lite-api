@@ -833,7 +833,8 @@ class FinaliseView(UpdateAPIView):
         licence_id = case.finalise(request.user, required_decisions, request.data.get("note"))
 
         # When a case is finalised we must manually set an exit date for the CaseQueueMovement
-        # records of the queues it was present on
+        # records of the queues it was present on - we only expect there to be one queue at this stage,
+        # but looping through all present queues makes this future proof
         for case_queue in case_queues:
             CaseQueueMovement.record_exit_date(case, case_queue.queue_id)
 
