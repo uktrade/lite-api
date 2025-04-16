@@ -10,6 +10,7 @@ from rest_framework.generics import ListCreateAPIView, UpdateAPIView, ListAPIVie
 from rest_framework.views import APIView
 
 from api.applications.models import GoodOnApplication
+from api.applications.libraries.get_applications import get_application
 from api.users.models import BaseNotification, ExporterUser
 from api.applications.serializers.advice import (
     CountersignAdviceSerializer,
@@ -24,7 +25,6 @@ from api.cases.generated_documents.models import GeneratedCaseDocument
 from api.cases.generated_documents.serializers import AdviceDocumentGovSerializer
 from api.cases.helpers import create_system_mention
 from api.cases.libraries.advice import group_advice
-from api.cases.libraries.finalise import get_required_decision_document_types
 from api.cases.libraries.get_case import get_case, get_case_document
 from api.cases.libraries.get_destination import get_destination
 from api.cases.libraries.get_ecju_queries import get_ecju_query
@@ -40,6 +40,7 @@ from api.cases.models import (
     Case,
     CaseAssignment,
     CaseDocument,
+    CaseQueue,
     CaseQueueMovement,
     CountersignAdvice,
     EcjuQuery,
@@ -62,7 +63,7 @@ from api.cases.serializers import (
 )
 from api.core.authentication import GovAuthentication, SharedAuthentication, ExporterAuthentication
 from api.core.exceptions import NotFoundError
-from api.core.permissions import CanCaseworkersIssueLicence
+from api.core.permissions import CanCaseworkersIssueLicence, CanCaseworkerFinaliseF680
 from api.documents.libraries.delete_documents_on_bad_request import delete_documents_on_bad_request
 from api.documents.libraries.s3_operations import document_download_stream
 from api.documents.models import Document
@@ -79,8 +80,6 @@ from api.staticdata.statuses.enums import CaseStatusEnum
 from api.users.libraries.get_user import get_user_by_pk
 from lite_content.lite_api import strings
 from lite_content.lite_api.strings import Documents, Cases
-
-from lite_routing.routing_rules_internal.enums import QueuesEnum
 
 
 class CaseDetail(APIView):
@@ -403,7 +402,8 @@ class FinalAdviceDocuments(APIView):
         # Get all advice
         advice_values = AdviceType.as_dict()
 
-        final_advice = get_required_decision_document_types(get_case(pk))
+        application = get_application(pk)
+        final_advice = application.get_required_decision_document_types()
         if not final_advice:
             return JsonResponse(data={"documents": {}}, status=status.HTTP_200_OK)
 
@@ -794,16 +794,21 @@ class CasesUpdateCaseOfficer(APIView):
 
 class FinaliseView(UpdateAPIView):
     authentication_classes = (GovAuthentication,)
-    permission_classes = [CanCaseworkersIssueLicence]
+    permission_classes = [CanCaseworkersIssueLicence | CanCaseworkerFinaliseF680]
+
+    def get_case(self):
+        return get_case(self.kwargs["pk"])
 
     @transaction.atomic
     def put(self, request, pk):
         """
         Finalise & grant a Licence
         """
-        case = get_case(pk)
+        case = self.get_case()
+        application = get_application(pk)
 
-        required_decisions = get_required_decision_document_types(case)
+        case_queues = list(CaseQueue.objects.filter(case=case))
+        required_decisions = application.get_required_decision_document_types()
 
         # Inform letter isn't required for finalisation
         if AdviceType.INFORM in required_decisions:
@@ -827,9 +832,11 @@ class FinaliseView(UpdateAPIView):
         # finalises case, grants licence and publishes decision documents
         licence_id = case.finalise(request.user, required_decisions, request.data.get("note"))
 
-        # When a case is finalised we don't move it forward from post-circ queue,
-        # hence record the exit date after finalising it.
-        CaseQueueMovement.record_exit_date(case, QueuesEnum.LU_POST_CIRC)
+        # When a case is finalised we must manually set an exit date for the CaseQueueMovement
+        # records of the queues it was present on - we only expect there to be one queue at this stage,
+        # but looping through all present queues makes this future proof
+        for case_queue in case_queues:
+            CaseQueueMovement.record_exit_date(case, case_queue.queue_id)
 
         return JsonResponse({"case": pk, "licence": licence_id}, status=status.HTTP_201_CREATED)
 

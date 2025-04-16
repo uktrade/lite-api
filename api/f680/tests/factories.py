@@ -14,7 +14,7 @@ from api.organisations.tests.factories import OrganisationFactory
 from api.staticdata.statuses.enums import CaseStatusEnum
 from api.staticdata.countries.factories import CountryFactory
 from api.teams.tests.factories import TeamFactory
-from api.users.tests.factories import GovUserFactory
+from api.users.tests.factories import GovUserFactory, ExporterUserFactory
 
 from api.f680.enums import (
     ApprovalTypes,
@@ -55,6 +55,7 @@ class F680ApplicationFactory(factory.django.DjangoModelFactory):
 class SubmittedF680ApplicationFactory(F680ApplicationFactory):
     status = LazyStatus(CaseStatusEnum.SUBMITTED)
     submitted_at = factory.LazyFunction(timezone.now)
+    submitted_by = factory.SubFactory(ExporterUserFactory)
 
 
 class F680ProductFactory(factory.django.DjangoModelFactory):
