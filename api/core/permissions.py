@@ -72,7 +72,7 @@ class CanCaseworkerFinaliseF680(permissions.BasePermission):
     def has_permission(self, request, view):
         # TODO: this is a perfect candidate for a django rule - we should think about that
         case = view.get_case()
-        if not case.case_type.sub_type == CaseTypeSubTypeEnum.F680:
+        if case.case_type.sub_type != CaseTypeSubTypeEnum.F680:
             return False
 
         if case.status.status != CaseStatusEnum.UNDER_FINAL_REVIEW:
