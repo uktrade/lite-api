@@ -423,7 +423,9 @@ class Case(TimestampableModel):
         logging.info("Case is now finalised")
 
         decision_actions = self.get_decision_actions()
-        for advice_type in decisions:
+        # Ensure a consistent ordering of actions
+        ordered_decisions = sorted(decisions)
+        for advice_type in ordered_decisions:
             decision_actions[advice_type](self)
             self.create_licence_decisions(advice_type, licence)
             licence_reference = licence.reference_code if licence and advice_type == AdviceType.APPROVE else ""
