@@ -3,6 +3,7 @@ import factory.fuzzy
 import factory.random
 import pytest
 
+from dateutil.relativedelta import relativedelta
 from faker import Faker
 
 from django.utils import timezone
@@ -22,6 +23,7 @@ from api.f680.enums import (
     RecommendationType,
     SecurityGrading,
     SecurityReleaseOutcomes,
+    SecurityReleaseOutcomeDuration,
 )
 from api.f680.models import (
     F680Application,
@@ -99,8 +101,6 @@ class F680SecurityReleaseRequestFactory(factory.django.DjangoModelFactory):
 class F680RecommendationFactory(factory.django.DjangoModelFactory):
     type = factory.fuzzy.FuzzyChoice(RecommendationType.choices, getter=lambda t: t[0])
     case = factory.SubFactory(SubmittedF680ApplicationFactory)
-    security_grading = factory.fuzzy.FuzzyChoice(SecurityGrading.security_release_choices, getter=lambda t: t[0])
-    security_grading_other = factory.LazyAttribute(lambda n: faker.word())
     conditions = factory.LazyAttribute(lambda n: faker.sentence())
     security_release_request = factory.SubFactory(F680SecurityReleaseRequestFactory)
     user = factory.SubFactory(GovUserFactory)
@@ -117,6 +117,10 @@ class F680SecurityReleaseOutcomeFactory(factory.django.DjangoModelFactory):
     conditions = factory.LazyAttribute(lambda n: faker.sentence())
     user = factory.SubFactory(GovUserFactory)
     team = factory.SubFactory(TeamFactory)
+    validity_start_date = factory.LazyAttribute(lambda _: timezone.now().date())
+    validity_end_date = factory.LazyAttribute(
+        lambda _: timezone.now().date() + relativedelta(months=+SecurityReleaseOutcomeDuration.MONTHS_24)
+    )
 
     class Meta:
         model = SecurityReleaseOutcome

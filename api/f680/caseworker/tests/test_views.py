@@ -1,7 +1,10 @@
 import pytest
+
+from dateutil.relativedelta import relativedelta
 from uuid import uuid4
 
 from django.urls import reverse
+from django.utils import timezone
 from freezegun import freeze_time
 
 from api.f680 import enums
@@ -93,7 +96,6 @@ class TestF680RecommendationViewSet:
                 case=f680_application,
                 security_release_request=release_request,
                 type=enums.RecommendationType.APPROVE,
-                security_grading="official",
                 conditions="No concerns",
             )
         for release_request in another_f680_application.security_release_requests.all():
@@ -118,8 +120,6 @@ class TestF680RecommendationViewSet:
                 "case": str(item.case_id),
                 "type": {"key": "approve", "value": "Approve"},
                 "created_at": item.created_at.strftime("%Y-%m-%dT%H:%M:%SZ"),
-                "security_grading": {"key": "official", "value": "Official"},
-                "security_grading_other": item.security_grading_other,
                 "conditions": item.conditions,
                 "refusal_reasons": item.refusal_reasons,
                 "security_release_request": str(item.security_release_request_id),
@@ -165,7 +165,6 @@ class TestF680RecommendationViewSet:
                 type=enums.RecommendationType.APPROVE,
                 user=gov_user,
                 team=gov_user.team,
-                security_grading="official",
                 conditions="No concerns",
             )
 
@@ -206,7 +205,6 @@ class TestF680RecommendationViewSet:
         data = [
             {
                 "type": enums.RecommendationType.APPROVE,
-                "security_grading": enums.SecurityGrading.OFFICIAL_SENSITIVE,
                 "conditions": f"Conditions for {rr.recipient.country.name}",
                 "refusal_reasons": "",
                 "security_release_request": str(rr.id),
@@ -220,7 +218,7 @@ class TestF680RecommendationViewSet:
         assert response.status_code == 201
         assert f680_application.recommendations.count() == f680_application.security_release_requests.count()
 
-    def test_POST_recommendation_again_raises_error(
+    def test_POST_recommendation_again_raises_no_error(
         self, get_hawk_client, get_f680_application, url, team_case_advisor_headers
     ):
         f680_application = get_f680_application()
@@ -228,7 +226,6 @@ class TestF680RecommendationViewSet:
         data = [
             {
                 "type": enums.RecommendationType.APPROVE,
-                "security_grading": enums.SecurityGrading.OFFICIAL_SENSITIVE,
                 "conditions": f"Conditions for {rr.recipient.country.name}",
                 "refusal_reasons": "",
                 "security_release_request": str(rr.id),
@@ -237,15 +234,15 @@ class TestF680RecommendationViewSet:
         ]
 
         headers = team_case_advisor_headers(TeamIdEnum.MOD_CAPPROT)
-        api_client, target_url = get_hawk_client("POST", url(f680_application), data=data)
-        response = api_client.post(target_url, data, **headers)
+        api_client, target_url = get_hawk_client("POST", url(f680_application), data=data[:1])
+        response = api_client.post(target_url, data[:1], **headers)
+        assert response.status_code == 201
+        assert f680_application.recommendations.count() == 1
+
+        api_client, target_url = get_hawk_client("POST", url(f680_application), data=data[1:])
+        response = api_client.post(target_url, data[1:], **headers)
         assert response.status_code == 201
         assert f680_application.recommendations.count() == f680_application.security_release_requests.count()
-
-        api_client, target_url = get_hawk_client("POST", url(f680_application), data=data)
-        response = api_client.post(target_url, data, **headers)
-        assert response.status_code == 403
-        assert response.json() == {"errors": {"detail": "You do not have permission to perform this action."}}
 
     def test_POST_recommendation_another_case_success(
         self, get_hawk_client, get_f680_application, url, team_case_advisor
@@ -257,7 +254,6 @@ class TestF680RecommendationViewSet:
             data = [
                 {
                     "type": enums.RecommendationType.APPROVE,
-                    "security_grading": enums.SecurityGrading.OFFICIAL_SENSITIVE,
                     "conditions": f"Conditions for {rr.recipient.country.name}",
                     "refusal_reasons": "",
                     "security_release_request": str(rr.id),
@@ -275,7 +271,6 @@ class TestF680RecommendationViewSet:
         (
             (
                 {
-                    "security_grading": enums.SecurityGrading.OFFICIAL_SENSITIVE,
                     "conditions": "Conditions for Australia",
                     "refusal_reasons": "",
                 },
@@ -284,16 +279,7 @@ class TestF680RecommendationViewSet:
             (
                 {
                     "type": enums.RecommendationType.APPROVE,
-                    "conditions": "Conditions for Australia",
                     "refusal_reasons": "",
-                },
-                [{"security_grading": ["This field is required."]}],
-            ),
-            (
-                {
-                    "type": enums.RecommendationType.APPROVE,
-                    "refusal_reasons": "",
-                    "security_grading": enums.SecurityGrading.OFFICIAL_SENSITIVE,
                 },
                 [{"conditions": ["This field is required."]}],
             ),
@@ -301,7 +287,6 @@ class TestF680RecommendationViewSet:
                 {
                     "type": enums.RecommendationType.APPROVE,
                     "conditions": "No concerns",
-                    "security_grading": enums.SecurityGrading.OFFICIAL_SENSITIVE,
                 },
                 [{"refusal_reasons": ["This field is required."]}],
             ),
@@ -310,7 +295,6 @@ class TestF680RecommendationViewSet:
                     "type": enums.RecommendationType.APPROVE,
                     "conditions": "No concerns",
                     "refusal_reasons": "",
-                    "security_grading": enums.SecurityGrading.OFFICIAL_SENSITIVE,
                     "security_release_request": "138d3a5f-5b5d-457d-8db0-723e14b36de4",  # /PS-IGNORE
                 },
                 [
@@ -353,7 +337,6 @@ class TestF680RecommendationViewSet:
         for release_request in f680_application.security_release_requests.all():
             F680RecommendationFactory(
                 case=f680_application,
-                security_grading=enums.SecurityGrading.OFFICIAL_SENSITIVE,
                 security_release_request=release_request,
                 conditions="No concerns",
                 user=gov_user,
@@ -368,15 +351,22 @@ class TestF680RecommendationViewSet:
 
 class TestF680OutcomeViewSet:
 
+    @freeze_time("2025-04-14 12:00:00")
     def test_GET_outcomes_exist(self, get_hawk_client, get_f680_application, team_case_advisor_headers):
         f680_application = get_f680_application()
         headers = team_case_advisor_headers(TeamIdEnum.MOD_ECJU)
+        validity_start_date = timezone.now().date()
+        validity_end_date = timezone.now().date() + relativedelta(
+            months=+enums.SecurityReleaseOutcomeDuration.MONTHS_48
+        )
         outcome = F680SecurityReleaseOutcomeFactory(
             case=f680_application,
-            outcome="approve",
+            outcome=enums.SecurityReleaseOutcomes.APPROVE,
             security_grading=enums.SecurityGrading.OFFICIAL_SENSITIVE,
             conditions="No concerns",
             approval_types=["training"],
+            validity_start_date=validity_start_date,
+            validity_end_date=validity_end_date,
         )
         release_request_ids = [str(request.id) for request in f680_application.security_release_requests.all()]
         outcome.security_release_requests.set(release_request_ids)
@@ -396,6 +386,9 @@ class TestF680OutcomeViewSet:
                 "security_release_requests": release_request_ids,
                 "team": str(outcome.team.id),
                 "user": str(outcome.user.baseuser_ptr.id),
+                "validity_start_date": validity_start_date.isoformat(),
+                "validity_end_date": validity_end_date.isoformat(),
+                "validity_period": 48,
             },
         ]
 
@@ -415,6 +408,7 @@ class TestF680OutcomeViewSet:
         response = api_client.get(target_url, **headers)
         assert response.status_code == 404
 
+    @freeze_time("2025-04-14 12:00:00")
     def test_POST_create_single_item_group_success(
         self, get_hawk_client, get_f680_application, team_case_advisor_headers
     ):
@@ -423,12 +417,19 @@ class TestF680OutcomeViewSet:
         f680_application.save()
         headers = team_case_advisor_headers(TeamIdEnum.MOD_ECJU)
         url = reverse("caseworker_f680:outcome", kwargs={"pk": str(f680_application.id)})
+
+        validity_start_date = timezone.now().date()
+        validity_end_date = timezone.now().date() + relativedelta(
+            months=+enums.SecurityReleaseOutcomeDuration.MONTHS_24
+        )
         post_data = {
             "security_grading": "top-secret",
-            "outcome": "approve",
+            "outcome": enums.SecurityReleaseOutcomes.APPROVE,
             "conditions": "my conditions",
             "approval_types": ["training"],
             "security_release_requests": [str(f680_application.security_release_requests.first().id)],
+            "validity_start_date": validity_start_date.isoformat(),
+            "validity_end_date": validity_end_date.isoformat(),
         }
         api_client, target_url = get_hawk_client("POST", url, data=post_data)
         response = api_client.post(target_url, post_data, **headers)
@@ -443,6 +444,8 @@ class TestF680OutcomeViewSet:
         assert release_request_ids == post_data["security_release_requests"]
         assert outcome.refusal_reasons == ""
         assert str(outcome.team.id) == TeamIdEnum.MOD_ECJU
+        assert outcome.validity_start_date == validity_start_date
+        assert outcome.validity_end_date == validity_end_date
 
         assert response.json() == {
             "id": str(outcome.id),
@@ -455,8 +458,12 @@ class TestF680OutcomeViewSet:
             "security_release_requests": release_request_ids,
             "team": str(outcome.team.id),
             "user": str(outcome.user.baseuser_ptr.id),
+            "validity_start_date": validity_start_date.isoformat(),
+            "validity_end_date": validity_end_date.isoformat(),
+            "validity_period": 24,
         }
 
+    @freeze_time("2025-04-14 12:00:00")
     def test_POST_create_multiple_item_group_success(
         self, get_hawk_client, get_f680_application, team_case_advisor_headers
     ):
@@ -467,7 +474,7 @@ class TestF680OutcomeViewSet:
         url = reverse("caseworker_f680:outcome", kwargs={"pk": str(f680_application.id)})
         release_request_ids = [str(request.id) for request in f680_application.security_release_requests.all()]
         post_data = {
-            "outcome": "refuse",
+            "outcome": enums.SecurityReleaseOutcomes.REFUSE,
             "refusal_reasons": "my reasons",
             "security_release_requests": release_request_ids,
         }
@@ -496,6 +503,9 @@ class TestF680OutcomeViewSet:
             "security_release_requests": release_request_ids,
             "team": str(outcome.team.id),
             "user": str(outcome.user.baseuser_ptr.id),
+            "validity_start_date": None,
+            "validity_end_date": None,
+            "validity_period": 0,
         }
 
     def test_POST_case_not_ready_for_outcome_permission_denied(
@@ -507,7 +517,7 @@ class TestF680OutcomeViewSet:
         url = reverse("caseworker_f680:outcome", kwargs={"pk": str(f680_application.id)})
         release_request_ids = [str(request.id) for request in f680_application.security_release_requests.all()]
         post_data = {
-            "outcome": "refuse",
+            "outcome": enums.SecurityReleaseOutcomes.REFUSE,
             "refusal_reasons": "my reasons",
             "security_release_requests": release_request_ids,
         }
@@ -527,7 +537,7 @@ class TestF680OutcomeViewSet:
         url = reverse("caseworker_f680:outcome", kwargs={"pk": str(f680_application.id)})
         release_request_ids = [str(request.id) for request in f680_application.security_release_requests.all()]
         post_data = {
-            "outcome": "refuse",
+            "outcome": enums.SecurityReleaseOutcomes.REFUSE,
             "refusal_reasons": "my reasons",
             "security_release_requests": release_request_ids,
         }
@@ -541,7 +551,7 @@ class TestF680OutcomeViewSet:
         f680_application.save()
         outcome = F680SecurityReleaseOutcomeFactory(
             case=f680_application,
-            outcome="approve",
+            outcome=enums.SecurityReleaseOutcomes.APPROVE,
             security_grading=enums.SecurityGrading.OFFICIAL_SENSITIVE,
             conditions="No concerns",
             approval_types=["training"],
@@ -551,7 +561,7 @@ class TestF680OutcomeViewSet:
         headers = team_case_advisor_headers(TeamIdEnum.MOD_ECJU)
         url = reverse("caseworker_f680:outcome", kwargs={"pk": str(f680_application.id)})
         post_data = {
-            "outcome": "refuse",
+            "outcome": enums.SecurityReleaseOutcomes.REFUSE,
             "refusal_reasons": "my reasons",
             "security_release_requests": release_request_ids,
         }

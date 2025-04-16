@@ -1,14 +1,26 @@
-{% extends "letter_templates/dbt_letter_base.html" %}
+{% extends "letter_templates/f680_ecju_mod_letter_base.html" %}
 {% load static custom_tags %}
 
-{% block title %}F680 Refusal{% endblock %}
+{% block title %}F680 Approval{% endblock %}
 {% block css %}
   <link href="{% static 'css/f680_refusal.css' %}" rel="stylesheet" type="text/css" />
 {% endblock %}
 
 {% block body %}
 
-  <div class="govuk-body">We Have Refused Your F680 Application</div>
-  <h2 class="govuk-heading-l">Strategic Export Licensing Criteria</h3>
+<div class="document">
+  <div class="govuk-body">
+    We have carefully considered your application and have refused clearance for:
+  </div>
 
+
+  {% for security_release_outcome in details.security_release_outcomes.refuse %}
+    {% include "letter_templates/includes/f680_refusal_conditions.html"  with security_release_outcome=security_release_outcome%}
+  {% endfor %}
+
+
+  <p>Yours sincerely,</p>
+
+  <p>signature here</P>
+</div>
 {% endblock %}

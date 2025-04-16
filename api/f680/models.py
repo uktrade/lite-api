@@ -1,5 +1,8 @@
 import uuid
 
+from dateutil.relativedelta import relativedelta
+
+
 from django.db import models
 from django.contrib.postgres.fields import ArrayField
 
@@ -127,8 +130,6 @@ class Recommendation(TimestampableModel):
     type = models.CharField(choices=enums.RecommendationType.choices, max_length=30)
     conditions = models.TextField(default="", blank=True, null=True)
     refusal_reasons = models.TextField(default="", blank=True, null=True)
-    security_grading = models.CharField(choices=enums.SecurityGrading.security_release_choices, max_length=50)
-    security_grading_other = models.TextField(default="", blank=True, null=True)
     user = models.ForeignKey(GovUser, on_delete=models.PROTECT, related_name="recommendations")
     team = models.ForeignKey(Team, on_delete=models.PROTECT, related_name="recommendations", null=True)
     security_release_request = models.ForeignKey(
@@ -149,3 +150,19 @@ class SecurityReleaseOutcome(TimestampableModel):
         choices=enums.SecurityGrading.security_release_outcome_choices, max_length=50, blank=True, null=True
     )
     approval_types = ArrayField(models.CharField(choices=enums.ApprovalTypes.choices, max_length=50), default=list)
+    validity_start_date = models.DateField(blank=True, null=True, help_text="Date the outcome validity starts")
+    validity_end_date = models.DateField(blank=True, null=True, help_text="Date the outcome is no longer valid")
+
+    @property
+    def validity_period(self) -> int:
+        """Returns outcome validity period in months"""
+        duration = 0
+        if (
+            self.outcome == enums.SecurityReleaseOutcomes.APPROVE
+            and self.validity_start_date
+            and self.validity_end_date
+        ):
+            diff = relativedelta(self.validity_end_date, self.validity_start_date)
+            duration = diff.years * 12 + diff.months
+
+        return duration

@@ -636,5 +636,5 @@ def data_application_json(data_australia_release_id, data_france_release_id, dat
                 },
                 "fields_sequence": ["name", "is_exceptional_circumstances"],
             },
-        }
+        },
     }
