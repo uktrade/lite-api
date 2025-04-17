@@ -197,16 +197,22 @@ class SecurityReleaseOutcomeLetterSerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance):
         representation = super().to_representation(instance)
-        all_activities = instance.security_release_requests.first().approval_types
-        approved = instance.approval_types
-        refused = list(set(all_activities) - set(approved))
         approval_types_dict = dict(enums.ApprovalTypes.choices)
+        all_activities = instance.security_release_requests.first().approval_types
 
-        representation["approval_types"] = [
-            {"key": key, "value": approval_types_dict[key], "status": "Approved"} for key in approved
-        ]
-        representation["approval_types"].extend(
-            [{"key": key, "value": approval_types_dict[key], "status": "Refused"} for key in refused]
-        )
+        if instance.outcome == enums.SecurityReleaseOutcomes.APPROVE:
+            approved = instance.approval_types
+            refused = list(set(all_activities) - set(approved))
+
+            representation["approval_types"] = [
+                {"key": key, "value": approval_types_dict[key], "status": "Approved"} for key in approved
+            ]
+            representation["approval_types"].extend(
+                [{"key": key, "value": approval_types_dict[key], "status": "Refused"} for key in refused]
+            )
+        elif instance.outcome == enums.SecurityReleaseOutcomes.REFUSE:
+            representation["approval_types"] = [
+                {"key": key, "value": approval_types_dict[key], "status": "Refused"} for key in all_activities
+            ]
 
         return representation
