@@ -97,8 +97,6 @@ class F680RecommendationSerializer(serializers.ModelSerializer):
     user = PrimaryKeyRelatedField(queryset=GovUser.objects.filter(status=UserStatuses.ACTIVE))
     team = PrimaryKeyRelatedField(queryset=Team.objects.all())
     type = KeyValueChoiceField(choices=enums.RecommendationType.choices)
-    security_grading = KeyValueChoiceField(choices=enums.SecurityGrading.security_release_choices)
-    security_grading_other = serializers.CharField(allow_blank=True, allow_null=True, required=False)
     conditions = serializers.CharField(allow_blank=True, allow_null=True)
     refusal_reasons = serializers.CharField(allow_blank=True, allow_null=True)
     security_release_request = PrimaryKeyRelatedField(queryset=SecurityReleaseRequest.objects.all())
@@ -108,8 +106,6 @@ class F680RecommendationSerializer(serializers.ModelSerializer):
         fields = (
             "id",
             "type",
-            "security_grading",
-            "security_grading_other",
             "conditions",
             "refusal_reasons",
             "user",
@@ -168,6 +164,21 @@ class SecurityReleaseOutcomeSerializer(serializers.ModelSerializer):
             "case",
             "user",
             "team",
+            "security_release_requests",
+            "outcome",
+            "conditions",
+            "refusal_reasons",
+            "security_grading",
+            "approval_types",
+        ]
+
+
+class SecurityReleaseOutcomeLetterSerializer(serializers.ModelSerializer):
+    security_release_requests = SecurityReleaseRequestSerializer(many=True)
+
+    class Meta:
+        model = SecurityReleaseOutcome
+        fields = [
             "security_release_requests",
             "outcome",
             "conditions",
