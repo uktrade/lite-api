@@ -44,6 +44,8 @@ from api.f680.enums import SecurityReleaseOutcomes
 
 from api.staticdata.countries.models import Country
 
+from lite_routing.routing_rules_internal.enums import QueuesEnum
+
 from api.core.helpers import (
     get_date_and_time,
     add_months,
@@ -594,12 +596,14 @@ class ComplianceSiteCaseSerializer(serializers.ModelSerializer):
 
 
 class F680Serializer(serializers.ModelSerializer):
-    class Meta:
-        model = Case
-        fields = ["application", "security_release_outcomes"]
 
     application = serializers.SerializerMethodField()
     security_release_outcomes = serializers.SerializerMethodField()
+    case_officer = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Case
+        fields = ["application", "security_release_outcomes", "case_officer"]
 
     def get_application(self, obj):
         # Expose the application JSON to the template
@@ -611,6 +615,14 @@ class F680Serializer(serializers.ModelSerializer):
             sros = SecurityReleaseOutcome.objects.filter(case=obj, outcome=outcome)
             data[outcome] = SecurityReleaseOutcomeLetterSerializer(sros, many=True).data
         return data
+
+    def get_case_officer(self, obj):
+        case_officer = None
+        qs = obj.case_assignments.filter(queue_id=QueuesEnum.MOD_ECJU_F680_CASES_UNDER_FINAL_REVIEW)
+        if qs.exists():
+            case_officer = qs.first().user
+
+        return case_officer
 
 
 class ComplianceSiteLicenceSerializer(serializers.ModelSerializer):
