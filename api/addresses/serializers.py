@@ -38,7 +38,7 @@ class AddressSerializer(serializers.ModelSerializer):
 
         if not postcode_regex.search(postcode):
             raise serializers.ValidationError(Addresses.POSTCODE)
-        return value
+        return value.upper().strip()
 
     def validate(self, data):
         validated_data = super().validate(data)
