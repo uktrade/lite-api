@@ -2,7 +2,7 @@ from collections import namedtuple
 
 from django.utils import timezone
 from weasyprint import CSS, HTML
-from weasyprint.fonts import FontConfiguration
+from weasyprint.text.fonts import FontConfiguration
 from rest_framework.exceptions import ParseError, ValidationError
 
 from api.staticdata.statuses.enums import CaseStatusEnum

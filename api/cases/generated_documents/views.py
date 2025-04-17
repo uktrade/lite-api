@@ -1,3 +1,5 @@
+import logging
+
 from django.db import transaction
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
@@ -31,10 +33,14 @@ from api.core.authentication import GovAuthentication, SharedAuthentication
 from api.core.decorators import authorised_to_view_application
 from api.core.helpers import str_to_bool
 from api.documents.libraries import s3_operations
+from api.letter_templates.helpers import get_css_location
 from lite_content.lite_api import strings
 from api.organisations.libraries.get_organisation import get_request_user_organisation_id
 from api.staticdata.statuses.enums import CaseSubStatusIdEnum
 from api.users.models import GovUser
+
+
+logger = logging.getLogger(__name__)
 
 
 class GeneratedDocument(generics.RetrieveAPIView):
@@ -79,6 +85,18 @@ class GeneratedDocuments(generics.ListAPIView):
                 data={"errors": ["Missing template or party doesn't exist"]}, status=status.HTTP_400_BAD_REQUEST
             )
 
+        pdf_s3_key = s3_operations.generate_s3_key(document.template.name, "pdf")
+
+        css_s3_key = pdf_s3_key.replace("pdf", "css")
+        css_file_path = get_css_location(document.template.layout.filename)
+        with open(css_file_path, "rb") as css_file:
+            logger.debug("Uploading CSS document `%s`", css_s3_key)
+            s3_operations.upload_bytes_file(raw_file=css_file, s3_key=css_s3_key)
+
+        html_s3_key = pdf_s3_key.replace("pdf", "html")
+        logger.debug("Uploading HTML document `%s`", html_s3_key)
+        s3_operations.upload_bytes_file(raw_file=document.document_html, s3_key=html_s3_key)
+
         try:
             pdf = html_to_pdf(document.document_html, document.template.layout.filename, request.build_absolute_uri())
         except Exception:  # noqa
@@ -93,9 +111,8 @@ class GeneratedDocuments(generics.ListAPIView):
 
         licence = get_draft_licence(document.case, advice_type)
 
-        s3_key = s3_operations.generate_s3_key(document.template.name, "pdf")
         # base the document name on the template name and a portion of the UUID generated for the s3 key
-        document_name = f"{s3_key[:len(document.template.name) + 6]}.pdf"
+        document_name = f"{pdf_s3_key[:len(document.template.name) + 6]}.pdf"
 
         visible_to_exporter = str_to_bool(request.data.get("visible_to_exporter"))
         # If the template is not visible to exporter this supersedes what is given for the document
@@ -114,7 +131,7 @@ class GeneratedDocuments(generics.ListAPIView):
                 generated_doc = GeneratedCaseDocument.objects.create(
                     name=document_name,
                     user=request.user.govuser,
-                    s3_key=s3_key,
+                    s3_key=pdf_s3_key,
                     virus_scanned_at=timezone.now(),
                     safe=True,
                     type=CaseDocumentState.GENERATED,
@@ -126,7 +143,8 @@ class GeneratedDocuments(generics.ListAPIView):
                     licence=licence,
                 )
 
-                s3_operations.upload_bytes_file(raw_file=pdf, s3_key=s3_key)
+                logger.debug("Uploading PDF document `%s`", pdf_s3_key)
+                s3_operations.upload_bytes_file(raw_file=pdf, s3_key=pdf_s3_key)
         except Exception:  # noqa
             return JsonResponse(
                 {"errors": [strings.Cases.GeneratedDocuments.UPLOAD_ERROR]},
