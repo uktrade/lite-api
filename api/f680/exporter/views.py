@@ -55,7 +55,7 @@ class F680ApplicationViewSet(viewsets.ModelViewSet):
         application.sla_days = 0
         application.submitted_by = request.user.exporteruser
         application.agreed_to_foi = application_declaration_serializer.data["agreed_to_foi"]
-        application.foi_reason = application_declaration_serializer.data["foi_reason"]
+        application.foi_reason = application_declaration_serializer.data.get("foi_reason", "")
 
         application.save()
         application.on_submit(application_json_serializer.data)

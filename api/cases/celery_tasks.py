@@ -160,7 +160,8 @@ def update_cases_sla():
 @shared_task
 def schedule_all_ecju_query_chaser_emails():
     """
-    Sends an ECJU 15 working days reminder
+    Sends an ECJU  reminder 5 days before Max days allowed
+    Max days for each case type set in the application manifest
     Runs as a background task daily at a given time.
     Can accommodate reruns and can send reminders if any have been missed upto 20 days after ECJU Query created
     """
@@ -174,7 +175,7 @@ def schedule_all_ecju_query_chaser_emails():
         )
 
         for ecju_query in ecju_queries:
-            if ecju_query.open_working_days >= 15 and ecju_query.open_working_days <= 20:
+            if ecju_query.should_send_chaser_email():
                 ecju_query_reminders.append(ecju_query.id)
 
         for ecju_query_id in ecju_query_reminders:
