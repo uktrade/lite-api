@@ -42,7 +42,7 @@
     </tbody>
   </table>
 
-  <p>Authorisation valid until: [DD Month YYYY]</p><br>
+  <p>Authorisation valid until: {{ security_release_outcome.validity_end_date }}</p><br>
   <p>You must tell the entities listed above the security classification of the item you’re sharing with them. You must also tell them the minimum security requirements they must meet to keep it safe.</p>
   <p></p>
 
@@ -58,7 +58,9 @@
     <li>discuss</li>
     <li>divulge or reveal (including through reference to differences or similarities)</li>
   </ul>
-  <p>the information identified below unless it’s been authorised to be in the public domain. </p>
+  <p>
+    the information identified below unless it’s been authorised to be in the public domain. You must be prepared to provide evidence of such authorisation if requested.
+  </p>
   <p>{{ security_release_outcome.conditions|linebreaks }}<br></p>
   <p></p>
 </p>

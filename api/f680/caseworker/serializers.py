@@ -179,6 +179,7 @@ class SecurityReleaseOutcomeSerializer(serializers.ModelSerializer):
 class SecurityReleaseOutcomeLetterSerializer(serializers.ModelSerializer):
     security_release_requests = SecurityReleaseRequestSerializer(many=True)
     approval_types = serializers.MultipleChoiceField(choices=enums.ApprovalTypes.choices)
+    validity_end_date = serializers.DateField(format="%d %B %Y")
 
     class Meta:
         model = SecurityReleaseOutcome
@@ -189,6 +190,9 @@ class SecurityReleaseOutcomeLetterSerializer(serializers.ModelSerializer):
             "refusal_reasons",
             "security_grading",
             "approval_types",
+            "validity_start_date",
+            "validity_end_date",
+            "validity_period",
         ]
 
     def to_representation(self, instance):
