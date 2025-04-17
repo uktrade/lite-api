@@ -5,7 +5,6 @@ from api.staticdata.management.SeedCommand import SeedCommand
 
 SEED_COMMANDS = {
     "Essential": [
-        "seedcasetypes",
         "seedrolepermissions",
         "seedsystemuser",
         "seedadminteam",
@@ -18,7 +17,6 @@ SEED_COMMANDS = {
     ],
     "Dev": ["seedexporterusers"],
     "Tests": [
-        "seedcasetypes",
         "seedrolepermissions",
         "seedsystemuser",
         "seedadminteam",

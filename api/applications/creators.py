@@ -196,7 +196,7 @@ def _validate_end_use_details(draft, errors, application_type):
     return errors
 
 
-def _validate_agree_to_declaration(request, errors):
+def validate_agree_to_declaration(request, errors):
     """Checks the exporter has agreed to the T&Cs of the licence"""
 
     if "agreed_to_foi" in request.data and str_to_bool(request.data["agreed_to_foi"]):
@@ -301,12 +301,7 @@ def _validate_additional_documents(draft, errors):
 def validate_application_ready_for_submission(application):
     errors = {}
 
-    # Perform additional validation and append errors if found
-    if application.case_type.sub_type == CaseTypeSubTypeEnum.STANDARD:
-        _validate_standard_licence(application, errors)
-    else:
-        errors["unsupported_application"] = ["You can only validate a supported application type"]
-
+    errors = _validate_standard_licence(application, errors)
     errors = _validate_additional_documents(application, errors)
 
     return errors
