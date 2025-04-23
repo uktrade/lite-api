@@ -105,3 +105,8 @@ class SecurityReleaseOutcomes:
         (APPROVE, "Approve"),
         (REFUSE, "Refuse"),
     ]
+
+
+class SecurityReleaseOutcomeDuration:
+    MONTHS_24 = 24
+    MONTHS_48 = 48

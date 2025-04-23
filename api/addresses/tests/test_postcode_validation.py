@@ -7,6 +7,8 @@ from api.users.libraries.user_to_token import user_to_token
 from test_helpers.clients import DataTestClient
 from api.organisations.enums import OrganisationType
 from lite_content.lite_api.strings import Addresses
+from api.addresses.models import Address
+from parameterized import parameterized
 
 
 class AddressSerializerPostcodeValidationTest(DataTestClient):
@@ -45,8 +47,20 @@ class AddressSerializerPostcodeValidationTest(DataTestClient):
             self.assertEqual(response.json()["errors"]["site"]["address"]["postcode"][0], Addresses.POSTCODE)
             self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
+    @parameterized.expand(
+        [
+            ("BT32 4PX", "BT32 4PX"),
+            ("GIR 0AA", "GIR 0AA"),
+            ("BT324PX", "BT324PX"),
+            (" so11aa ", "SO11AA"),
+            (" so1  1aa ", "SO1  1AA"),
+            ("G2 3wt", "G2 3WT"),
+            ("EC1A 1BB", "EC1A 1BB"),
+            ("Ec1a2Bb", "EC1A2BB"),
+        ]
+    )
     @mock.patch("api.core.celery_tasks.NotificationsAPIClient.send_email_notification")
-    def test_valid_postcodes(self, mock_gov_notification):
+    def test_valid_postcodes(self, valid_postcode, expected, mock_gov_notification):
         data = {
             "name": "Lemonworld Co",
             "type": OrganisationType.COMMERCIAL,
@@ -68,22 +82,12 @@ class AddressSerializerPostcodeValidationTest(DataTestClient):
             "website": "",
         }
 
-        valid_postcodes = [
-            "BT32 4PX",
-            "GIR 0AA",
-            "BT324PX",
-            " so11aa ",
-            " so1  1aa ",
-            "G2 3wt",
-            "EC1A 1BB",
-            "Ec1a1BB",
-        ]
+        data["site"]["address"]["postcode"] = valid_postcode
+        data["registration_number"] = "".join([str(randint(0, 9)) for _ in range(8)])
+        response = self.client.post(
+            self.url, data, **{EXPORTER_USER_TOKEN_HEADER: user_to_token(self.exporter_user.baseuser_ptr)}
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        addr = Address.objects.get(postcode=expected)
 
-        for postcode in valid_postcodes:
-            data["site"]["address"]["postcode"] = postcode
-            data["registration_number"] = "".join([str(randint(0, 9)) for _ in range(8)])
-            response = self.client.post(
-                self.url, data, **{EXPORTER_USER_TOKEN_HEADER: user_to_token(self.exporter_user.baseuser_ptr)}
-            )
-
-            self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(addr.postcode, expected)
