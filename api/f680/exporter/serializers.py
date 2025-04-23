@@ -74,6 +74,7 @@ class ProductInformationFieldsSerializer(serializers.Serializer):
     product_name = FieldSerializer()
     product_description = FieldSerializer()
     security_classification = FieldSerializer(required=False)
+    other_security_classification = FieldSerializer(required=False)
 
 
 class ProductInformationSerializer(serializers.Serializer):
