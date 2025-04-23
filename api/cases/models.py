@@ -388,6 +388,15 @@ class Case(TimestampableModel):
         from api.cases.libraries.finalise import remove_flags_on_finalisation, remove_flags_from_audit_trail
         from api.licences.models import Licence
 
+        original_case = Case.objects.select_for_update().get(pk=self.pk)
+        original_case.refresh_from_db()
+        if original_case.status.status == CaseStatusEnum.FINALISED:
+            try:
+                licence = Licence.objects.get(case=self)
+            except Licence.DoesNotExist:
+                return ""
+            return licence.id
+
         try:
             licence = Licence.objects.get_draft_licence(self)
         except Licence.DoesNotExist:

@@ -681,6 +681,16 @@ def issue_licence(api_client, lu_case_officer, gov_headers, siel_template):
 
 
 @pytest.fixture()
+def reopen_application(
+    caseworker_change_status,
+):
+    def _reopen_application(application):
+        caseworker_change_status(application, CaseStatusEnum.REOPENED_FOR_CHANGES)
+
+    return _reopen_application
+
+
+@pytest.fixture()
 def refuse_application(
     api_client,
     lu_case_officer,
@@ -772,6 +782,16 @@ def when_the_application_is_issued_at(
     return issued_application
 
 
+@when(parsers.parse("the application is re-opened at {timestamp}"))
+def when_the_application_is_reopened_at(
+    submitted_standard_application,
+    reopen_application,
+    timestamp,
+):
+    with freeze_time(timestamp):
+        reopen_application(submitted_standard_application)
+
+
 @when(parsers.parse("the application is refused at {timestamp}"), target_fixture="refused_application")
 def when_the_application_is_refused_at(
     submitted_standard_application,
@@ -792,6 +812,7 @@ def when_the_application_is_refused_at(
 
     submitted_standard_application.refresh_from_db()
     refused_application = submitted_standard_application
+
     return refused_application
 
 
