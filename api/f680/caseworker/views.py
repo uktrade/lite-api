@@ -4,6 +4,7 @@ from rest_framework import status, viewsets
 from rest_framework.response import Response
 
 from api.applications.libraries.get_applications import get_application
+from api.audit_trail.enums import AuditType
 from api.core.authentication import GovAuthentication
 from api.core.exceptions import NotFoundError
 
@@ -47,12 +48,23 @@ class F680RecommendationViewSet(viewsets.ModelViewSet):
             for item in request_data
         ]
 
+    def create_audit(self, audit_type):
+        from api.audit_trail import service as audit_trail_service
+
+        audit_trail_service.create(
+            actor=self.request.user,
+            verb=audit_type,
+            target=self.application.get_case(),
+        )
+
     def create(self, request, *args, **kwargs):
         data = self.prepare_data(request.data.copy())
         serializer = self.get_serializer(data=data, many=True)
         serializer.is_valid(raise_exception=True)
 
         self.perform_create(serializer)
+        self.create_audit(AuditType.CREATE_OGD_F680_RECOMMENDATION)
+
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
@@ -66,6 +78,7 @@ class F680RecommendationViewSet(viewsets.ModelViewSet):
         qs = self.get_queryset().filter(user_id=user.id, team=user.govuser.team)
         if qs.exists:
             qs.delete()
+        self.create_audit(AuditType.CLEAR_OGD_F680_RECOMMENDATION)
         return HttpResponse(status=status.HTTP_204_NO_CONTENT)
 
 
