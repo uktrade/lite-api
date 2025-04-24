@@ -2,7 +2,7 @@ from rest_framework import serializers
 
 from api.organisations.exporter.serializers import RelatedOrganisationSerializer
 from api.users.exporter.serializers import RelatedExporterUserSerializer
-
+from api.cases.serializers import CaseTypeSerializer
 from api.f680.models import F680Application
 
 
@@ -38,8 +38,6 @@ class F680ApplicationSerializer(serializers.ModelSerializer):
         return super().create(validated_data)
 
     def get_case_type(self, instance):
-        from api.cases.serializers import CaseTypeSerializer
-
         return CaseTypeSerializer(instance.case_type).data
 
 
