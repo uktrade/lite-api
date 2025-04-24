@@ -33,15 +33,18 @@ from api.goods.enums import (
     GoodPvGraded,
 )
 from api.goods.tests.factories import GoodFactory, FirearmFactory
-from api.cases.tests.factories import EcjuQueryFactory
+from api.cases.tests.factories import CaseAssignmentFactory, EcjuQueryFactory
 from api.letter_templates.context_generator import get_document_context
 from api.licences.enums import LicenceStatus
 from api.licences.tests.factories import GoodOnLicenceFactory
 from api.parties.enums import PartyType, SubType
 from api.parties.models import Party
+from api.queues.models import Queue
 from api.staticdata.trade_control.enums import TradeControlActivity, TradeControlProductCategory
 from api.staticdata.units.enums import Units
 from test_helpers.clients import DataTestClient
+
+from lite_routing.routing_rules_internal.enums import QueuesEnum
 
 
 @pytest.mark.context_gen
@@ -706,6 +709,9 @@ class DocumentContextGenerationTests(DataTestClient):
     def test_generate_context_with_f680_details(self):
         f680_application = SubmittedF680ApplicationFactory(application={"some": "json"})
 
+        queue = Queue.objects.get(id=QueuesEnum.MOD_ECJU_F680_CASES_UNDER_FINAL_REVIEW)
+        CaseAssignmentFactory(case=f680_application, user=self.gov_user, queue=queue)
+
         approved_release = F680SecurityReleaseRequestFactory(application=f680_application)
         refused_release = F680SecurityReleaseRequestFactory(application=f680_application)
         all_activities = dict(ApprovalTypes.choices)
@@ -752,6 +758,7 @@ class DocumentContextGenerationTests(DataTestClient):
         validity_end_date = (timezone.now().date() + relativedelta(months=24)).strftime("%d %B %Y")
 
         assert context["details"]["application"] == {"some": "json"}
+        assert context["details"]["case_officer"] == self.gov_user
 
         assert context["details"]["security_release_outcomes"] == {
             "approve": [
