@@ -96,11 +96,15 @@ class TestF680RecommendationViewSet:
                 case=f680_application,
                 security_release_request=release_request,
                 type=enums.RecommendationType.APPROVE,
+                security_grading="official",
                 conditions="No concerns",
             )
         for release_request in another_f680_application.security_release_requests.all():
             F680RecommendationFactory(
-                case=another_f680_application, security_release_request=release_request, conditions="No concerns"
+                case=another_f680_application,
+                security_release_request=release_request,
+                security_grading="official",
+                conditions="No concerns",
             )
         headers = {"HTTP_GOV_USER_TOKEN": user_to_token(gov_user.baseuser_ptr)}
         api_client, target_url = get_hawk_client("GET", url(f680_application))
@@ -120,6 +124,8 @@ class TestF680RecommendationViewSet:
                 "case": str(item.case_id),
                 "type": {"key": "approve", "value": "Approve"},
                 "created_at": item.created_at.strftime("%Y-%m-%dT%H:%M:%SZ"),
+                "security_grading": {"key": "official", "value": "Official"},
+                "security_grading_other": item.security_grading_other,
                 "conditions": item.conditions,
                 "refusal_reasons": item.refusal_reasons,
                 "security_release_request": str(item.security_release_request_id),
@@ -165,6 +171,7 @@ class TestF680RecommendationViewSet:
                 type=enums.RecommendationType.APPROVE,
                 user=gov_user,
                 team=gov_user.team,
+                security_grading="official",
                 conditions="No concerns",
             )
 
@@ -205,6 +212,7 @@ class TestF680RecommendationViewSet:
         data = [
             {
                 "type": enums.RecommendationType.APPROVE,
+                "security_grading": enums.SecurityGrading.OFFICIAL_SENSITIVE,
                 "conditions": f"Conditions for {rr.recipient.country.name}",
                 "refusal_reasons": "",
                 "security_release_request": str(rr.id),
@@ -226,6 +234,7 @@ class TestF680RecommendationViewSet:
         data = [
             {
                 "type": enums.RecommendationType.APPROVE,
+                "security_grading": enums.SecurityGrading.OFFICIAL_SENSITIVE,
                 "conditions": f"Conditions for {rr.recipient.country.name}",
                 "refusal_reasons": "",
                 "security_release_request": str(rr.id),
@@ -254,6 +263,7 @@ class TestF680RecommendationViewSet:
             data = [
                 {
                     "type": enums.RecommendationType.APPROVE,
+                    "security_grading": enums.SecurityGrading.OFFICIAL_SENSITIVE,
                     "conditions": f"Conditions for {rr.recipient.country.name}",
                     "refusal_reasons": "",
                     "security_release_request": str(rr.id),
@@ -271,6 +281,7 @@ class TestF680RecommendationViewSet:
         (
             (
                 {
+                    "security_grading": enums.SecurityGrading.OFFICIAL_SENSITIVE,
                     "conditions": "Conditions for Australia",
                     "refusal_reasons": "",
                 },
@@ -279,6 +290,15 @@ class TestF680RecommendationViewSet:
             (
                 {
                     "type": enums.RecommendationType.APPROVE,
+                    "conditions": "Conditions for Australia",
+                    "refusal_reasons": "",
+                },
+                [{"security_grading": ["This field is required."]}],
+            ),
+            (
+                {
+                    "type": enums.RecommendationType.APPROVE,
+                    "security_grading": enums.SecurityGrading.OFFICIAL_SENSITIVE,
                     "refusal_reasons": "",
                 },
                 [{"conditions": ["This field is required."]}],
@@ -286,6 +306,7 @@ class TestF680RecommendationViewSet:
             (
                 {
                     "type": enums.RecommendationType.APPROVE,
+                    "security_grading": enums.SecurityGrading.OFFICIAL_SENSITIVE,
                     "conditions": "No concerns",
                 },
                 [{"refusal_reasons": ["This field is required."]}],
@@ -293,6 +314,7 @@ class TestF680RecommendationViewSet:
             (
                 {
                     "type": enums.RecommendationType.APPROVE,
+                    "security_grading": enums.SecurityGrading.OFFICIAL_SENSITIVE,
                     "conditions": "No concerns",
                     "refusal_reasons": "",
                     "security_release_request": "138d3a5f-5b5d-457d-8db0-723e14b36de4",  # /PS-IGNORE
@@ -337,6 +359,7 @@ class TestF680RecommendationViewSet:
         for release_request in f680_application.security_release_requests.all():
             F680RecommendationFactory(
                 case=f680_application,
+                security_grading=enums.SecurityGrading.OFFICIAL_SENSITIVE,
                 security_release_request=release_request,
                 conditions="No concerns",
                 user=gov_user,
