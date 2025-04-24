@@ -1,3 +1,4 @@
+from api.cases.generated_documents.models import GeneratedCaseDocument
 from rest_framework import serializers
 
 from api.applications.serializers.fields import CaseStatusField
@@ -204,3 +205,15 @@ class SecurityReleaseOutcomeLetterSerializer(serializers.ModelSerializer):
             "security_grading",
             "approval_types",
         ]
+
+
+class OutcomeDocumentSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = GeneratedCaseDocument
+        fields = (
+            "id",
+            "template",
+            "name",
+            "visible_to_exporter",
+        )

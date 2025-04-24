@@ -1,3 +1,4 @@
+from api.cases.generated_documents.tests.factories import F680ApproveDocumentFactory
 import pytest
 
 from dateutil.relativedelta import relativedelta
@@ -732,3 +733,44 @@ class TestF680OutcomeViewSet:
         response = api_client.delete(target_url, **headers)
         assert response.status_code == 404
         assert SecurityReleaseOutcome.objects.first() == outcome
+
+
+class TestF680OutcomeDocumentViewSet:
+
+    def test_GET_outcome_document_success(self, get_hawk_client, get_f680_application, team_case_advisor_headers):
+        f680_application = get_f680_application()
+        f680_application_2 = SubmittedF680ApplicationFactory()
+
+        headers = team_case_advisor_headers(TeamIdEnum.MOD_ECJU)
+        approval_doc = F680ApproveDocumentFactory(case=f680_application)
+        F680ApproveDocumentFactory(case=f680_application_2)
+
+        url = reverse("caseworker_f680:outcome_document", kwargs={"pk": str(f680_application.id)})
+        api_client, target_url = get_hawk_client("GET", url, data=[])
+        response = api_client.get(target_url, **headers)
+        assert response.status_code == 200
+        assert response.json() == [
+            {
+                "id": str(approval_doc.pk),
+                "name": approval_doc.name,
+                "template": str(approval_doc.template.id),
+                "visible_to_exporter": approval_doc.visible_to_exporter,
+            }
+        ]
+
+    def test_GET_outcome_document_missing(self, get_hawk_client, get_f680_application, team_case_advisor_headers):
+        f680_application = get_f680_application()
+        headers = team_case_advisor_headers(TeamIdEnum.MOD_ECJU)
+
+        url = reverse("caseworker_f680:outcome_document", kwargs={"pk": str(f680_application.id)})
+        api_client, target_url = get_hawk_client("GET", url, data=[])
+        response = api_client.get(target_url, **headers)
+        assert response.status_code == 200
+        assert response.json() == []
+
+    def test_GET_outcome_document_case_missing_404(self, get_hawk_client, team_case_advisor_headers):
+        headers = team_case_advisor_headers(TeamIdEnum.MOD_ECJU)
+        url = reverse("caseworker_f680:outcome_document", kwargs={"pk": uuid4()})
+        api_client, target_url = get_hawk_client("GET", url, data=[])
+        response = api_client.get(target_url, **headers)
+        assert response.status_code == 404

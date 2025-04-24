@@ -1,5 +1,6 @@
 from django.core.exceptions import ObjectDoesNotExist
 from django.http import Http404, HttpResponse
+from api.cases.generated_documents.models import GeneratedCaseDocument
 from rest_framework import status, viewsets
 from rest_framework.response import Response
 
@@ -110,3 +111,20 @@ class F680OutcomeViewSet(viewsets.ModelViewSet):
         response = super().destroy(request, *args, **kwargs)
         # The following makes 204 no content responses play nicely with hawk authentication
         return HttpResponse(status=response.status_code)
+
+
+class F680OutcomeDocumenViewSet(viewsets.ModelViewSet):
+    authentication_classes = (GovAuthentication,)
+    filter_backends = (filters.CurrentCaseFilter,)
+    queryset = GeneratedCaseDocument.objects.all()
+    serializer_class = serializers.OutcomeDocumentSerializer
+    lookup_url_kwarg = "case_id"
+    pagination_class = None
+
+    def dispatch(self, request, *args, **kwargs):
+        try:
+            self.application = get_application(self.kwargs["pk"])
+        except (ObjectDoesNotExist, NotFoundError):
+            raise Http404()
+
+        return super().dispatch(request, *args, **kwargs)
