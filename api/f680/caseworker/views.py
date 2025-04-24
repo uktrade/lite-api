@@ -52,7 +52,7 @@ class F680RecommendationViewSet(viewsets.ModelViewSet):
         from api.audit_trail import service as audit_trail_service
 
         if advice_type:
-            payload = {"additional_text": f"With advice type of {advice_type}"}
+            payload.update({"additional_text": f"With advice type of {advice_type}"})
 
         audit_trail_service.create(
             actor=self.request.user,
@@ -68,12 +68,15 @@ class F680RecommendationViewSet(viewsets.ModelViewSet):
 
         self.perform_create(serializer)
 
-        advice_type_list = [item["type"]["value"] for item in serializer.data]
-        same_advice_type = len(set(advice_type_list)) == 1
-        if same_advice_type:
-            advice_type = serializer.data[0]["type"]["value"]
-
-        self.create_audit(AuditType.CREATE_OGD_F680_RECOMMENDATION, advice_type)
+        # A record of the security release objects impacted by the recommendation for the audit table
+        security_release_request_object_ids = [str(item["security_release_request"]) for item in serializer.data]
+        # Advice type records will all be the same type as serializer does not allowed mixed advice
+        advice_type = serializer.data[0]["type"]["value"]
+        self.create_audit(
+            audit_type=AuditType.CREATE_OGD_F680_RECOMMENDATION,
+            advice_type=advice_type,
+            payload={"security_release_request_object_ids": security_release_request_object_ids},
+        )
 
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
@@ -86,9 +89,17 @@ class F680RecommendationViewSet(viewsets.ModelViewSet):
     def destroy(self, request, *args, **kwargs):
         user = request.user
         qs = self.get_queryset().filter(user_id=user.id, team=user.govuser.team)
+
+        # A record for the audit table of the recommendation_object_ids which have been removed
+        recommendation_ids = [str(recommendation.id) for recommendation in qs]
+
         if qs.exists:
             qs.delete()
-        self.create_audit(AuditType.CLEAR_OGD_F680_RECOMMENDATION)
+
+        self.create_audit(
+            audit_type=AuditType.CLEAR_OGD_F680_RECOMMENDATION,
+            payload={"recommendation_object_ids": recommendation_ids},
+        )
         return HttpResponse(status=status.HTTP_204_NO_CONTENT)
 
 
