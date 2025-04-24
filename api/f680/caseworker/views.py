@@ -48,13 +48,17 @@ class F680RecommendationViewSet(viewsets.ModelViewSet):
             for item in request_data
         ]
 
-    def create_audit(self, audit_type):
+    def create_audit(self, audit_type, advice_type=None, payload=None):
         from api.audit_trail import service as audit_trail_service
+
+        if advice_type:
+            payload = {"additional_text": f"With advice type of {advice_type}"}
 
         audit_trail_service.create(
             actor=self.request.user,
             verb=audit_type,
             target=self.application.get_case(),
+            payload=payload,
         )
 
     def create(self, request, *args, **kwargs):
@@ -63,7 +67,13 @@ class F680RecommendationViewSet(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
 
         self.perform_create(serializer)
-        self.create_audit(AuditType.CREATE_OGD_F680_RECOMMENDATION)
+
+        advice_type_list = [item["type"]["value"] for item in serializer.data]
+        same_advice_type = len(set(advice_type_list)) == 1
+        if same_advice_type:
+            advice_type = serializer.data[0]["type"]["value"]
+
+        self.create_audit(AuditType.CREATE_OGD_F680_RECOMMENDATION, advice_type)
 
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
