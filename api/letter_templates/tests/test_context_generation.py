@@ -1,13 +1,17 @@
-from api.f680.caseworker.serializers import SecurityReleaseRequestSerializer
 import pytest
 
 from datetime import date
+from dateutil.relativedelta import relativedelta
+from freezegun import freeze_time
+
 from django.template.loader import render_to_string
+from django.utils import timezone
 from parameterized import parameterized
 
 from api.applications.enums import ApplicationExportType, ApplicationExportLicenceOfficialType
 from api.applications.models import ExternalLocationOnApplication, GoodOnApplication
 from api.applications.tests.factories import GoodOnApplicationFactory
+from api.f680.caseworker.serializers import SecurityReleaseRequestSerializer
 from api.f680.tests.factories import (
     F680SecurityReleaseOutcomeFactory,
     F680SecurityReleaseRequestFactory,
@@ -19,6 +23,7 @@ from api.letter_templates.context_generator import EcjuQuerySerializer
 from api.cases.tests.factories import FinalAdviceFactory
 
 from api.core.helpers import add_months, DATE_FORMAT, friendly_boolean, get_value_from_enum
+from api.f680.enums import ApprovalTypes
 from api.goods.enums import (
     PvGrading,
     MilitaryUse,
@@ -697,13 +702,22 @@ class DocumentContextGenerationTests(DataTestClient):
         self._assert_base_application_details(context["details"], case)
         self._assert_standard_application_details(context["details"], case)
 
+    @freeze_time("2025-04-22")
     def test_generate_context_with_f680_details(self):
         f680_application = SubmittedF680ApplicationFactory(application={"some": "json"})
 
         approved_release = F680SecurityReleaseRequestFactory(application=f680_application)
         refused_release = F680SecurityReleaseRequestFactory(application=f680_application)
+        all_activities = dict(ApprovalTypes.choices)
+        approved_activities = [
+            ApprovalTypes.INITIAL_DISCUSSION_OR_PROMOTING,
+            ApprovalTypes.DEMONSTRATION_OVERSEAS,
+            ApprovalTypes.TRAINING,
+        ]
 
-        approval_outcome = F680SecurityReleaseOutcomeFactory(case=f680_application, outcome="approve")
+        approval_outcome = F680SecurityReleaseOutcomeFactory(
+            case=f680_application, outcome="approve", approval_types=approved_activities
+        )
         approval_outcome.security_release_requests.set([approved_release])
 
         refusal_outcome = F680SecurityReleaseOutcomeFactory(case=f680_application, outcome="refuse")
@@ -718,6 +732,25 @@ class DocumentContextGenerationTests(DataTestClient):
 
         context = get_document_context(f680_application)
 
+        expected_approval_activities = [
+            {
+                "key": item,
+                "value": all_activities[item],
+                "status": "Approved" if item in approved_activities else "Refused",
+            }
+            for item in approved_release.approval_types
+        ]
+        expected_refusal_activities = [
+            {
+                "key": item,
+                "value": all_activities[item],
+                "status": "Refused",
+            }
+            for item in refused_release.approval_types
+        ]
+        validity_start_date = timezone.now().date().isoformat()
+        validity_end_date = (timezone.now().date() + relativedelta(months=24)).strftime("%d %B %Y")
+
         assert context["details"]["application"] == {"some": "json"}
 
         assert context["details"]["security_release_outcomes"] == {
@@ -728,7 +761,10 @@ class DocumentContextGenerationTests(DataTestClient):
                     "conditions": approval_outcome.conditions,
                     "refusal_reasons": approval_outcome.refusal_reasons,
                     "security_grading": approval_outcome.security_grading,
-                    "approval_types": approval_outcome.approval_types,
+                    "approval_types": expected_approval_activities,
+                    "validity_start_date": validity_start_date,
+                    "validity_end_date": validity_end_date,
+                    "validity_period": 24,
                 }
             ],
             "refuse": [
@@ -738,7 +774,10 @@ class DocumentContextGenerationTests(DataTestClient):
                     "conditions": refusal_outcome.conditions,
                     "refusal_reasons": refusal_outcome.refusal_reasons,
                     "security_grading": refusal_outcome.security_grading,
-                    "approval_types": refusal_outcome.approval_types,
+                    "approval_types": expected_refusal_activities,
+                    "validity_start_date": validity_start_date,
+                    "validity_end_date": validity_end_date,
+                    "validity_period": 0,
                 }
             ],
         }
