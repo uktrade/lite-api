@@ -1,6 +1,5 @@
 import os
 from datetime import datetime
-from pathlib import Path
 import subprocess
 
 from django.conf import settings
@@ -16,7 +15,7 @@ from api.applications.tests.factories import (
     GoodOnApplicationFactory,
     StandardApplicationFactory,
 )
-from api.applications.models import GoodOnApplication, StandardApplication
+from api.applications.models import GoodOnApplication
 from api.audit_trail.tests.factories import AuditFactory
 from api.audit_trail.models import Audit
 from api.audit_trail.enums import AuditType
@@ -25,20 +24,22 @@ from api.cases.models import CaseNote, EcjuQuery, Advice
 from api.documents.tests.factories import DocumentFactory
 from api.documents.models import Document
 from api.document_data.models import DocumentData
+from api.f680.models import F680Application
+from api.f680.tests.factories import SubmittedF680ApplicationFactory
+from api.f680.tests.f680_test_data import APPLICATION_JSON as F680_APPLICATION_JSON
 from api.goods.tests.factories import GoodFactory
 from api.goods.models import Good
 from api.organisations.tests.factories import SiteFactory, OrganisationFactory
 from api.organisations.models import Site, Organisation
 from api.addresses.tests.factories import AddressFactory
 from api.addresses.models import Address
-from api.staticdata.countries.models import Country
 from api.queries.end_user_advisories.tests.factories import EndUserAdvisoryQueryFactory
 from api.queries.end_user_advisories.models import EndUserAdvisoryQuery
 from api.external_data.models import DenialEntity
 from api.parties.tests.factories import PartyFactory
 from api.parties.models import Party
 from api.users.tests.factories import BaseUserFactory, RoleFactory, GovUserFactory
-from api.users.models import BaseUser, GovUser
+from api.users.models import BaseUser
 
 
 # Note: This must inherit from TransactionTestCase - if we use DataTestClient
@@ -129,7 +130,7 @@ class TestAnonymiseDumps(TransactionTestCase):
             country__name="France",
         )
         cls.end_user_advisory_query = EndUserAdvisoryQueryFactory(
-            contact_name="EUA name", contact_telephone="+4499919250102", contact_email="email@example.net"
+            contact_name="EUA name", contact_telephone="+4499919250102", contact_email="email@example.net"  # /PS-IGNORE
         )
         cls.denial_entity = DenialEntityFactory(
             name="denial name",
@@ -140,7 +141,7 @@ class TestAnonymiseDumps(TransactionTestCase):
             name="party name",
             address="party address",
             website="party.website",
-            email="party@email.net",
+            email="party@email.net",  # /PS-IGNORE
             phone_number="+44party_no",
             signatory_name_euu="party signatory",
             details="party details",
@@ -148,7 +149,7 @@ class TestAnonymiseDumps(TransactionTestCase):
         cls.base_user = BaseUserFactory(
             first_name="base user first",
             last_name="base user last",
-            email="base@user.email",
+            email="base@user.email",  # /PS-IGNORE
             phone_number="+44baseuser",
         )
         cls.appeal = AppealFactory(grounds_for_appeal="appeal grounds")
@@ -164,6 +165,11 @@ class TestAnonymiseDumps(TransactionTestCase):
             comment="some goa comment", application=StandardApplicationFactory(), good=cls.good
         )
         cls.create_audit_trail_data()
+        cls.create_f680_data()
+
+    @classmethod
+    def create_f680_data(cls):
+        cls.f680_application = SubmittedF680ApplicationFactory(application=F680_APPLICATION_JSON)
 
     @classmethod
     def create_audit_trail_data(cls):
@@ -186,8 +192,8 @@ class TestAnonymiseDumps(TransactionTestCase):
                 payload={
                     "additional_text": "some text",
                     "advice_type": "refuse",
-                    "firstname": "somefirst",
-                    "lastname": "somelast",
+                    "firstname": "somefirst",  # /PS-IGNORE
+                    "lastname": "somelast",  # /PS-IGNORE
                 },
             ),
             AuditType.CREATED_CASE_NOTE: AuditFactory(
@@ -272,15 +278,15 @@ class TestAnonymiseDumps(TransactionTestCase):
                 verb=AuditType.LU_ADVICE,
                 payload={
                     "advice_type": "proviso",
-                    "firstname": "somefirst",
-                    "lastname": "somelast",
+                    "firstname": "somefirst",  # /PS-IGNORE
+                    "lastname": "somelast",  # /PS-IGNORE
                 },
             ),
             AuditType.LU_COUNTERSIGN: AuditFactory(
                 verb=AuditType.LU_COUNTERSIGN,
                 payload={
-                    "firstname": "somefirst",
-                    "lastname": "somelast",
+                    "firstname": "somefirst",  # /PS-IGNORE
+                    "lastname": "somelast",  # /PS-IGNORE
                     "department": "somedept",
                     "countersign_accepted": True,
                     "order": 1,
@@ -289,8 +295,8 @@ class TestAnonymiseDumps(TransactionTestCase):
             AuditType.LU_CREATE_MEETING_NOTE: AuditFactory(
                 verb=AuditType.LU_CREATE_MEETING_NOTE,
                 payload={
-                    "firstname": "somefirst",
-                    "lastname": "somelast",
+                    "firstname": "somefirst",  # /PS-IGNORE
+                    "lastname": "somelast",  # /PS-IGNORE
                     "advice_type": "proviso",
                     "additional_text": "some text",
                 },
@@ -298,8 +304,8 @@ class TestAnonymiseDumps(TransactionTestCase):
             AuditType.LU_EDIT_ADVICE: AuditFactory(
                 verb=AuditType.LU_EDIT_ADVICE,
                 payload={
-                    "firstname": "somefirst",
-                    "lastname": "somelast",
+                    "firstname": "somefirst",  # /PS-IGNORE
+                    "lastname": "somelast",  # /PS-IGNORE
                     "advice_type": "proviso",
                     "additional_text": "some text",
                 },
@@ -307,8 +313,8 @@ class TestAnonymiseDumps(TransactionTestCase):
             AuditType.LU_EDIT_MEETING_NOTE: AuditFactory(
                 verb=AuditType.LU_EDIT_MEETING_NOTE,
                 payload={
-                    "firstname": "somefirst",
-                    "lastname": "somelast",
+                    "firstname": "somefirst",  # /PS-IGNORE
+                    "lastname": "somelast",  # /PS-IGNORE
                     "advice_type": "proviso",
                     "additional_text": "some text",
                 },
@@ -317,7 +323,7 @@ class TestAnonymiseDumps(TransactionTestCase):
                 verb=AuditType.REGISTER_ORGANISATION,
                 payload={
                     "organisation_name": "some organisation",
-                    "email": "email@example.net",
+                    "email": "email@example.net",  # /PS-IGNORE
                 },
             ),
             AuditType.REJECTED_ORGANISATION: AuditFactory(
@@ -547,8 +553,8 @@ class TestAnonymiseDumps(TransactionTestCase):
     def test_audit_trail_anonymisation_create_refusal_criteria_anonymised(self):
         previous_audit = self.audit_entries[AuditType.CREATE_REFUSAL_CRITERIA]
         updated_audit = Audit.objects.get(id=previous_audit.id)
-        assert updated_audit.payload["firstname"] != previous_audit.payload["firstname"]
-        assert updated_audit.payload["lastname"] != previous_audit.payload["lastname"]
+        assert updated_audit.payload["firstname"] != previous_audit.payload["firstname"]  # /PS-IGNORE
+        assert updated_audit.payload["lastname"] != previous_audit.payload["lastname"]  # /PS-IGNORE
         assert updated_audit.payload["additional_text"] == previous_audit.payload["additional_text"]
 
     def test_audit_trail_anonymisation_created_case_note_anonymised(self):
@@ -623,15 +629,15 @@ class TestAnonymiseDumps(TransactionTestCase):
     def test_audit_trail_anonymisation_lu_advice_anonymised(self):
         previous_audit = self.audit_entries[AuditType.LU_ADVICE]
         updated_audit = Audit.objects.get(id=previous_audit.id)
-        assert updated_audit.payload["firstname"] != previous_audit.payload["firstname"]
-        assert updated_audit.payload["lastname"] != previous_audit.payload["lastname"]
+        assert updated_audit.payload["firstname"] != previous_audit.payload["firstname"]  # /PS-IGNORE
+        assert updated_audit.payload["lastname"] != previous_audit.payload["lastname"]  # /PS-IGNORE
         assert updated_audit.payload["advice_type"] == previous_audit.payload["advice_type"]
 
     def test_audit_trail_anonymisation_lu_countersign_anonymised(self):
         previous_audit = self.audit_entries[AuditType.LU_COUNTERSIGN]
         updated_audit = Audit.objects.get(id=previous_audit.id)
-        assert updated_audit.payload["firstname"] != previous_audit.payload["firstname"]
-        assert updated_audit.payload["lastname"] != previous_audit.payload["lastname"]
+        assert updated_audit.payload["firstname"] != previous_audit.payload["firstname"]  # /PS-IGNORE
+        assert updated_audit.payload["lastname"] != previous_audit.payload["lastname"]  # /PS-IGNORE
         assert updated_audit.payload["countersign_accepted"] == previous_audit.payload["countersign_accepted"]
         assert updated_audit.payload["department"] == previous_audit.payload["department"]
         assert updated_audit.payload["order"] == previous_audit.payload["order"]
@@ -641,24 +647,24 @@ class TestAnonymiseDumps(TransactionTestCase):
         updated_audit = Audit.objects.get(id=previous_audit.id)
         assert updated_audit.payload["additional_text"] == previous_audit.payload["additional_text"]
         assert updated_audit.payload["advice_type"] == previous_audit.payload["advice_type"]
-        assert updated_audit.payload["firstname"] != previous_audit.payload["firstname"]
-        assert updated_audit.payload["lastname"] != previous_audit.payload["lastname"]
+        assert updated_audit.payload["firstname"] != previous_audit.payload["firstname"]  # /PS-IGNORE
+        assert updated_audit.payload["lastname"] != previous_audit.payload["lastname"]  # /PS-IGNORE
 
     def test_audit_trail_anonymisation_lu_edit_advice_anonymised(self):
         previous_audit = self.audit_entries[AuditType.LU_EDIT_ADVICE]
         updated_audit = Audit.objects.get(id=previous_audit.id)
         assert updated_audit.payload["additional_text"] == previous_audit.payload["additional_text"]
         assert updated_audit.payload["advice_type"] == previous_audit.payload["advice_type"]
-        assert updated_audit.payload["firstname"] != previous_audit.payload["firstname"]
-        assert updated_audit.payload["lastname"] != previous_audit.payload["lastname"]
+        assert updated_audit.payload["firstname"] != previous_audit.payload["firstname"]  # /PS-IGNORE
+        assert updated_audit.payload["lastname"] != previous_audit.payload["lastname"]  # /PS-IGNORE
 
     def test_audit_trail_anonymisation_lu_edit_meeting_note_anonymised(self):
         previous_audit = self.audit_entries[AuditType.LU_EDIT_MEETING_NOTE]
         updated_audit = Audit.objects.get(id=previous_audit.id)
         assert updated_audit.payload["additional_text"] == previous_audit.payload["additional_text"]
         assert updated_audit.payload["advice_type"] == previous_audit.payload["advice_type"]
-        assert updated_audit.payload["firstname"] != previous_audit.payload["firstname"]
-        assert updated_audit.payload["lastname"] != previous_audit.payload["lastname"]
+        assert updated_audit.payload["firstname"] != previous_audit.payload["firstname"]  # /PS-IGNORE
+        assert updated_audit.payload["lastname"] != previous_audit.payload["lastname"]  # /PS-IGNORE
 
     def test_audit_trail_anonymisation_register_organisation_anonymised(self):
         previous_audit = self.audit_entries[AuditType.REGISTER_ORGANISATION]
@@ -734,3 +740,25 @@ class TestAnonymiseDumps(TransactionTestCase):
         assert updated_audit.payload["file_name"] != previous_audit.payload["file_name"]
         assert updated_audit.payload["party_name"] != previous_audit.payload["party_name"]
         assert updated_audit.payload["party_type"] == previous_audit.payload["party_type"]
+
+    def test_f680_application_anonymisation_user_items_anonymised(self):
+        previous_f680 = self.f680_application
+        updated_f680 = F680Application.objects.get(id=previous_f680.id)
+        previous_f680_user_items = previous_f680.application["sections"]["user_information"]["items"]
+        updated_f680_user_items = updated_f680.application["sections"]["user_information"]["items"]
+        zipped_user_items = zip(previous_f680_user_items, updated_f680_user_items)
+        for previous_user_item, updated_user_item in zipped_user_items:
+            assert previous_user_item["id"] == updated_user_item["id"]
+            assert (
+                previous_user_item["fields"]["address"]["raw_answer"]
+                != updated_user_item["fields"]["address"]["raw_answer"]
+            )
+            assert previous_user_item["fields"]["address"]["answer"] != updated_user_item["fields"]["address"]["answer"]
+            assert (
+                previous_user_item["fields"]["end_user_name"]["raw_answer"]
+                != updated_user_item["fields"]["end_user_name"]["raw_answer"]
+            )
+            assert (
+                previous_user_item["fields"]["end_user_name"]["answer"]
+                != updated_user_item["fields"]["end_user_name"]["answer"]
+            )

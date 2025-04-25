@@ -3,6 +3,7 @@ config:
     - django_db_anonymiser.db_anonymiser
     - api.goods
     - api.audit_trail
+    - api.f680
   extra_parameters:
     pg_dump:
         - "--exclude-table-data=document_data_documentdata"
@@ -65,3 +66,5 @@ strategy:
     comment: faker.text
   audit_trail_audit:
     payload: audit_trail_anonymisers.payload
+  f680_f680application:
+    application: f680_anonymisers.application
