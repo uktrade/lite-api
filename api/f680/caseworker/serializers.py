@@ -112,7 +112,9 @@ class F680RecommendationSerializer(serializers.ModelSerializer):
     user = PrimaryKeyRelatedField(queryset=GovUser.objects.filter(status=UserStatuses.ACTIVE))
     team = PrimaryKeyRelatedField(queryset=Team.objects.all())
     type = KeyValueChoiceField(choices=enums.RecommendationType.choices)
-    security_grading = KeyValueChoiceField(choices=enums.SecurityGrading.security_release_choices)
+    security_grading = KeyValueChoiceField(
+        choices=enums.SecurityGrading.security_release_choices, allow_blank=True, allow_null=True
+    )
     security_grading_other = serializers.CharField(allow_blank=True, allow_null=True, required=False)
     conditions = serializers.CharField(allow_blank=True, allow_null=True)
     refusal_reasons = serializers.CharField(allow_blank=True, allow_null=True)
@@ -134,9 +136,11 @@ class F680RecommendationSerializer(serializers.ModelSerializer):
         )
         read_only_fields = ["id"]
 
-    def validate_security_grading(self, data):
-        if not data:
+    def validate(self, data):
+        if data["type"] == enums.RecommendationType.APPROVE and not data["security_grading"]:
             raise serializers.ValidationError("security_grading is required for recommendation")
+
+        return data
 
 
 class SecurityReleaseOutcomeSerializer(serializers.ModelSerializer):

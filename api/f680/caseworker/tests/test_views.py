@@ -342,6 +342,29 @@ class TestF680RecommendationViewSet:
         assert response.status_code == 400
         assert response.json()["errors"] == errors
 
+    def test_POST_recommendation_responds_400(
+        self, get_hawk_client, get_f680_application, url, team_case_advisor_headers
+    ):
+        f680_application = get_f680_application()
+
+        headers = team_case_advisor_headers(TeamIdEnum.MOD_CAPPROT)
+        release_request = f680_application.security_release_requests.first()
+        data = [
+            {
+                "type": enums.RecommendationType.APPROVE,
+                "security_grading": "",
+                "conditions": "No concerns",
+                "security_release_request": str(release_request.id),
+                "refusal_reasons": "",
+            },
+        ]
+        api_client, target_url = get_hawk_client("POST", url(f680_application), data=data)
+        response = api_client.post(target_url, data, **headers)
+        assert response.status_code == 400
+        assert response.json() == {
+            "errors": [{"non_field_errors": ["security_grading is required for recommendation"]}]
+        }
+
     def test_POST_recommendation_invalid_application_raises_error(self, get_hawk_client, team_case_advisor_headers):
         url = reverse(
             "caseworker_f680:recommendation", kwargs={"pk": "138d3a5f-5b5d-457d-8db0-723e14b36de4"}  # /PS-IGNORE
