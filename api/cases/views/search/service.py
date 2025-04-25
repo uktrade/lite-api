@@ -3,8 +3,14 @@ from typing import List, Dict
 
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
-from django.db.models import Count, F, Value
+from django.db.models import (
+    Count,
+    F,
+    Value,
+    Window,
+)
 from django.db.models.functions import Concat
+from django.db.models.functions.window import RowNumber
 from django.utils import timezone
 from api.audit_trail.service import serialize_case_activity
 from api.staticdata.countries.serializers import CountrySerializer
@@ -241,6 +247,11 @@ def populate_activity_updates(case_map):
     """
     case_ids = list(case_map.keys())
     activities_qs = Audit.objects.get_latest_activities(case_ids, 2)
+    activities_qs = (
+        activities_qs.annotate(case_row=Window(expression=RowNumber(), partition_by=["case"], order_by="-created_at"))
+        .filter(case_row__lte=2)
+        .order_by("case__pk", "case_row")
+    )
     # get users data for activities en bulk to reduce query count
     user_ids = {str(activity.actor_object_id) for activity in activities_qs}
     users = BaseUser.objects.select_related("exporteruser", "govuser", "govuser__team").filter(id__in=user_ids)
