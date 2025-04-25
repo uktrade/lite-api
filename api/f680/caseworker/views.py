@@ -66,7 +66,7 @@ class F680RecommendationViewSet(viewsets.ModelViewSet):
             target=self.application.get_case(),
             payload={
                 "security_release_request_ids": security_release_request_ids,
-                "additional_text": f"With advice type of {recommendation_type}",
+                "additional_text": f"Recommendation type added was {recommendation_type}",
             },
         )
 
