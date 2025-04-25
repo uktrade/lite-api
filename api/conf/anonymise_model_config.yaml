@@ -68,3 +68,6 @@ strategy:
     payload: audit_trail_anonymisers.payload
   f680_f680application:
     application: f680_anonymisers.application
+  f680_recipient:
+    name: faker.name
+    address: faker.address
