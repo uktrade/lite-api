@@ -48,11 +48,11 @@ class F680RecommendationViewSet(viewsets.ModelViewSet):
             for item in request_data
         ]
 
-    def create_audit(self, audit_type, advice_type=None, payload=None):
+    def create_audit(self, audit_type, recommendation_type=None, payload=None):
         from api.audit_trail import service as audit_trail_service
 
-        if advice_type:
-            payload.update({"additional_text": f"With advice type of {advice_type}"})
+        if recommendation_type:
+            payload.update({"additional_text": f"With advice type of {recommendation_type}"})
 
         audit_trail_service.create(
             actor=self.request.user,
@@ -70,11 +70,11 @@ class F680RecommendationViewSet(viewsets.ModelViewSet):
 
         # A record of the security release objects impacted by the recommendation for the audit table
         security_release_request_object_ids = [str(item["security_release_request"]) for item in serializer.data]
-        # Advice type records will all be the same type as serializer does not allowed mixed advice
-        advice_type = serializer.data[0]["type"]["value"]
+        # Recommendation  type records will all be the same type as serializer does not allowed mixed advice
+        recommendation_type = serializer.data[0]["type"]["value"]
         self.create_audit(
             audit_type=AuditType.CREATE_OGD_F680_RECOMMENDATION,
-            advice_type=advice_type,
+            advice_type=recommendation_type,
             payload={"security_release_request_object_ids": security_release_request_object_ids},
         )
 
