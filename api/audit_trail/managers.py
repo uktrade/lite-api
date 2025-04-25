@@ -1,7 +1,14 @@
 from typing import List
 from actstream.gfk import GFKQuerySet, GFKManager
 from django.contrib.contenttypes.models import ContentType
-from django.db.models import Q, OuterRef
+from django.db.models import (
+    Case as DBCase,
+    F,
+    Q,
+    When,
+    Window,
+)
+from django.db.models.functions.window import RowNumber
 
 from api.cases.models import Case
 from api.staticdata.statuses.libraries.case_status_validate import is_case_status_draft
@@ -40,20 +47,20 @@ class AuditManager(GFKManager):
 
     def get_latest_activities(self, case_ids: List, number_of_results):
         obj_type = ContentType.objects.get_for_model(Case)
-        top_x_per_case = (
+
+        latest_activities = (
             self.get_queryset()
-            .filter(
-                Q(action_object_object_id=OuterRef("action_object_object_id"), action_object_content_type=obj_type)
-                | Q(target_object_id=OuterRef("target_object_id"), target_content_type=obj_type)
+            .filter(Q(action_object_content_type=obj_type) | Q(target_content_type=obj_type))
+            .annotate(
+                activity_case_id=DBCase(
+                    When(target_content_type=obj_type, then=F("target_object_id")),
+                    When(action_object_content_type=obj_type, then=F("action_object_object_id")),
+                )
             )
-            .order_by("-updated_at")
+            .annotate(
+                case_row=Window(expression=RowNumber(), partition_by=["activity_case_id"], order_by="-created_at")
+            )
+            .filter(case_row__lte=number_of_results, activity_case_id__in=case_ids)
         )
-        if number_of_results > 1:
-            # iterate over audit records once and add max of 'number_of_results' matching
-            # action_object_content_type or target_content_type (up to 2x'number_of_results' total)
-            top_x_per_case[:number_of_results]
-        return self.get_queryset().filter(
-            Q(id__in=top_x_per_case.values("id")),
-            Q(target_object_id__in=case_ids, target_content_type=obj_type)
-            | Q(action_object_object_id__in=case_ids, action_object_content_type=obj_type),
-        )
+
+        return latest_activities.order_by("activity_case_id", "case_row")
