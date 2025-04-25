@@ -8,6 +8,7 @@ from django.utils import timezone
 from freezegun import freeze_time
 
 from api.audit_trail.models import Audit
+from api.audit_trail.enums import AuditType
 from api.f680 import enums
 from api.f680.models import Recommendation, SecurityReleaseOutcome
 from api.f680.tests.factories import (
@@ -246,7 +247,7 @@ class TestF680RecommendationViewSet:
         notes_and_timelines_message = audit_record.payload["additional_text"]
         audit_security_release_ids = audit_record.payload["security_release_request_ids"]
 
-        assert audit_record.verb == "create_ogd_f680_recommendation"
+        assert audit_record.verb == AuditType.CREATE_OGD_F680_RECOMMENDATION
         assert notes_and_timelines_message == expected_result_message
         assert audit_security_release_ids == [str(item.id) for item in f680_application.security_release_requests.all()]
 
@@ -295,7 +296,7 @@ class TestF680RecommendationViewSet:
         notes_and_timelines_message = audit_record.payload["additional_text"]
         audit_security_release_ids = audit_record.payload["security_release_request_ids"]
 
-        assert audit_record.verb == "create_ogd_f680_recommendation"
+        assert audit_record.verb == AuditType.CREATE_OGD_F680_RECOMMENDATION
         assert notes_and_timelines_message == expected_result_message
         assert (
             audit_security_release_ids
@@ -312,7 +313,7 @@ class TestF680RecommendationViewSet:
         audit_security_release_ids = audit_record.payload["security_release_request_ids"]
         notes_and_timelines_message = audit_record.payload["additional_text"]
 
-        assert audit_record.verb == "create_ogd_f680_recommendation"
+        assert audit_record.verb == AuditType.CREATE_OGD_F680_RECOMMENDATION
         assert notes_and_timelines_message == expected_result_message
         assert audit_security_release_ids == [str(item.id) for item in f680_application.security_release_requests.all()]
 
@@ -361,7 +362,7 @@ class TestF680RecommendationViewSet:
             notes_and_timelines_message = audit_record.payload["additional_text"]
             audit_security_release_ids = audit_record.payload["security_release_request_ids"]
 
-            assert audit_record.verb == "create_ogd_f680_recommendation"
+            assert audit_record.verb == AuditType.CREATE_OGD_F680_RECOMMENDATION
             assert notes_and_timelines_message == expected_result_message
             assert (
                 audit_security_release_ids[-2:]
@@ -449,6 +450,12 @@ class TestF680RecommendationViewSet:
         response = api_client.delete(target_url, **headers)
         assert response.status_code == 204
         assert f680_application.recommendations.count() == 0
+
+        audit_record = Audit.objects.get(target_object_id=str(f680_application.id))
+        audit_security_release_ids = audit_record.payload["security_release_request_ids"]
+
+        assert audit_record.verb == AuditType.CLEAR_OGD_F680_RECOMMENDATION
+        assert audit_security_release_ids == [str(item.id) for item in f680_application.security_release_requests.all()]
 
 
 class TestF680OutcomeViewSet:
