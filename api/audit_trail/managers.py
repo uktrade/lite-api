@@ -48,19 +48,26 @@ class AuditManager(GFKManager):
     def get_latest_activities(self, case_ids: List, number_of_results):
         obj_type = ContentType.objects.get_for_model(Case)
 
-        latest_activities = (
-            self.get_queryset()
-            .filter(Q(action_object_content_type=obj_type) | Q(target_content_type=obj_type))
-            .annotate(
-                activity_case_id=DBCase(
-                    When(target_content_type=obj_type, then=F("target_object_id")),
-                    When(action_object_content_type=obj_type, then=F("action_object_object_id")),
-                )
-            )
-            .annotate(
-                case_row=Window(expression=RowNumber(), partition_by=["activity_case_id"], order_by="-created_at")
-            )
-            .filter(case_row__lte=number_of_results, activity_case_id__in=case_ids)
-        )
+        all_activities = self.get_queryset()
 
-        return latest_activities.order_by("activity_case_id", "case_row")
+        # We only care about audit records that are linked to a case, however they may be linked via either the target
+        # relation or the action relation.
+        # First we filter to find all of the ones that are related to a case and then simplify this down to a single
+        # value for the case id relation.
+        case_related_activities = all_activities.filter(
+            Q(action_object_content_type=obj_type) | Q(target_content_type=obj_type)
+        )
+        case_related_activities = case_related_activities.annotate(
+            activity_case_id=DBCase(
+                When(target_content_type=obj_type, then=F("target_object_id")),
+                When(action_object_content_type=obj_type, then=F("action_object_object_id")),
+            )
+        )
+        case_related_activities = case_related_activities.filter(activity_case_id__in=case_ids)
+
+        # We can now find the latest `n` activities using a window function.
+        top_n_activities = case_related_activities.annotate(
+            case_row=Window(expression=RowNumber(), partition_by=["activity_case_id"], order_by="-created_at")
+        ).filter(case_row__lte=number_of_results)
+
+        return top_n_activities.order_by("activity_case_id", "case_row")
