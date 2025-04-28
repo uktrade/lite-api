@@ -481,6 +481,12 @@ class CaseGetTests(DataTestClient):
                 "email": application.submitted_by.email,
                 "pending": application.submitted_by.pending,
             },
+            "case_type": {
+                "id": str(application.case_type_id),
+                "reference": {"key": "f680", "value": "MOD F680 Clearance"},
+                "type": {"key": "security_clearance", "value": "Security Clearance"},
+                "sub_type": {"key": "f680_clearance", "value": "MOD F680 Clearance"},
+            },
         }
         self.assertEqual(response_data["case"]["data"], expected_case_data)
 
@@ -556,6 +562,12 @@ class CaseGetTests(DataTestClient):
                 "last_name": application.submitted_by.last_name,
                 "email": application.submitted_by.email,
                 "pending": application.submitted_by.pending,
+            },
+            "case_type": {
+                "id": str(application.case_type_id),
+                "reference": {"key": "f680", "value": "MOD F680 Clearance"},
+                "type": {"key": "security_clearance", "value": "Security Clearance"},
+                "sub_type": {"key": "f680_clearance", "value": "MOD F680 Clearance"},
             },
         }
         self.assertEqual(response_data["case"]["data"], expected_case_data)

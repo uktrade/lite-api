@@ -32,10 +32,24 @@ class LicenceDecisionSerializer(serializers.ModelSerializer):
         )
 
     def get_licence_id(self, licence_decision) -> typing.Optional[uuid.UUID]:
-        if licence_decision.decision in [LicenceDecisionType.REFUSED]:
+        # A refusal won't have a licence generated as only an approved
+        # application ends up with a licence so we can return early.
+        if licence_decision.decision == LicenceDecisionType.REFUSED:
             return None
 
-        latest_decision = licence_decision.case.unexcluded_licence_decisions[0]
+        unexcluded_licence_decisions = licence_decision.case.unexcluded_licence_decisions
+        if licence_decision.decision == LicenceDecisionType.ISSUED:
+            # There is a potential edge case here where an issued licence has
+            # been ultimately refused because the case was re-opened for changes
+            # and those changes resulted in a refusal.
+            # In this case we want to only get the latest licences of all the
+            # issued decisions instead of potentially returning `None` for the
+            # refusal decision.
+            unexcluded_licence_decisions = [
+                ld for ld in unexcluded_licence_decisions if ld.decision == LicenceDecisionType.ISSUED
+            ]
+
+        latest_decision = unexcluded_licence_decisions[0]
         if not latest_decision.licence:
             return None
 

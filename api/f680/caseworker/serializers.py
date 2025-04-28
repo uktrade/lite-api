@@ -74,6 +74,12 @@ class F680ApplicationSerializer(serializers.ModelSerializer):
     submitted_by = RelatedExporterUserSerializer(read_only=True)
     security_release_requests = SecurityReleaseRequestSerializer(many=True)
     product = ProductSerializer(source="get_product")
+    case_type = serializers.SerializerMethodField()
+
+    def get_case_type(self, instance):
+        from api.cases.serializers import CaseTypeSerializer
+
+        return CaseTypeSerializer(instance.case_type).data
 
     class Meta:
         model = F680Application
@@ -88,8 +94,17 @@ class F680ApplicationSerializer(serializers.ModelSerializer):
             "name",
             "security_release_requests",
             "product",
+            "case_type",
         ]
-        read_only_fields = ["id", "status", "reference_code", "organisation", "submitted_at", "submitted_by"]
+        read_only_fields = [
+            "id",
+            "status",
+            "reference_code",
+            "organisation",
+            "submitted_at",
+            "submitted_by",
+            "case_type",
+        ]
 
 
 class F680RecommendationSerializer(serializers.ModelSerializer):
@@ -97,6 +112,10 @@ class F680RecommendationSerializer(serializers.ModelSerializer):
     user = PrimaryKeyRelatedField(queryset=GovUser.objects.filter(status=UserStatuses.ACTIVE))
     team = PrimaryKeyRelatedField(queryset=Team.objects.all())
     type = KeyValueChoiceField(choices=enums.RecommendationType.choices)
+    security_grading = KeyValueChoiceField(
+        choices=enums.SecurityGrading.security_release_choices, allow_blank=True, allow_null=True
+    )
+    security_grading_other = serializers.CharField(allow_blank=True, allow_null=True, required=False)
     conditions = serializers.CharField(allow_blank=True, allow_null=True)
     refusal_reasons = serializers.CharField(allow_blank=True, allow_null=True)
     security_release_request = PrimaryKeyRelatedField(queryset=SecurityReleaseRequest.objects.all())
@@ -106,6 +125,8 @@ class F680RecommendationSerializer(serializers.ModelSerializer):
         fields = (
             "id",
             "type",
+            "security_grading",
+            "security_grading_other",
             "conditions",
             "refusal_reasons",
             "user",
@@ -114,6 +135,12 @@ class F680RecommendationSerializer(serializers.ModelSerializer):
             "security_release_request",
         )
         read_only_fields = ["id"]
+
+    def validate(self, data):
+        if data["type"] == enums.RecommendationType.APPROVE and not data["security_grading"]:
+            raise serializers.ValidationError("security_grading is required for recommendation")
+
+        return data
 
 
 class SecurityReleaseOutcomeSerializer(serializers.ModelSerializer):
