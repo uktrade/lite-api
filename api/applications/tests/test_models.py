@@ -12,7 +12,10 @@ from test_helpers.clients import DataTestClient
 from api.appeals.tests.factories import AppealFactory
 from api.applications.exceptions import AmendmentError
 from api.audit_trail.models import Audit
-from api.cases.models import CaseType, Queue
+from api.cases.models import (
+    CaseType,
+    Queue,
+)
 from api.flags.models import Flag
 from api.applications.models import (
     ApplicationDocument,
@@ -33,14 +36,23 @@ from api.applications.tests.factories import (
     GoodOnApplicationFactory,
     PartyOnApplicationFactory,
 )
-from api.users.models import GovUser, ExporterUser
+from api.users.models import (
+    ExporterUser,
+    GovUser,
+)
 from api.goods.tests.factories import FirearmFactory
 from api.organisations.tests.factories import OrganisationFactory
 from api.staticdata.control_list_entries.models import ControlListEntry
-from api.staticdata.report_summaries.models import ReportSummary, ReportSummaryPrefix, ReportSummarySubject
-from api.staticdata.statuses.models import CaseStatus, CaseSubStatus
-from api.staticdata.statuses.enums import (
-    CaseStatusEnum,
+from api.staticdata.report_summaries.models import (
+    ReportSummary,
+    ReportSummaryPrefix,
+    ReportSummarySubject,
+)
+from api.staticdata.statuses.enums import CaseStatusEnum
+from api.staticdata.statuses.factories import CaseStatusFactory
+from api.staticdata.statuses.models import (
+    CaseStatus,
+    CaseSubStatus,
 )
 from api.users.tests.factories import SystemUserFactory
 
@@ -602,6 +614,7 @@ class TestPartyOnApplication(DataTestClient):
 class TestStandardApplicationRaceConditions(TransactionTestCase):
     def test_create_amendment_race_condition_success(self):
         SystemUserFactory()
+        CaseStatusFactory(status=CaseStatusEnum.DRAFT)
 
         original_application = StandardApplicationFactory()
 
