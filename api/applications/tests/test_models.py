@@ -12,6 +12,11 @@ from test_helpers.clients import DataTestClient
 from api.appeals.tests.factories import AppealFactory
 from api.applications.exceptions import AmendmentError
 from api.audit_trail.models import Audit
+from api.cases.enums import (
+    CaseTypeEnum,
+    CaseTypeReferenceEnum,
+    CaseTypeSubTypeEnum,
+)
 from api.cases.models import (
     CaseType,
     Queue,
@@ -48,7 +53,10 @@ from api.staticdata.report_summaries.models import (
     ReportSummaryPrefix,
     ReportSummarySubject,
 )
-from api.staticdata.statuses.enums import CaseStatusEnum
+from api.staticdata.statuses.enums import (
+    CaseStatusEnum,
+    CaseStatusIdEnum,
+)
 from api.staticdata.statuses.factories import CaseStatusFactory
 from api.staticdata.statuses.models import (
     CaseStatus,
@@ -614,7 +622,27 @@ class TestPartyOnApplication(DataTestClient):
 class TestStandardApplicationRaceConditions(TransactionTestCase):
     def test_create_amendment_race_condition_success(self):
         SystemUserFactory()
-        CaseStatusFactory(status=CaseStatusEnum.DRAFT)
+
+        CaseType.objects.get_or_create(
+            id=CaseTypeEnum.SIEL.id,
+            defaults={
+                "sub_type": CaseTypeSubTypeEnum.STANDARD,
+                "reference": CaseTypeReferenceEnum.SIEL,
+            },
+        )
+
+        CaseStatusFactory(
+            id=CaseStatusIdEnum.DRAFT,
+            status=CaseStatusEnum.DRAFT,
+        )
+        CaseStatusFactory(
+            id=CaseStatusIdEnum.SUBMITTED,
+            status=CaseStatusEnum.SUBMITTED,
+        )
+        CaseStatusFactory(
+            id=CaseStatusIdEnum.SUPERSEDED_BY_EXPORTER_EDIT,
+            status=CaseStatusEnum.SUPERSEDED_BY_EXPORTER_EDIT,
+        )
 
         original_application = StandardApplicationFactory()
 
