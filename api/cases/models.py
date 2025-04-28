@@ -533,7 +533,7 @@ class Case(TimestampableModel):
         return super().delete(*args, **kwargs)
 
     def get_application_manifest(self):
-        application_manifest = application_manifest_registry.get_manifest(self.case_type.sub_type)
+        application_manifest = application_manifest_registry.get_manifest(self.case_type.reference)
         return application_manifest
 
     def get_application(self):
