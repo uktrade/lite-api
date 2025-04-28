@@ -266,6 +266,7 @@ class CaseTypeEnum:
         OGTL,
         COMPLIANCE_SITE,
         COMPLIANCE_VISIT,
+        EXPORT_LICENCE,
     ]
 
     OPEN_GENERAL_LICENCE_IDS = [OGEL.id, OGTCL.id, OGTL.id]

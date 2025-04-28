@@ -45,7 +45,7 @@ class ApplicationPartyView(APIView):
         data = request.data
         data["organisation"] = get_request_user_organisation_id(request)
 
-        serializer = PartySerializer(data=data, application_type=application.case_type.sub_type)
+        serializer = PartySerializer(data=data)
 
         if serializer.is_valid(raise_exception=True):
             if str_to_bool(data.get("validate_only", False)):
