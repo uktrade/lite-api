@@ -79,15 +79,16 @@ Scenario: Licence issued after an appeal and re-issued again
         | f0bc0c1e-c9c5-4a90-b4c8-81a7f3cbe1e7 | 03fb08eb-1564-4b68-9336-3ca8906543f9 | issued_on_appeal  | 2024-11-29T10:20:09   | 27b79b32-1ce8-45a3-b7eb-18947bed2fcb |
 
 
-# [ISSUED, REVOKED]
+# [ISSUED, REFUSED]
 Scenario: Licence is issued and refused case
     Given a draft standard application with attributes:
         | name | value                                |
         | id   | 03fb08eb-1564-4b68-9336-3ca8906543f9 |
     When the application is submitted at 2024-10-01T11:20:15
     And the application is issued at 2024-11-22T13:35:15
-    And the application is refused at 2024-11-22T13:35:15
+    And the application is re-opened at 2024-11-22T14:01:12
+    And the application is refused at 2024-11-22T15:22:10
     Then the `licence_decisions` table has the following rows:
         | id                                   | application_id                       | decision     | decision_made_at      | licence_id                            |
         | ebd27511-7be3-4e5c-9ce9-872ad22811a1 | 03fb08eb-1564-4b68-9336-3ca8906543f9 | issued       | 2024-11-22T13:35:15   | 1b2f95c3-9cd2-4dee-b134-a79786f78c06  |
-        | 4ea4261f-03f2-4baf-8784-5ec4b352d358 | 03fb08eb-1564-4b68-9336-3ca8906543f9 | refused      | 2024-11-22T13:35:15   | None                                  |
+        | 4ea4261f-03f2-4baf-8784-5ec4b352d358 | 03fb08eb-1564-4b68-9336-3ca8906543f9 | refused      | 2024-11-22T15:22:10   | None                                  |

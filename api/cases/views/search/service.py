@@ -3,7 +3,11 @@ from typing import List, Dict
 
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
-from django.db.models import Count, F, Value
+from django.db.models import (
+    Count,
+    F,
+    Value,
+)
 from django.db.models.functions import Concat
 from django.utils import timezone
 from api.audit_trail.service import serialize_case_activity
@@ -241,28 +245,16 @@ def populate_activity_updates(case_map):
     """
     case_ids = list(case_map.keys())
     activities_qs = Audit.objects.get_latest_activities(case_ids, 2)
+
     # get users data for activities en bulk to reduce query count
     user_ids = {str(activity.actor_object_id) for activity in activities_qs}
     users = BaseUser.objects.select_related("exporteruser", "govuser", "govuser__team").filter(id__in=user_ids)
     user_map = {str(user.id): user for user in users}
 
     for activity in activities_qs:
-        case_id = None
-        # get case id from either of the audit record fields
-        if str(activity.target_object_id) in case_ids:
-            case_id = str(activity.target_object_id)
-        else:
-            case_id = str(activity.action_object_object_id)
-        # prepopulate actor for AuditSerializer
         actor = user_map[str(activity.actor_object_id)]
         activity_obj = serialize_case_activity(activity, actor)
-        case = case_map[case_id]
-        if "activity_updates" in case:
-            case["activity_updates"].append(activity_obj)
-        else:
-            case["activity_updates"] = [activity_obj]
-    # filter down to 2 most recent records only
-    for case in case_map.values():
-        if "activity_updates" in case:
-            case["activity_updates"] = sorted(case["activity_updates"], key=lambda d: d["created_at"], reverse=True)
-            case["activity_updates"] = case["activity_updates"][:2]
+
+        case = case_map[str(activity.activity_case_id)]
+        activity_updates = case.setdefault("activity_updates", [])
+        activity_updates.append(activity_obj)

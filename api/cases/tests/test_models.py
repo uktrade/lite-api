@@ -1,19 +1,58 @@
+import concurrent.futures
+import pytest
+
 from unittest import mock
 from uuid import UUID
+
+from parameterized import parameterized
+
+from django.test import TransactionTestCase
+
 from api.audit_trail.enums import AuditType
 from api.audit_trail.models import Audit
 from api.audit_trail.serializers import AuditSerializer
-from parameterized import parameterized
-
 from api.applications.application_manifest import StandardApplicationManifest
 from api.applications.tests.factories import StandardApplicationFactory
-from api.cases.models import BadSubStatus, Case
-from api.cases.tests.factories import CaseFactory
+from api.cases.models import (
+    BadSubStatus,
+    Case,
+    LicenceDecision,
+)
+from api.cases.enums import (
+    AdviceType,
+    CaseTypeSubTypeEnum,
+)
+from api.cases.tests.factories import (
+    CaseFactory,
+    CaseTypeFactory,
+)
 from api.f680.application_manifest import F680ApplicationManifest
 from api.f680.tests.factories import SubmittedF680ApplicationFactory
-from api.staticdata.statuses.enums import CaseStatusEnum, CaseSubStatusIdEnum
-from api.staticdata.statuses.models import CaseStatus, CaseSubStatus
-from api.users.models import ExporterUser
+from api.licences.enums import LicenceStatus
+from api.licences.tests.factories import StandardLicenceFactory
+from api.staticdata.decisions.models import Decision
+from api.staticdata.statuses.enums import (
+    CaseStatusEnum,
+    CaseSubStatusIdEnum,
+)
+from api.staticdata.statuses.factories import (
+    CaseStatusFactory,
+    CaseSubStatusFactory,
+)
+from api.staticdata.statuses.models import (
+    CaseStatus,
+    CaseSubStatus,
+)
+from api.users.enums import SystemUser
+from api.users.models import (
+    BaseUser,
+    ExporterUser,
+)
+from api.users.tests.factories import (
+    ExporterUserFactory,
+    GovUserFactory,
+    RoleFactory,
+)
 from test_helpers.clients import DataTestClient
 
 
@@ -197,3 +236,101 @@ class CaseTests(DataTestClient):
         case = Case.objects.get(id=application.id)
         retrieved_application = case.get_application()
         assert retrieved_application == application
+
+
+@pytest.mark.requires_transactions
+class CaseRaceConditionTests(TransactionTestCase):
+    def setUp(self):
+        super().setUp()
+
+        BaseUser.objects.get_or_create(
+            id=SystemUser.id,
+            defaults={
+                "email": "lite@example.com",  # /PS-IGNORE
+            },
+        )
+        RoleFactory(id="00000000-0000-0000-0000-000000000001")
+
+        Decision.objects.get_or_create(name=AdviceType.APPROVE)
+
+        self.case_type = CaseTypeFactory(sub_type=CaseTypeSubTypeEnum.STANDARD)
+
+        self.draft_case_status = CaseStatusFactory(status=CaseStatusEnum.DRAFT)
+        self.under_final_review_case_status = CaseStatusFactory(status=CaseStatusEnum.UNDER_FINAL_REVIEW)
+        self.finalised_case_status = CaseStatusFactory(status=CaseStatusEnum.FINALISED)
+
+        self.exporter_user = ExporterUserFactory()
+        self.gov_user = GovUserFactory()
+
+        self.finalised_approved_sub_status = CaseSubStatusFactory(
+            id=CaseSubStatusIdEnum.FINALISED__APPROVED,
+            name="Finalised - Approved",
+            parent_status=self.finalised_case_status,
+        )
+        self.finalised_refused_sub_status = CaseSubStatusFactory(
+            id=CaseSubStatusIdEnum.FINALISED__REFUSED,
+            name="Finalised - Refused",
+            parent_status=self.finalised_case_status,
+        )
+
+    def test_finalise_approved_case_race_condition(self):
+        case = CaseFactory(
+            case_type=self.case_type,
+            status=self.under_final_review_case_status,
+            submitted_by=self.exporter_user,
+        )
+        original_case = Case.objects.get(pk=case.pk)
+        same_case = Case.objects.get(pk=case.pk)
+
+        licence = StandardLicenceFactory(
+            case=case,
+            status=LicenceStatus.DRAFT,
+        )
+
+        def _finalise(case):
+            return case.finalise(self.gov_user, {AdviceType.APPROVE}, "Note")
+
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            future_1 = executor.submit(_finalise, original_case)
+            future_2 = executor.submit(_finalise, same_case)
+
+            licence_id_1 = future_1.result()
+            licence_id_2 = future_2.result()
+
+        original_case.refresh_from_db()
+        self.assertEqual(original_case.status, self.finalised_case_status)
+        self.assertEqual(
+            LicenceDecision.objects.count(),
+            1,
+        )
+        self.assertEqual(licence_id_1, licence.pk)
+        self.assertEqual(licence_id_2, licence.pk)
+
+    def test_finalise_refused_case_race_condition(self):
+        case = CaseFactory(
+            case_type=self.case_type,
+            status=self.under_final_review_case_status,
+            submitted_by=self.exporter_user,
+        )
+
+        original_case = Case.objects.get(pk=case.pk)
+        same_case = Case.objects.get(pk=case.pk)
+
+        def _finalise(case):
+            return case.finalise(self.gov_user, {AdviceType.REFUSE}, "Note")
+
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            future_1 = executor.submit(_finalise, original_case)
+            future_2 = executor.submit(_finalise, same_case)
+
+            licence_id_1 = future_1.result()
+            licence_id_2 = future_2.result()
+
+        original_case.refresh_from_db()
+        self.assertEqual(original_case.status, self.finalised_case_status)
+        self.assertEqual(
+            LicenceDecision.objects.count(),
+            1,
+        )
+        self.assertEqual(licence_id_1, "")
+        self.assertEqual(licence_id_2, "")
