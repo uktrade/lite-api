@@ -22,3 +22,8 @@ class F680ApplicationManifest(BaseManifest):
             "frontend_url": "/f680/{case_id}/summary/ecju-queries/",
         },
     }
+    document_signing = {
+        "signing_reason": "For Head Global Issues",
+        "location": "Export Control Joint Unit MOD Team",
+        "image_name": "mod_emblem.png",
+    }
