@@ -13,12 +13,14 @@ from api.users.enums import UserType
 from queryable_properties.managers import QueryablePropertiesManager
 from queryable_properties.properties import queryable_property
 
+from api.applications.enums import ApplicationExportType
 from api.applications.exceptions import AmendmentError
 from api.application_manifests.registry import application_manifest_registry
 from api.audit_trail.enums import AuditType
 from api.cases.enums import (
     AdviceType,
     CaseDocumentState,
+    CaseTypeEnum,
     CaseTypeTypeEnum,
     CaseTypeSubTypeEnum,
     CaseTypeReferenceEnum,
@@ -29,7 +31,6 @@ from api.cases.enums import (
     ApplicationFeatures,
 )
 from api.cases.helpers import working_days_in_range
-from api.cases.libraries.reference_code import generate_reference_code
 from api.cases.managers import CaseManager, CaseReferenceCodeManager, AdviceManager
 from api.common.models import TimestampableModel
 from api.documents.models import Document
@@ -142,6 +143,29 @@ class Case(TimestampableModel):
             models.Index(fields=["created_at"]),
         ]
 
+    def generate_reference_code(self):
+        parts = []
+
+        case_type = CaseTypeEnum.reference_to_class(self.case_type.reference)
+        reference_code_identifier = getattr(case_type, "reference_code_identifier", case_type.reference)
+        if self.case_type.type == CaseTypeTypeEnum.APPLICATION:
+            reference_code_identifier = f"GB{reference_code_identifier}"
+        parts.append(reference_code_identifier)
+
+        case_reference_code = CaseReferenceCode.objects.create()
+        parts.append(str(case_reference_code.year))
+        parts.append(str(case_reference_code.reference_number).zfill(7))
+
+        # Licence Applications
+        if (
+            self.case_type.type == CaseTypeTypeEnum.APPLICATION
+            and hasattr(self, "export_type")
+            and self.export_type in [ApplicationExportType.TEMPORARY, ApplicationExportType.PERMANENT]
+        ):
+            parts.append(self.export_type[0])
+
+        return "/".join(parts).upper()
+
     def save(self, *args, **kwargs):
         if CaseStatusEnum.is_terminal(self.status.status):
             self.case_officer = None
@@ -150,7 +174,7 @@ class Case(TimestampableModel):
             CaseAssignment.objects.filter(case=self).delete()
 
         if not self.reference_code and self.status != get_case_status_by_status(CaseStatusEnum.DRAFT):
-            self.reference_code = generate_reference_code(self)
+            self.reference_code = self.generate_reference_code()
 
         self._reset_sub_status_on_status_change()
 
