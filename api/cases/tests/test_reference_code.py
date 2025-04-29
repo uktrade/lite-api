@@ -1,6 +1,6 @@
 from freezegun import freeze_time
 
-from test_helpers.clients import DataTestClient
+from rest_framework.test import APITestCase
 
 from api.applications.enums import ApplicationExportType
 from api.applications.tests.factories import (
@@ -10,7 +10,7 @@ from api.applications.tests.factories import (
 
 
 @freeze_time("2023-11-03 12:00:00")
-class ReferenceCode(DataTestClient):
+class ReferenceCode(APITestCase):
     def test_permanent_standard_application_reference_code(self):
         standard_application = StandardApplicationFactory(export_type=ApplicationExportType.PERMANENT)
 
