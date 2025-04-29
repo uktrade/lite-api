@@ -130,9 +130,35 @@ class F680OutcomeViewSet(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
         headers = self.get_success_headers(serializer.data)
+
+        outcome = serializer.data["outcome"]
+        security_release_request_ids = [str(item) for item in serializer.data["security_release_requests"]]
+
+        audit_trail_service.create(
+            actor=self.request.user,
+            verb=AuditType.CREATE_F680_OUTCOME,
+            target=self.application.get_case(),
+            payload={
+                "security_release_request_ids": security_release_request_ids,
+                "additional_text": f"Outcome was {outcome}",
+                "security_grading": serializer.data["security_grading"],
+            },
+        )
+        headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
     def destroy(self, request, *args, **kwargs):
+        security_release_request_ids = [str(item.id) for item in self.get_object().security_release_requests.all()]
+
         response = super().destroy(request, *args, **kwargs)
+
+        audit_trail_service.create(
+            actor=self.request.user,
+            verb=AuditType.CLEAR_F680_OUTCOME,
+            target=self.application.get_case(),
+            payload={
+                "security_release_request_ids": security_release_request_ids,
+            },
+        )
         # The following makes 204 no content responses play nicely with hawk authentication
         return HttpResponse(status=response.status_code)

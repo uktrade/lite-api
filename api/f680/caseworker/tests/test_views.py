@@ -618,6 +618,14 @@ class TestF680OutcomeViewSet:
             "validity_period": 24,
         }
 
+        audit_record = Audit.objects.get(target_object_id=str(f680_application.id), verb=AuditType.CREATE_F680_OUTCOME)
+
+        assert audit_record.payload == {
+            "additional_text": f"Outcome was {outcome.outcome}",
+            "security_release_request_ids": release_request_ids,
+            "security_grading": outcome.security_grading,
+        }
+
     @freeze_time("2025-04-14 12:00:00")
     def test_POST_create_multiple_item_group_success(
         self, get_hawk_client, get_f680_application, team_case_advisor_headers
@@ -661,6 +669,14 @@ class TestF680OutcomeViewSet:
             "validity_start_date": None,
             "validity_end_date": None,
             "validity_period": 0,
+        }
+
+        audit_record = Audit.objects.get(target_object_id=str(f680_application.id), verb=AuditType.CREATE_F680_OUTCOME)
+
+        assert audit_record.payload == {
+            "additional_text": f"Outcome was {outcome.outcome}",
+            "security_release_request_ids": release_request_ids,
+            "security_grading": outcome.security_grading,
         }
 
     def test_POST_case_not_ready_for_outcome_permission_denied(
@@ -867,6 +883,11 @@ class TestF680OutcomeViewSet:
         response = api_client.delete(target_url, **headers)
         assert response.status_code == 204
         assert SecurityReleaseOutcome.objects.count() == 0
+
+        audit_record = Audit.objects.get(target_object_id=str(f680_application.id), verb=AuditType.CLEAR_F680_OUTCOME)
+        assert audit_record.payload == {
+            "security_release_request_ids": release_request_ids,
+        }
 
     def test_DELETE_case_missing_404(self, get_hawk_client, get_f680_application, team_case_advisor_headers):
         f680_application = get_f680_application()
