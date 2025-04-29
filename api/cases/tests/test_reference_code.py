@@ -4,7 +4,9 @@ from freezegun import freeze_time
 
 from api.applications.enums import ApplicationExportType
 from api.applications.tests.factories import (
+    DraftExportLicenceApplicationFactory,
     DraftStandardApplicationFactory,
+    ExportLicenceApplicationFactory,
     StandardApplicationFactory,
 )
 from api.f680.tests.factories import (
@@ -30,6 +32,9 @@ def set_time():
         (StandardApplicationFactory, {"export_type": ApplicationExportType.TEMPORARY}, "GBSIEL/2023/0000001/T"),
         (F680ApplicationFactory, {}, None),
         (SubmittedF680ApplicationFactory, {}, "F680/2023/0000001"),
+        (DraftExportLicenceApplicationFactory, {}, None),
+        (ExportLicenceApplicationFactory, {"export_type": ApplicationExportType.PERMANENT}, "GBEL/2023/0000001/P"),
+        (ExportLicenceApplicationFactory, {"export_type": ApplicationExportType.TEMPORARY}, "GBEL/2023/0000001/T"),
     ),
 )
 def test_reference_code(application_factory, factory_kwargs, expected_reference_code):
