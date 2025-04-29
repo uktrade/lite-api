@@ -11,7 +11,7 @@ def sanitize_application(value):
     application = json.loads(value)
     user_items = application.get("sections", {}).get("user_information", {}).get("items", [])
     if not user_items:
-        return application
+        return value
     for item in user_items:
         address = item["fields"]["address"]["raw_answer"]
         sanitized_address = db_anonymiser_sanitizers.sanitize_address(address)
