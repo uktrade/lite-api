@@ -15,8 +15,7 @@
       </div>
       <div class="header-2 header-subtext">
         <p>
-            Telephone:<br/>
-            Email:<br/>
+            Email: {{ details.case_officer.email }}<br/>
         </p>
     </div>
   </div>
@@ -29,9 +28,9 @@
               {{ organisation.name }}<br>
               {% if organisation.primary_site.address_line_1 %} {{ organisation.primary_site.address_line_1 }}<br> {% endif %}
               {% if organisation.primary_site.address_line_2 %} {{ organisation.primary_site.address_line_2 }}<br> {% endif %}
-              {{ organisation.primary_site.postcode }}<br>
               {{ organisation.primary_site.city }}<br>
-              {{ organisation.primary_site.region }}<br>
+              {{ organisation.primary_site.region }}
+              {{ organisation.primary_site.postcode }}<br>
               {{ organisation.primary_site.country.name }}
             </p>
             <p>
@@ -40,10 +39,19 @@
             <p>
               {% now "jS F Y" %}
             </p>
+
+            <br><br>
+            <p>
+              Dear {{ addressee.name }},
+            </p>
         </div>
-    <div id="references" class="govuk-caption-m">
+    <div id="references">
+      <p>
+        <strong>
           Our Ref: {{ case_reference }}<br>
           Your Ref: {{ exporter_reference }}<br><br>
+        </strong>
+      </p>
     </div>
     </div>
 
