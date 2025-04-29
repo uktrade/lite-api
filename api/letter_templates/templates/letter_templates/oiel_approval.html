@@ -261,7 +261,7 @@
         </td>
       </tr>
       <tr>
-        <!-- TODO TOMOS maybe this goes at the bottom of every good table below? -->
+        <!-- TODO maybe this goes at the bottom of every good table below? -->
         <td colspan="12">
             {% if goods.approve|remove_duplicate_provisos|length %}
               <div class="terms-and-conditions-heading">Additional conditions</div>
@@ -642,7 +642,6 @@
       </div>
 
 
-  <!-- TODO TOMOS this should loop per destination to display each item and quantity -->
 	<p style="page-break-before: always">
     <table id="products-table">
         <tr>
@@ -701,8 +700,7 @@
         <td class="border-black italic" colspan="8">Description of the items</td>
         <td class="border-black italic" colspan="3">Control entries</td>
       </tr>
-      <!-- TODO this needs to be goods.approve -->
-        {% for good_item in goods.all %}
+        {% for good_item in goods.approve %}
           {% with good=good_item.good firearm_details=good_item.firearm_details %}
             <tr id="product-row-{{ forloop.counter}}" >
                 <td class="border-black" colspan="1">{{ forloop.counter }}</td>
