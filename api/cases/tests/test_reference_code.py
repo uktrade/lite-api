@@ -7,6 +7,10 @@ from api.applications.tests.factories import (
     DraftStandardApplicationFactory,
     StandardApplicationFactory,
 )
+from api.f680.tests.factories import (
+    F680ApplicationFactory,
+    SubmittedF680ApplicationFactory,
+)
 
 
 pytestmark = pytest.mark.django_db
@@ -21,9 +25,11 @@ def set_time():
 @pytest.mark.parametrize(
     "application_factory, factory_kwargs, expected_reference_code",
     (
+        (DraftStandardApplicationFactory, {}, None),
         (StandardApplicationFactory, {"export_type": ApplicationExportType.PERMANENT}, "GBSIEL/2023/0000001/P"),
         (StandardApplicationFactory, {"export_type": ApplicationExportType.TEMPORARY}, "GBSIEL/2023/0000001/T"),
-        (DraftStandardApplicationFactory, {}, None),
+        (F680ApplicationFactory, {}, None),
+        (SubmittedF680ApplicationFactory, {}, "F680/2023/0000001"),
     ),
 )
 def test_reference_code(application_factory, factory_kwargs, expected_reference_code):
