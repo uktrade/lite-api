@@ -12,7 +12,6 @@ SEED_COMMANDS = {
         "seedinternalusers",
         "seeddenialreasons",
         "seedcountries",
-        "seedlayouts",
         "seedfinaldecisions",
         "seedf680clearancetypes",
     ],
@@ -25,10 +24,8 @@ SEED_COMMANDS = {
         "seedinternalusers",
         "seeddenialreasons",
         "seedcountries",
-        "seedlayouts",
         "seedfinaldecisions",
         "seedf680clearancetypes",
-        "seedlettertemplates",
     ],
 }
 
