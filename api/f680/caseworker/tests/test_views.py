@@ -235,7 +235,6 @@ class TestF680RecommendationViewSet:
         data = [
             {
                 "type": recommendation_type,
-                "type": enums.RecommendationType.APPROVE,
                 "security_grading": enums.SecurityGrading.OFFICIAL_SENSITIVE,
                 "conditions": f"Conditions for {rr.recipient.country.name}",
                 "refusal_reasons": "",
@@ -287,7 +286,6 @@ class TestF680RecommendationViewSet:
         data = [
             {
                 "type": recommendation_type,
-                "type": enums.RecommendationType.APPROVE,
                 "security_grading": enums.SecurityGrading.OFFICIAL_SENSITIVE,
                 "conditions": f"Conditions for {rr.recipient.country.name}",
                 "refusal_reasons": "",
@@ -357,7 +355,6 @@ class TestF680RecommendationViewSet:
             data = [
                 {
                     "type": recommendation_type,
-                    "type": enums.RecommendationType.APPROVE,
                     "security_grading": enums.SecurityGrading.OFFICIAL_SENSITIVE,
                     "conditions": f"Conditions for {rr.recipient.country.name}",
                     "refusal_reasons": "",
