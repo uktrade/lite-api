@@ -18,19 +18,17 @@ def set_time():
         yield
 
 
-def test_permanent_standard_application_reference_code():
-    standard_application = StandardApplicationFactory(export_type=ApplicationExportType.PERMANENT)
-    assert standard_application.reference_code == "GBSIEL/2023/0000001/P"
-
-
-def test_temporary_standard_application_reference_code():
-    standard_application = StandardApplicationFactory(export_type=ApplicationExportType.TEMPORARY)
-    assert standard_application.reference_code == "GBSIEL/2023/0000001/T"
-
-
-def test_draft_applications_dont_have_reference_codes():
-    draft = DraftStandardApplicationFactory()
-    assert draft.reference_code is None
+@pytest.mark.parametrize(
+    "application_factory, factory_kwargs, expected_reference_code",
+    (
+        (StandardApplicationFactory, {"export_type": ApplicationExportType.PERMANENT}, "GBSIEL/2023/0000001/P"),
+        (StandardApplicationFactory, {"export_type": ApplicationExportType.TEMPORARY}, "GBSIEL/2023/0000001/T"),
+        (DraftStandardApplicationFactory, {}, None),
+    ),
+)
+def test_reference_code(application_factory, factory_kwargs, expected_reference_code):
+    application = application_factory(**factory_kwargs)
+    assert application.reference_code == expected_reference_code
 
 
 def test_reference_code_increment():
