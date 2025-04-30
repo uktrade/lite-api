@@ -496,10 +496,10 @@ def data_application_json(data_australia_release_id, data_france_release_id, dat
                     },
                     "other_security_classification": {
                         "key": "other_security_classification",
-                        "answer": "",
+                        "answer": "some other grading",
                         "datatype": "string",
                         "question": "Enter the security classification",
-                        "raw_answer": "",
+                        "raw_answer": "some other grading",
                     },
                     "suffix": {
                         "key": "suffix",

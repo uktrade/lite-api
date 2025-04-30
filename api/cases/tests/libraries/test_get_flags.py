@@ -1,8 +1,9 @@
-from collections import OrderedDict
+from parameterized import parameterized_class
 
 from test_helpers.clients import DataTestClient
 
 from api.applications.tests.factories import (
+    ExportLicenceApplicationFactory,
     GoodOnApplicationFactory,
     PartyOnApplicationFactory,
     StandardApplicationFactory,
@@ -11,16 +12,25 @@ from api.cases.libraries.get_flags import (
     get_flags,
     get_ordered_flags,
 )
+from api.f680.tests.factories import F680ApplicationFactory
 from api.flags.enums import FlagLevels
 from api.flags.tests.factories import FlagFactory
 from api.goods.tests.factories import FirearmFactory, GoodFactory
 
 
+@parameterized_class(
+    ("application_factory",),
+    [
+        (StandardApplicationFactory,),
+        (F680ApplicationFactory,),
+        (ExportLicenceApplicationFactory,),
+    ],
+)
 class TestGetFlags(DataTestClient):
     def setUp(self):
         super().setUp()
 
-        self.application = StandardApplicationFactory(
+        self.application = self.application_factory(
             organisation=self.organisation,
         )
 
