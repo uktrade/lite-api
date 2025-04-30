@@ -32,7 +32,7 @@ class ExportLicenceApplicationManifest(BaseManifest):
 
 
 @application_manifest_registry.register(CaseTypeReferenceEnum.SIEL)
-class StandardApplicationManifest(BaseManifest):
+class ApplicationManifest(BaseManifest):
     model_class = StandardApplication
     # Warning: Caseworker and exporter currently share the same serializer which could lead
     # to internal data unintentional being shared with the exporter
