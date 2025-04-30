@@ -1,8 +1,8 @@
-from datetime import datetime
-from django.utils import timezone
-
 from api.applications.enums import ApplicationExportType
-from api.cases.enums import CaseTypeSubTypeEnum, CaseTypeEnum
+from api.cases.enums import (
+    CaseTypeEnum,
+    CaseTypeTypeEnum,
+)
 
 LICENCE_APPLICATION_PREFIX = "GB"
 SEPARATOR = "/"
@@ -11,30 +11,25 @@ SEPARATOR = "/"
 def generate_reference_code(case):
     from api.cases.models import CaseReferenceCode
 
-    # Case Reference
-    if case.case_type.id in [CaseTypeEnum.COMPLIANCE_SITE.id, CaseTypeEnum.COMPLIANCE_VISIT.id]:
-        compliance_prefix, compliance_suffix = case.case_type.reference.split("_")
-        reference_code = compliance_prefix + SEPARATOR
-    else:
-        reference_code = case.case_type.reference + SEPARATOR
+    parts = []
 
-    # Year
-    reference_code += str(timezone.make_aware(datetime.now()).year) + SEPARATOR
+    if case.case_type.type == CaseTypeTypeEnum.APPLICATION:
+        parts.append("GB")
 
-    # Int
-    value = CaseReferenceCode.objects.create()
-    reference_code += str(value.reference_number).zfill(7)
+    case_type = CaseTypeEnum.reference_to_class(case.case_type.reference)
+    reference_code_identifier = getattr(case_type, "reference_code_identifier", case_type.reference)
+    parts.append(reference_code_identifier)
+
+    case_reference_code = CaseReferenceCode.objects.create()
+    parts.append(str(case_reference_code.year))
+    parts.append(str(case_reference_code.reference_number).zfill(7))
 
     # Licence Applications
-    if case.case_type.sub_type in [CaseTypeSubTypeEnum.STANDARD]:
-        reference_code = LICENCE_APPLICATION_PREFIX + reference_code
+    if (
+        case.case_type.type == CaseTypeTypeEnum.APPLICATION
+        and hasattr(case, "export_type")
+        and case.export_type in [ApplicationExportType.TEMPORARY, ApplicationExportType.PERMANENT]
+    ):
+        parts.append(case.export_type[0])
 
-        # Export type
-        if hasattr(case, "export_type"):
-            if case.export_type in [ApplicationExportType.TEMPORARY, ApplicationExportType.PERMANENT]:
-                reference_code += SEPARATOR + case.export_type[0]
-
-    if case.case_type.id in [CaseTypeEnum.COMPLIANCE_SITE.id, CaseTypeEnum.COMPLIANCE_VISIT.id]:
-        reference_code += SEPARATOR + compliance_suffix
-
-    return reference_code.upper()
+    return SEPARATOR.join(parts).upper()

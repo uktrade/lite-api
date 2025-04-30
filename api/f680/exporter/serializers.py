@@ -2,7 +2,7 @@ from rest_framework import serializers
 
 from api.organisations.exporter.serializers import RelatedOrganisationSerializer
 from api.users.exporter.serializers import RelatedExporterUserSerializer
-
+from api.cases.serializers import CaseTypeSerializer
 from api.f680.models import F680Application
 
 
@@ -15,6 +15,7 @@ class F680ApplicationSerializer(serializers.ModelSerializer):
     status = serializers.CharField(source="status__status", read_only=True)
     organisation = RelatedOrganisationSerializer(read_only=True)
     submitted_by = RelatedExporterUserSerializer(read_only=True)
+    case_type = serializers.SerializerMethodField()
 
     class Meta:
         model = F680Application
@@ -26,6 +27,7 @@ class F680ApplicationSerializer(serializers.ModelSerializer):
             "organisation",
             "submitted_at",
             "submitted_by",
+            "case_type",
         ]
         read_only_fields = ["id", "status", "reference_code", "organisation", "submitted_at", "submitted_by"]
 
@@ -34,6 +36,9 @@ class F680ApplicationSerializer(serializers.ModelSerializer):
         validated_data["status"] = self.context["default_status"]
         validated_data["case_type_id"] = self.context["case_type_id"]
         return super().create(validated_data)
+
+    def get_case_type(self, instance):
+        return CaseTypeSerializer(instance.case_type).data
 
 
 class FieldSerializer(serializers.Serializer):

@@ -46,7 +46,7 @@ def allowed_application_types(application_types: List[str]) -> Callable:
     def decorator(func):
         @wraps(func)
         def inner(request, *args, **kwargs):
-            sub_type = _get_application(request, kwargs).values_list("case_type__sub_type", flat=True)[0]
+            sub_type = _get_application(request, kwargs).values_list("case_type__reference", flat=True)[0]
 
             if sub_type not in application_types:
                 return JsonResponse(

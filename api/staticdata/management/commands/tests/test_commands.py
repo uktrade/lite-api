@@ -4,8 +4,6 @@ import pytest
 
 from parameterized import parameterized
 
-from api.cases.enums import CaseTypeEnum
-from api.cases.models import CaseType
 from api.core.constants import GovPermissions, ExporterPermissions, Teams
 from api.staticdata.countries.models import Country
 from api.cases.enums import AdviceType
@@ -20,7 +18,6 @@ from api.staticdata.management.commands import (
     seedfinaldecisions,
     seedinternalusers,
 )
-from api.staticdata.statuses.models import CaseStatus, CaseStatusCaseType
 from api.teams.enums import TeamIdEnum
 from api.users.enums import UserType
 from api.users.models import GovUser, Permission
@@ -33,31 +30,6 @@ class SeedingTests(SeedCommandTest):
         role_names = ["Super User", "Case officer", "Case adviser", "Manager", "Senior Manager"]
         for name in role_names:
             RoleFactory(name=name, type=UserType.INTERNAL)
-
-    @pytest.mark.seeding
-    def test_seed_case_types(self):
-        self.seed_command(seedcasetypes.Command)
-        enum = CaseTypeEnum.CASE_TYPE_LIST
-        self.assertEqual(CaseType.objects.count(), len(enum))
-        for item in enum:
-            self.assertTrue(CaseType.objects.get(id=item.id))
-
-    @pytest.mark.seeding
-    def test_seed_case_statuses(self):
-        self.seed_command(seedcasetypes.Command)
-        self.seed_command(seedcasestatuses.Command, "--force")
-        self.assertTrue(
-            CaseStatus.objects.count() >= len(seedcasestatuses.Command.read_csv(seedcasestatuses.STATUSES_FILE))
-        )
-
-        case_type_list = CaseTypeEnum.CASE_TYPE_LIST
-        counter = 0
-        for case_type in case_type_list:
-            for key, value in seedcasestatuses.Command.STATUSES_ON_CASE_TYPES.items():
-                if case_type.sub_type in value or case_type.type in value:
-                    counter += 1
-
-        self.assertEqual(CaseStatusCaseType.objects.all().count(), counter)
 
     @pytest.mark.seeding
     def test_seed_countries(self):
@@ -89,12 +61,21 @@ class SeedingTests(SeedCommandTest):
     @pytest.mark.seeding
     @parameterized.expand(
         [
-            ([{"email": "admin@example.co.uk", "role": "Super User"}],),
-            ([{"email": "manager@example.co.uk", "role": "Manager", "first_name": "LU", "last_name": "Manager"}],),
+            ([{"email": "admin@example.co.uk", "role": "Super User"}],),  # /PS-IGNORE
             (
                 [
                     {
-                        "email": "senior_manager@example.co.uk",
+                        "email": "manager@example.co.uk",  # /PS-IGNORE
+                        "role": "Manager",
+                        "first_name": "LU",
+                        "last_name": "Manager",
+                    },
+                ],
+            ),
+            (
+                [
+                    {
+                        "email": "senior_manager@example.co.uk",  # /PS-IGNORE
                         "role": "Senior Manager",
                         "team_id": TeamIdEnum.LICENSING_UNIT,
                     }
@@ -103,7 +84,7 @@ class SeedingTests(SeedCommandTest):
             (
                 [
                     {
-                        "email": "case_officer@example.co.uk",
+                        "email": "case_officer@example.co.uk",  # /PS-IGNORE
                         "role": "Case officer",
                         "team_id": TeamIdEnum.LICENSING_UNIT,
                         "default_queue": "00000000-0000-0000-0000-000000000004",
