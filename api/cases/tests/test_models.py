@@ -283,11 +283,12 @@ class CaseRaceConditionTests(TransactionTestCase):
         )
 
     def test_finalise_approved_case_race_condition(self):
-        case = CaseFactory(
-            case_type=self.case_type,
+        application = StandardApplicationFactory(
+            case_type_id=self.case_type.id,
             status=self.under_final_review_case_status,
             submitted_by=self.exporter_user,
         )
+        case = application.get_case()
         original_case = Case.objects.get(pk=case.pk)
         same_case = Case.objects.get(pk=case.pk)
 
@@ -316,12 +317,12 @@ class CaseRaceConditionTests(TransactionTestCase):
         self.assertEqual(licence_id_2, licence.pk)
 
     def test_finalise_refused_case_race_condition(self):
-        case = CaseFactory(
-            case_type=self.case_type,
+        application = StandardApplicationFactory(
+            case_type_id=self.case_type.id,
             status=self.under_final_review_case_status,
             submitted_by=self.exporter_user,
         )
-
+        case = application.get_case()
         original_case = Case.objects.get(pk=case.pk)
         same_case = Case.objects.get(pk=case.pk)
 
