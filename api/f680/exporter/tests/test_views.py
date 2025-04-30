@@ -233,7 +233,41 @@ class F680ApplicationViewSetTests(DataTestClient):  # /PS-IGNORE
             application={"old key": "old value"},
         )
         url = reverse("exporter_f680:application", kwargs={"f680_application_id": f680_application.id})
-        patch_data = {"application": {"new key": "new value"}}
+
+        patch_data = {
+            "application": {
+                "sections": {
+                    "general_application_details": {
+                        "label": "General application details",
+                        "fields": {
+                            "name": {
+                                "key": "name",
+                                "answer": "F680 Test 1",
+                                "raw_answer": "F680 Test 1",
+                                "question": "Name the application",
+                                "datatype": "string",
+                            },
+                            "has_made_previous_application": {
+                                "key": "has_made_previous_application",
+                                "answer": "No",
+                                "raw_answer": False,
+                                "question": "Have you made a previous application?",
+                                "datatype": "boolean",
+                            },
+                            "is_exceptional_circumstances": {
+                                "key": "is_exceptional_circumstances",
+                                "answer": "No",
+                                "raw_answer": False,
+                                "question": "Do you have exceptional circumstances that mean you need F680 approval in less than 30 days?",
+                                "datatype": "boolean",
+                            },
+                        },
+                        "fields_sequence": ["name", "has_made_previous_application", "is_exceptional_circumstances"],
+                        "type": "single",
+                    }
+                }
+            }
+        }
         response = self.client.patch(url, patch_data, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         expected_result = {
@@ -257,6 +291,12 @@ class F680ApplicationViewSetTests(DataTestClient):  # /PS-IGNORE
             "status": {"id": f680_application.status_id, "key": "draft", "value": "draft"},
         }
         self.assertDictEqual(response.data, expected_result)
+
+        f680_application.refresh_from_db()
+        incoming_name_data = patch_data["application"]["sections"]["general_application_details"]["fields"]["name"][
+            "answer"
+        ]
+        self.assertEqual(f680_application.name, incoming_name_data)
 
     def test_PATCH_partial_update_different_organisation_not_found(self):
         f680_application = SubmittedF680ApplicationFactory()  # /PS-IGNORE
