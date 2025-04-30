@@ -223,18 +223,6 @@ class SecurityReleaseOutcomeLetterSerializer(serializers.ModelSerializer):
             "validity_period",
         ]
 
-
-class OutcomeDocumentSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = GeneratedCaseDocument
-        fields = (
-            "id",
-            "template",
-            "name",
-            "visible_to_exporter",
-        )
-
     def to_representation(self, instance):
         representation = super().to_representation(instance)
         approval_types_dict = dict(enums.ApprovalTypes.choices)
@@ -256,3 +244,15 @@ class OutcomeDocumentSerializer(serializers.ModelSerializer):
             ]
 
         return representation
+
+
+class OutcomeDocumentSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = GeneratedCaseDocument
+        fields = (
+            "id",
+            "template",
+            "name",
+            "visible_to_exporter",
+        )
