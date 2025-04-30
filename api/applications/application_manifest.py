@@ -21,6 +21,14 @@ class ExportLicenceApplicationManifest(BaseManifest):
         ApplicationFeatures.LICENCE_ISSUE: True,
         ApplicationFeatures.ROUTE_TO_COUNTERSIGNING_QUEUES: True,
     }
+    ecju_max_days = 20
+    notification_config = {
+        "ecju_query": {"template": TemplateType.EXPORTER_ECJU_QUERY, "frontend_url": "/"},
+        "ecju_query_chaser": {
+            "template": TemplateType.EXPORTER_ECJU_QUERY_CHASER,
+            "frontend_url": "/applications/{case_id}/ecju-queries/",
+        },
+    }
 
 
 @application_manifest_registry.register(CaseTypeReferenceEnum.SIEL)
