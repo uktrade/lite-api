@@ -14,8 +14,6 @@ from api.staticdata.decisions.models import Decision
 from api.staticdata.denial_reasons.models import DenialReason
 from api.staticdata.management.SeedCommand import SeedCommandTest
 from api.staticdata.management.commands import (
-    seedcasestatuses,
-    seedcasetypes,
     seedcountries,
     seeddenialreasons,
     seedrolepermissions,
