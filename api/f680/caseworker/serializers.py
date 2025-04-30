@@ -234,7 +234,7 @@ class OutcomeDocumentSerializer(serializers.ModelSerializer):
             "name",
             "visible_to_exporter",
         )
-        
+
     def to_representation(self, instance):
         representation = super().to_representation(instance)
         approval_types_dict = dict(enums.ApprovalTypes.choices)
