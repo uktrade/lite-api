@@ -6,7 +6,7 @@ from api.applications.enums import (
 )
 from api.applications.models import BaseApplication
 from api.cases.enums import CaseTypeSubTypeEnum
-from api.cases.models import CaseType
+from api.cases.serializers import CaseTypeSerializer
 from api.core.helpers import get_value_from_enum
 from api.core.serializers import KeyValueChoiceField
 from lite_content.lite_api import strings
@@ -14,19 +14,10 @@ from lite_content.lite_api import strings
 from .fields import CaseStatusField
 
 
-class TinyCaseTypeSerializer(serializers.ModelSerializer):
-    sub_type = KeyValueChoiceField(choices=CaseTypeSubTypeEnum.choices)
-
-    class Meta:
-        model = CaseType
-        fields = ("sub_type",)
-        read_only_fields = fields
-
-
 class GenericApplicationListSerializer(serializers.Serializer):
     id = serializers.UUIDField()
     name = serializers.CharField()
-    case_type = TinyCaseTypeSerializer()
+    case_type = CaseTypeSerializer()
     status = CaseStatusField()
     submitted_at = serializers.DateTimeField()
     submitted_by = serializers.SerializerMethodField()

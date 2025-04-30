@@ -165,4 +165,6 @@ audit_type_format = {
     AuditType.DEVELOPER_INTERVENTION: "updated application information",
     AuditType.ADD_EXPORTER_USER_TO_ORGANISATION: " added exporter {exporter_email} to sites {site_names}",
     AuditType.CREATE_BULK_APPROVAL_RECOMMENDATION: formatters.create_bulk_approval_recommendation,
+    AuditType.CREATE_OGD_F680_RECOMMENDATION: "added a recommendation",
+    AuditType.CLEAR_OGD_F680_RECOMMENDATION: "removed the recommendation for their team on this case",
 }

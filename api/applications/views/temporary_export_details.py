@@ -6,7 +6,7 @@ from rest_framework.exceptions import ValidationError
 from api.applications.serializers.temporary_export_details import TemporaryExportDetailsUpdateSerializer
 from api.applications.libraries.edit_applications import save_and_audit_temporary_export_details
 from api.applications.libraries.get_applications import get_application
-from api.cases.enums import CaseTypeSubTypeEnum
+from api.cases.enums import CaseTypeReferenceEnum
 from api.applications.enums import ApplicationExportType
 from api.core.authentication import ExporterAuthentication
 from api.core.decorators import (
@@ -21,7 +21,7 @@ class TemporaryExportDetails(UpdateAPIView):
     authentication_classes = (ExporterAuthentication,)
 
     @authorised_to_view_application(ExporterUser)
-    @allowed_application_types([CaseTypeSubTypeEnum.STANDARD])
+    @allowed_application_types([CaseTypeReferenceEnum.EXPORT_LICENCE, CaseTypeReferenceEnum.SIEL])
     @application_is_major_editable
     def put(self, request, pk):
         application = get_application(pk)

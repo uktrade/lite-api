@@ -1,6 +1,5 @@
 from django.db.models import Q, QuerySet, When, Case as DB_Case, IntegerField, BinaryField
 
-from api.cases.enums import CaseTypeSubTypeEnum
 from api.cases.models import Case
 from api.flags.enums import FlagLevels
 from api.flags.models import Flag
@@ -8,48 +7,29 @@ from api.flags.serializers import CaseListFlagSerializer
 from api.teams.models import Team
 
 
-def get_goods_flags(case, case_type):
-    if case_type in [
-        CaseTypeSubTypeEnum.STANDARD,
-        CaseTypeSubTypeEnum.EUA,
-        CaseTypeSubTypeEnum.EXHIBITION,
-        CaseTypeSubTypeEnum.GIFTING,
-        CaseTypeSubTypeEnum.F680,
-    ]:
-        return Flag.objects.filter(goods__goods_on_application__application_id=case.id)
-    elif case_type == CaseTypeSubTypeEnum.GOODS:
-        return Flag.objects.filter(goods__good__id=case.id)
-
-    return Flag.objects.none()
+def get_goods_flags(case):
+    return Flag.objects.filter(goods__goods_on_application__application_id=case.id)
 
 
-def get_destination_flags(case, case_type):
-    if case_type == CaseTypeSubTypeEnum.EUA:
-        return Flag.objects.filter(parties__parties_on_application__application_id=case.id)
-    elif case_type == CaseTypeSubTypeEnum.STANDARD:
-        # Usually destination level flags are attached to `Party` but some of the flags
-        # are attached to `PartyOnApplication` so gather all of them
-        flags = Flag.objects.filter(
-            (
-                Q(parties__parties_on_application__application_id=case.id)
-                & Q(parties__parties_on_application__deleted_at__isnull=True)
-            )
-            | (Q(parties_on_application__application__pk=case.id) & Q(parties_on_application__deleted_at__isnull=True))
+def get_destination_flags(case):
+    # Usually destination level flags are attached to `Party` but some of the flags
+    # are attached to `PartyOnApplication` so gather all of them
+    flags = Flag.objects.filter(
+        (
+            Q(parties__parties_on_application__application_id=case.id)
+            & Q(parties__parties_on_application__deleted_at__isnull=True)
         )
-        return flags
-
-    return Flag.objects.none()
+        | (Q(parties_on_application__application__pk=case.id) & Q(parties_on_application__deleted_at__isnull=True))
+    )
+    return flags
 
 
 def get_flags(case: Case) -> QuerySet:
     """
     Get all case flags in no particular order
     """
-    # Ensure that case_type is prefetched, or an additional query will be made for each case.
-    case_type = case.case_type.sub_type
-
-    goods_flags = get_goods_flags(case, case_type)
-    destination_flags = get_destination_flags(case, case_type)
+    goods_flags = get_goods_flags(case)
+    destination_flags = get_destination_flags(case)
     case_flags = case.flags.all()
     # Prefetch the organisation flag IDs to avoid generating SLOW queries elsewhere
     # (e.g. get_ordered_flags which uses this result)

@@ -60,7 +60,13 @@ class F680ApplicationViewSetTests(DataTestClient):  # /PS-IGNORE
                     },
                     "submitted_at": None,
                     "submitted_by": None,
-                }
+                    "case_type": {
+                        "id": str(f680_application.case_type_id),
+                        "reference": {"key": "f680", "value": "MOD F680 Clearance"},
+                        "type": {"key": "security_clearance", "value": "Security Clearance"},
+                        "sub_type": {"key": "f680_clearance", "value": "MOD F680 Clearance"},
+                    },
+                },
             ],
         }
         self.assertEqual(response.data, expected_result)
@@ -104,6 +110,12 @@ class F680ApplicationViewSetTests(DataTestClient):  # /PS-IGNORE
             },
             "submitted_at": None,
             "submitted_by": None,
+            "case_type": {
+                "id": str(f680_application.case_type_id),
+                "reference": {"key": "f680", "value": "MOD F680 Clearance"},
+                "type": {"key": "security_clearance", "value": "Security Clearance"},
+                "sub_type": {"key": "f680_clearance", "value": "MOD F680 Clearance"},
+            },
         }
         self.assertEqual(response.data, expected_result)
 
@@ -137,6 +149,12 @@ class F680ApplicationViewSetTests(DataTestClient):  # /PS-IGNORE
             },
             "submitted_at": None,
             "submitted_by": None,
+            "case_type": {
+                "id": str(f680_application.case_type_id),
+                "reference": {"key": "f680", "value": "MOD F680 Clearance"},
+                "type": {"key": "security_clearance", "value": "Security Clearance"},
+                "sub_type": {"key": "f680_clearance", "value": "MOD F680 Clearance"},
+            },
         }
         self.assertEqual(response.data, expected_result)
 
@@ -185,6 +203,12 @@ class F680ApplicationViewSetTests(DataTestClient):  # /PS-IGNORE
             },
             "submitted_at": None,
             "submitted_by": None,
+            "case_type": {
+                "id": str(f680_application.case_type_id),
+                "reference": {"key": "f680", "value": "MOD F680 Clearance"},
+                "type": {"key": "security_clearance", "value": "Security Clearance"},
+                "sub_type": {"key": "f680_clearance", "value": "MOD F680 Clearance"},
+            },
         }
         self.assertEqual(response.data, expected_result)
 
@@ -220,6 +244,12 @@ class F680ApplicationViewSetTests(DataTestClient):  # /PS-IGNORE
             },
             "submitted_at": None,
             "submitted_by": None,
+            "case_type": {
+                "id": str(f680_application.case_type_id),
+                "reference": {"key": "f680", "value": "MOD F680 Clearance"},
+                "type": {"key": "security_clearance", "value": "Security Clearance"},
+                "sub_type": {"key": "f680_clearance", "value": "MOD F680 Clearance"},
+            },
         }
         self.assertEqual(response.data, expected_result)
 
@@ -269,6 +299,12 @@ class F680ApplicationViewSetTests(DataTestClient):  # /PS-IGNORE
             },
             "submitted_at": None,
             "submitted_by": None,
+            "case_type": {
+                "id": str(f680_application.case_type_id),
+                "reference": {"key": "f680", "value": "MOD F680 Clearance"},
+                "type": {"key": "security_clearance", "value": "Security Clearance"},
+                "sub_type": {"key": "f680_clearance", "value": "MOD F680 Clearance"},
+            },
         }
         self.assertEqual(response.data, expected_result)
 
@@ -331,6 +367,12 @@ class TestF680ApplicationViewSet:
                 "id": str(exporter_user.baseuser_ptr_id),
                 "last_name": exporter_user.last_name,
                 "pending": exporter_user.pending,
+            },
+            "case_type": {
+                "id": str(f680_application.case_type_id),
+                "reference": {"key": "f680", "value": "MOD F680 Clearance"},
+                "type": {"key": "security_clearance", "value": "Security Clearance"},
+                "sub_type": {"key": "f680_clearance", "value": "MOD F680 Clearance"},
             },
         }
         assert response.data == expected_result
