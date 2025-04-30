@@ -32,6 +32,7 @@ class TestF680Application:
         assert product.name == "some product name"
         assert product.description == "some product description"
         assert product.security_grading == "official"
+        assert product.security_grading_other == "some other grading"
         assert product.organisation == f680_application.organisation
 
         expected_security_release_count = len(data_application_json["sections"]["user_information"]["items"])

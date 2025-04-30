@@ -12,7 +12,15 @@ from test_helpers.clients import DataTestClient
 from api.appeals.tests.factories import AppealFactory
 from api.applications.exceptions import AmendmentError
 from api.audit_trail.models import Audit
-from api.cases.models import CaseType, Queue
+from api.cases.enums import (
+    CaseTypeEnum,
+    CaseTypeReferenceEnum,
+    CaseTypeSubTypeEnum,
+)
+from api.cases.models import (
+    CaseType,
+    Queue,
+)
 from api.flags.models import Flag
 from api.applications.models import (
     ApplicationDocument,
@@ -33,14 +41,26 @@ from api.applications.tests.factories import (
     GoodOnApplicationFactory,
     PartyOnApplicationFactory,
 )
-from api.users.models import GovUser, ExporterUser
+from api.users.models import (
+    ExporterUser,
+    GovUser,
+)
 from api.goods.tests.factories import FirearmFactory
 from api.organisations.tests.factories import OrganisationFactory
 from api.staticdata.control_list_entries.models import ControlListEntry
-from api.staticdata.report_summaries.models import ReportSummary, ReportSummaryPrefix, ReportSummarySubject
-from api.staticdata.statuses.models import CaseStatus, CaseSubStatus
+from api.staticdata.report_summaries.models import (
+    ReportSummary,
+    ReportSummaryPrefix,
+    ReportSummarySubject,
+)
 from api.staticdata.statuses.enums import (
     CaseStatusEnum,
+    CaseStatusIdEnum,
+)
+from api.staticdata.statuses.factories import CaseStatusFactory
+from api.staticdata.statuses.models import (
+    CaseStatus,
+    CaseSubStatus,
 )
 from api.users.tests.factories import SystemUserFactory
 
@@ -602,6 +622,27 @@ class TestPartyOnApplication(DataTestClient):
 class TestStandardApplicationRaceConditions(TransactionTestCase):
     def test_create_amendment_race_condition_success(self):
         SystemUserFactory()
+
+        CaseType.objects.get_or_create(
+            id=CaseTypeEnum.SIEL.id,
+            defaults={
+                "sub_type": CaseTypeSubTypeEnum.STANDARD,
+                "reference": CaseTypeReferenceEnum.SIEL,
+            },
+        )
+
+        CaseStatusFactory(
+            id=CaseStatusIdEnum.DRAFT,
+            status=CaseStatusEnum.DRAFT,
+        )
+        CaseStatusFactory(
+            id=CaseStatusIdEnum.SUBMITTED,
+            status=CaseStatusEnum.SUBMITTED,
+        )
+        CaseStatusFactory(
+            id=CaseStatusIdEnum.SUPERSEDED_BY_EXPORTER_EDIT,
+            status=CaseStatusEnum.SUPERSEDED_BY_EXPORTER_EDIT,
+        )
 
         original_application = StandardApplicationFactory()
 

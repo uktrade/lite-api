@@ -96,6 +96,11 @@ class F680Application(BaseApplication, Clonable):
                 if "security_classification" in product_information_fields
                 else None
             ),
+            security_grading_other=(
+                product_information_fields["other_security_classification"]["raw_answer"]
+                if "other_security_classification" in product_information_fields
+                else None
+            ),
         )
 
         # Create a Recipient and SecurityRelease for each.  In F680s caseworkers
@@ -189,6 +194,10 @@ class Recommendation(TimestampableModel):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     case = models.ForeignKey(Case, related_name="recommendations", on_delete=models.CASCADE)
     type = models.CharField(choices=enums.RecommendationType.choices, max_length=30)
+    security_grading = models.CharField(
+        choices=enums.SecurityGrading.security_release_choices, blank=True, null=True, max_length=50
+    )
+    security_grading_other = models.TextField(default="", blank=True, null=True)
     conditions = models.TextField(default="", blank=True, null=True)
     refusal_reasons = models.TextField(default="", blank=True, null=True)
     user = models.ForeignKey(GovUser, on_delete=models.PROTECT, related_name="recommendations")
