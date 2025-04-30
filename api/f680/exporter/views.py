@@ -41,6 +41,27 @@ class F680ApplicationViewSet(viewsets.ModelViewSet):
     lookup_url_kwarg = "f680_application_id"
     filter_backends = [CurrentExporterUserOrganisationFilter, DraftApplicationFilter]
 
+    def partial_update(self, request, *args, **kwargs):
+        kwargs["partial"] = True
+        serializer = F680ApplicationSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        application = self.get_object()
+
+        incoming_application_name = (
+            serializer.validated_data.get("application", {})
+            .get("sections", {})
+            .get("general_application_details", {})
+            .get("fields", {})
+            .get("name", {})
+            .get("answer", "")
+        )
+
+        if incoming_application_name:
+            application.name = incoming_application_name
+            application.save()
+
+        return self.update(request, *args, **kwargs)
+
     @transaction.atomic
     @action(detail=True)
     def submit(self, request, **kwargs):
