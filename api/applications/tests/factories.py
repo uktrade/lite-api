@@ -77,6 +77,10 @@ class StandardApplicationFactory(factory.django.DjangoModelFactory):
         return obj
 
 
+class ExportLicenceApplicationFactory(StandardApplicationFactory):
+    case_type_id = CaseTypeEnum.EXPORT_LICENCE.id
+
+
 class PartyOnApplicationFactory(factory.django.DjangoModelFactory):
     party = factory.SubFactory(PartyFactory)
     application = factory.SubFactory(StandardApplicationFactory)
