@@ -11,6 +11,7 @@ from gov_notify.payloads import (
     ExporterInformLetter,
     ExporterAppealAcknowledgement,
     ExporterLicenceSuspended,
+    ExporterF680OutcomeIssued,
 )
 from gov_notify.service import send_email
 
@@ -24,9 +25,9 @@ def _notify_exporter_licence_issued(email, data):
     )
 
 
-def notify_exporter_licence_issued(case):
-    exporter = case.submitted_by
-    case = case.get_case()
+def notify_exporter_licence_issued(application):
+    exporter = application.submitted_by
+    case = application.get_case()
     _notify_exporter_licence_issued(
         exporter.email,
         {
@@ -34,6 +35,28 @@ def notify_exporter_licence_issued(case):
             "application_reference": case.reference_code,
             "exporter_frontend_url": get_exporter_frontend_url("/"),
         },
+    )
+
+
+def notify_exporter_f680_outcome_issued(application):
+    exporter = application.submitted_by
+    case = application.get_case()
+    _notify_exporter_f680_outcome_issued(
+        exporter.email,
+        {
+            "user_first_name": exporter.first_name,
+            "application_reference": case.reference_code,
+            "exporter_frontend_url": get_exporter_frontend_url(f"/f680/{application.pk}/summary/generated-documents/"),
+        },
+    )
+
+
+def _notify_exporter_f680_outcome_issued(email, data):
+    payload = ExporterF680OutcomeIssued(**data)
+    send_email(
+        email,
+        TemplateType.EXPORTER_F680_OUTCOME_ISSUED,
+        payload,
     )
 
 
@@ -46,9 +69,9 @@ def _notify_exporter_licence_refused(email, data):
     )
 
 
-def notify_exporter_licence_refused(case):
-    exporter = case.submitted_by
-    case = case.get_case()
+def notify_exporter_licence_refused(application):
+    exporter = application.submitted_by
+    case = application.get_case()
     _notify_exporter_licence_refused(
         exporter.email,
         {
@@ -159,9 +182,9 @@ def _notify_exporter_no_licence_required(email, data):
     send_email(email, TemplateType.EXPORTER_NO_LICENCE_REQUIRED, payload)
 
 
-def notify_exporter_no_licence_required(case):
-    exporter = case.submitted_by
-    case = case.get_case()
+def notify_exporter_no_licence_required(application):
+    exporter = application.submitted_by
+    case = application.get_case()
     _notify_exporter_no_licence_required(
         exporter.email,
         {

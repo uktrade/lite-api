@@ -377,6 +377,24 @@ class StandardApplication(BaseApplication, Clonable):
 
         return cloned_application
 
+    def manage_decisions(self, user, decisions, licence=None):
+        decision_actions = self.get_decision_actions()
+        ordered_decisions = sorted(decisions, reverse=True)
+        for advice_type in ordered_decisions:
+            decision_actions[advice_type](self)
+            self.create_licence_decisions(advice_type, licence)
+            licence_reference = licence.reference_code if licence and advice_type == AdviceType.APPROVE else ""
+            audit_trail_service.create(
+                actor=user,
+                verb=AuditType.CREATED_FINAL_RECOMMENDATION,
+                target=self,
+                payload={
+                    "case_reference": self.reference_code,
+                    "decision": advice_type,
+                    "licence_reference": licence_reference,
+                },
+            )
+
     def get_required_decision_document_types(self):
         case = self.case_ptr
         required_decisions = set(

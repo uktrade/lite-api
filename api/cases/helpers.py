@@ -4,6 +4,8 @@ from api.audit_trail.enums import AuditType
 from api.common.dates import is_bank_holiday, is_weekend
 from api.users.models import BaseUser, GovUser
 from api.users.enums import SystemUser
+from api.staticdata.statuses.enums import CaseStatusEnum
+from api.cases.enums import ApplicationFeatures
 
 
 def get_assigned_to_user_case_ids(user: GovUser, queue_id=None):
@@ -46,3 +48,29 @@ def create_system_mention(case, case_note_text, mention_user):
     audit_trail_service.create_system_user_audit(
         verb=AuditType.CREATED_CASE_NOTE_WITH_MENTIONS, action_object=case_note, target=case, payload=audit_payload
     )
+
+
+def is_case_already_finalised(case):
+    from api.cases.models import Case
+    from api.licences.models import Licence
+
+    # To handle a user double clicking when a request takes a while to respond
+    # Retrieve the case from db and lock the row to check its status
+    original_case = Case.objects.select_for_update().get(pk=case.pk)
+    original_case.refresh_from_db()
+
+    # Not finalised so return False and None (no licence)
+    if original_case.status.status != CaseStatusEnum.FINALISED:
+        return False, None
+
+    # If a licence does not need to be issued for this application type then exit
+    application_manifest = case.get_application_manifest()
+    if not application_manifest.has_feature(ApplicationFeatures.LICENCE_ISSUE):
+        return True, None
+
+    # If a licence exists return it if not the application was rejected so no licence present
+    try:
+        licence = Licence.objects.get(case=case)
+    except Licence.DoesNotExist:
+        return True, None
+    return True, licence

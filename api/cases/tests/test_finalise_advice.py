@@ -59,7 +59,7 @@ class RefuseAdviceTests(DataTestClient):
         self.assertEqual(case_documents_query[0].advice_type, "refuse")
         self.assertEqual(Audit.objects.count(), 4)
         case = get_case(self.application.id)
-        mock_notify.assert_called_with(case)
+        mock_notify.assert_called_with(self.application)
         send_exporter_notifications_func.assert_called()
         assert case.sub_status.name == "Refused"
         self.assertTrue(
@@ -104,7 +104,7 @@ class RefuseAdviceTests(DataTestClient):
         self.assertEqual(case_documents_query[0].advice_type, "refuse")
         self.assertEqual(Audit.objects.count(), 4)
         case = get_case(self.application.id)
-        mock_notify.assert_called_with(case)
+        mock_notify.assert_called_with(self.application)
         send_exporter_notifications_func.assert_called()
         assert case.sub_status.name == "Refused"
 
@@ -142,7 +142,7 @@ class NLRAdviceTests(DataTestClient):
 
         self.assertEqual(Audit.objects.count(), 3)
         case = get_case(self.application.id)
-        mock_notify_exporter_no_licence_required.assert_called_with(case)
+        mock_notify_exporter_no_licence_required.assert_called_with(self.application)
         mock_notify_exporter_licence_issued.assert_not_called()
         send_exporter_notifications_func.assert_called()
 

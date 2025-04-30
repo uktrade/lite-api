@@ -11,6 +11,7 @@ from api.cases.notify import (
     notify_exporter_licence_suspended,
     notify_exporter_inform_letter,
     notify_exporter_appeal_acknowledgement,
+    notify_exporter_f680_outcome_issued,
 )
 from api.licences.tests.factories import StandardLicenceFactory
 from api.users.tests.factories import ExporterUserFactory
@@ -25,6 +26,7 @@ from gov_notify.payloads import (
     ExporterNoLicenceRequired,
     ExporterInformLetter,
     ExporterAppealAcknowledgement,
+    ExporterF680OutcomeIssued,
 )
 from test_helpers.clients import DataTestClient
 
@@ -189,3 +191,24 @@ class NotifyTests(DataTestClient):
             expected_payload,
         )
         assert mock_send_email.called == 1
+
+    @override_settings(EXPORTER_BASE_URL="https://exporter.lite.example.com")
+    @mock.patch("api.cases.notify.send_email")
+    def test_notify_exporter_f680_outcome_issued(self, mock_send_email):
+        application = SubmittedF680ApplicationFactory(organisation=self.organisation)
+        application.submitted_by = ExporterUserFactory()
+        application.save()
+        expected_url = f"https://exporter.lite.example.com/f680/{application.pk}/summary/generated-documents/"
+        expected_payload = ExporterF680OutcomeIssued(
+            user_first_name=application.submitted_by.first_name,
+            application_reference=application.reference_code,
+            exporter_frontend_url=expected_url,
+        )
+
+        notify_exporter_f680_outcome_issued(application)
+
+        mock_send_email.assert_called_with(
+            application.submitted_by.email,
+            TemplateType.EXPORTER_F680_OUTCOME_ISSUED,
+            expected_payload,
+        )
