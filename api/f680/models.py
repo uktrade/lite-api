@@ -96,6 +96,11 @@ class F680Application(BaseApplication, Clonable):
                 if "security_classification" in product_information_fields
                 else None
             ),
+            security_grading_other=(
+                product_information_fields["other_security_classification"]["raw_answer"]
+                if "other_security_classification" in product_information_fields
+                else None
+            ),
         )
 
         # Create a Recipient and SecurityRelease for each.  In F680s caseworkers

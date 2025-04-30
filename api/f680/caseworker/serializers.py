@@ -206,6 +206,8 @@ class SecurityReleaseOutcomeSerializer(serializers.ModelSerializer):
 
 class SecurityReleaseOutcomeLetterSerializer(serializers.ModelSerializer):
     security_release_requests = SecurityReleaseRequestSerializer(many=True)
+    approval_types = serializers.MultipleChoiceField(choices=enums.ApprovalTypes.choices)
+    validity_end_date = serializers.DateField(format="%d %B %Y")
 
     class Meta:
         model = SecurityReleaseOutcome
@@ -216,6 +218,9 @@ class SecurityReleaseOutcomeLetterSerializer(serializers.ModelSerializer):
             "refusal_reasons",
             "security_grading",
             "approval_types",
+            "validity_start_date",
+            "validity_end_date",
+            "validity_period",
         ]
 
 
@@ -229,3 +234,25 @@ class OutcomeDocumentSerializer(serializers.ModelSerializer):
             "name",
             "visible_to_exporter",
         )
+        
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        approval_types_dict = dict(enums.ApprovalTypes.choices)
+        all_activities = instance.security_release_requests.first().approval_types
+
+        if instance.outcome == enums.SecurityReleaseOutcomes.APPROVE:
+            approved = instance.approval_types
+            refused = list(set(all_activities) - set(approved))
+
+            representation["approval_types"] = [
+                {"key": key, "value": approval_types_dict[key], "status": "Approved"} for key in approved
+            ]
+            representation["approval_types"].extend(
+                [{"key": key, "value": approval_types_dict[key], "status": "Refused"} for key in refused]
+            )
+        elif instance.outcome == enums.SecurityReleaseOutcomes.REFUSE:
+            representation["approval_types"] = [
+                {"key": key, "value": approval_types_dict[key], "status": "Refused"} for key in all_activities
+            ]
+
+        return representation

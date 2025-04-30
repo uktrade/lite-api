@@ -20,6 +20,7 @@ from api.cases.models import (
 )
 from api.cases.enums import (
     AdviceType,
+    CaseTypeReferenceEnum,
     CaseTypeSubTypeEnum,
 )
 from api.cases.tests.factories import (
@@ -253,7 +254,10 @@ class CaseRaceConditionTests(TransactionTestCase):
 
         Decision.objects.get_or_create(name=AdviceType.APPROVE)
 
-        self.case_type = CaseTypeFactory(sub_type=CaseTypeSubTypeEnum.STANDARD)
+        self.case_type = CaseTypeFactory(
+            sub_type=CaseTypeSubTypeEnum.STANDARD,
+            reference=CaseTypeReferenceEnum.SIEL,
+        )
 
         self.draft_case_status = CaseStatusFactory(status=CaseStatusEnum.DRAFT)
         self.under_final_review_case_status = CaseStatusFactory(status=CaseStatusEnum.UNDER_FINAL_REVIEW)

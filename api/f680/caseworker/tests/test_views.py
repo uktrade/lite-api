@@ -8,6 +8,8 @@ from django.urls import reverse
 from django.utils import timezone
 from freezegun import freeze_time
 
+from api.audit_trail.models import Audit
+from api.audit_trail.enums import AuditType
 from api.f680 import enums
 from api.f680.models import Recommendation, SecurityReleaseOutcome
 from api.f680.tests.factories import (
@@ -207,12 +209,33 @@ class TestF680RecommendationViewSet:
         ]
         assert expected_recommendations == actual["recommendations"]
 
-    def test_POST_recommendation_success(self, get_hawk_client, get_f680_application, url, team_case_advisor_headers):
+    @pytest.mark.parametrize(
+        "recommendation_type, expected_result_message",
+        (
+            (
+                enums.RecommendationType.APPROVE,
+                "Recommendation type added was Approve",
+            ),
+            (
+                enums.RecommendationType.REFUSE,
+                "Recommendation type added was Refuse",
+            ),
+        ),
+    )
+    def test_POST_recommendation_success(
+        self,
+        get_hawk_client,
+        get_f680_application,
+        url,
+        team_case_advisor_headers,
+        recommendation_type,
+        expected_result_message,
+    ):
         f680_application = get_f680_application()
 
         data = [
             {
-                "type": enums.RecommendationType.APPROVE,
+                "type": recommendation_type,
                 "security_grading": enums.SecurityGrading.OFFICIAL_SENSITIVE,
                 "conditions": f"Conditions for {rr.recipient.country.name}",
                 "refusal_reasons": "",
@@ -224,17 +247,46 @@ class TestF680RecommendationViewSet:
         headers = team_case_advisor_headers(TeamIdEnum.MOD_CAPPROT)
         api_client, target_url = get_hawk_client("POST", url(f680_application), data=data)
         response = api_client.post(target_url, data, **headers)
+
         assert response.status_code == 201
         assert f680_application.recommendations.count() == f680_application.security_release_requests.count()
 
+        audit_record = Audit.objects.get(target_object_id=str(f680_application.id))
+
+        notes_and_timelines_message = audit_record.payload["additional_text"]
+        audit_security_release_ids = audit_record.payload["security_release_request_ids"]
+
+        assert audit_record.verb == AuditType.CREATE_OGD_F680_RECOMMENDATION
+        assert notes_and_timelines_message == expected_result_message
+        assert audit_security_release_ids == [str(item.id) for item in f680_application.security_release_requests.all()]
+
+    @pytest.mark.parametrize(
+        "recommendation_type, expected_result_message",
+        (
+            (
+                enums.RecommendationType.APPROVE,
+                "Recommendation type added was Approve",
+            ),
+            (
+                enums.RecommendationType.REFUSE,
+                "Recommendation type added was Refuse",
+            ),
+        ),
+    )
     def test_POST_recommendation_again_raises_no_error(
-        self, get_hawk_client, get_f680_application, url, team_case_advisor_headers
+        self,
+        get_hawk_client,
+        get_f680_application,
+        url,
+        team_case_advisor_headers,
+        recommendation_type,
+        expected_result_message,
     ):
         f680_application = get_f680_application()
 
         data = [
             {
-                "type": enums.RecommendationType.APPROVE,
+                "type": recommendation_type,
                 "security_grading": enums.SecurityGrading.OFFICIAL_SENSITIVE,
                 "conditions": f"Conditions for {rr.recipient.country.name}",
                 "refusal_reasons": "",
@@ -249,13 +301,53 @@ class TestF680RecommendationViewSet:
         assert response.status_code == 201
         assert f680_application.recommendations.count() == 1
 
+        audit_record = Audit.objects.get(target_object_id=str(f680_application.id))
+
+        notes_and_timelines_message = audit_record.payload["additional_text"]
+        audit_security_release_ids = audit_record.payload["security_release_request_ids"]
+
+        assert audit_record.verb == AuditType.CREATE_OGD_F680_RECOMMENDATION
+        assert notes_and_timelines_message == expected_result_message
+        assert (
+            audit_security_release_ids
+            == [str(item.id) for item in f680_application.security_release_requests.all()][:1]
+        )
+
         api_client, target_url = get_hawk_client("POST", url(f680_application), data=data[1:])
         response = api_client.post(target_url, data[1:], **headers)
         assert response.status_code == 201
         assert f680_application.recommendations.count() == f680_application.security_release_requests.count()
 
+        audit_record = Audit.objects.filter(target_object_id=str(f680_application.id)).first()
+
+        audit_security_release_ids = audit_record.payload["security_release_request_ids"]
+        notes_and_timelines_message = audit_record.payload["additional_text"]
+
+        assert audit_record.verb == AuditType.CREATE_OGD_F680_RECOMMENDATION
+        assert notes_and_timelines_message == expected_result_message
+        assert audit_security_release_ids == [str(item.id) for item in f680_application.security_release_requests.all()]
+
+    @pytest.mark.parametrize(
+        "recommendation_type, expected_result_message",
+        (
+            (
+                enums.RecommendationType.APPROVE,
+                "Recommendation type added was Approve",
+            ),
+            (
+                enums.RecommendationType.REFUSE,
+                "Recommendation type added was Refuse",
+            ),
+        ),
+    )
     def test_POST_recommendation_another_case_success(
-        self, get_hawk_client, get_f680_application, url, team_case_advisor
+        self,
+        get_hawk_client,
+        get_f680_application,
+        url,
+        team_case_advisor,
+        recommendation_type,
+        expected_result_message,
     ):
         f680_applications = [get_f680_application(static_release_request_ids=False) for _ in range(4)]
         gov_user = team_case_advisor(TeamIdEnum.MOD_CAPPROT)
@@ -263,7 +355,7 @@ class TestF680RecommendationViewSet:
         for f680_application in f680_applications:
             data = [
                 {
-                    "type": enums.RecommendationType.APPROVE,
+                    "type": recommendation_type,
                     "security_grading": enums.SecurityGrading.OFFICIAL_SENSITIVE,
                     "conditions": f"Conditions for {rr.recipient.country.name}",
                     "refusal_reasons": "",
@@ -276,6 +368,17 @@ class TestF680RecommendationViewSet:
             response = api_client.post(target_url, data, **headers)
             assert response.status_code == 201
             assert f680_application.recommendations.count() == f680_application.security_release_requests.count()
+
+            audit_record = Audit.objects.get(target_object_id=str(f680_application.id))
+            notes_and_timelines_message = audit_record.payload["additional_text"]
+            audit_security_release_ids = audit_record.payload["security_release_request_ids"]
+
+            assert audit_record.verb == AuditType.CREATE_OGD_F680_RECOMMENDATION
+            assert notes_and_timelines_message == expected_result_message
+            assert (
+                audit_security_release_ids[-2:]
+                == [str(item.id) for item in f680_application.security_release_requests.all()][-2:]
+            )
 
     @pytest.mark.parametrize(
         "data, errors",
@@ -395,6 +498,12 @@ class TestF680RecommendationViewSet:
         assert response.status_code == 204
         assert f680_application.recommendations.count() == 0
 
+        audit_record = Audit.objects.get(target_object_id=str(f680_application.id))
+        audit_security_release_ids = audit_record.payload["security_release_request_ids"]
+
+        assert audit_record.verb == AuditType.CLEAR_OGD_F680_RECOMMENDATION
+        assert audit_security_release_ids == [str(item.id) for item in f680_application.security_release_requests.all()]
+
 
 class TestF680OutcomeViewSet:
 
@@ -510,6 +619,14 @@ class TestF680OutcomeViewSet:
             "validity_period": 24,
         }
 
+        audit_record = Audit.objects.get(target_object_id=str(f680_application.id), verb=AuditType.CREATE_F680_OUTCOME)
+
+        assert audit_record.payload == {
+            "additional_text": f"Outcome was {outcome.outcome}",
+            "security_release_request_ids": release_request_ids,
+            "security_grading": outcome.security_grading,
+        }
+
     @freeze_time("2025-04-14 12:00:00")
     def test_POST_create_multiple_item_group_success(
         self, get_hawk_client, get_f680_application, team_case_advisor_headers
@@ -553,6 +670,14 @@ class TestF680OutcomeViewSet:
             "validity_start_date": None,
             "validity_end_date": None,
             "validity_period": 0,
+        }
+
+        audit_record = Audit.objects.get(target_object_id=str(f680_application.id), verb=AuditType.CREATE_F680_OUTCOME)
+
+        assert audit_record.payload == {
+            "additional_text": f"Outcome was {outcome.outcome}",
+            "security_release_request_ids": release_request_ids,
+            "security_grading": outcome.security_grading,
         }
 
     def test_POST_case_not_ready_for_outcome_permission_denied(
@@ -759,6 +884,11 @@ class TestF680OutcomeViewSet:
         response = api_client.delete(target_url, **headers)
         assert response.status_code == 204
         assert SecurityReleaseOutcome.objects.count() == 0
+
+        audit_record = Audit.objects.get(target_object_id=str(f680_application.id), verb=AuditType.CLEAR_F680_OUTCOME)
+        assert audit_record.payload == {
+            "security_release_request_ids": release_request_ids,
+        }
 
     def test_DELETE_case_missing_404(self, get_hawk_client, get_f680_application, team_case_advisor_headers):
         f680_application = get_f680_application()
