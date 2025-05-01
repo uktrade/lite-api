@@ -93,10 +93,10 @@ APPLICATION_JSON = {
                         },
                         "other_security_classification": {
                             "key": "other_security_classification",
-                            "answer": "",
+                            "answer": "some other grading",
                             "datatype": "string",
                             "question": "Enter the security classification",
-                            "raw_answer": "",
+                            "raw_answer": "some other grading",
                         },
                         "suffix": {
                             "key": "suffix",
