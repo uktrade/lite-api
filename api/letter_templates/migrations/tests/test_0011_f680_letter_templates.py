@@ -41,21 +41,21 @@ class TestF680ExistingLetterTemplatesMigration(MigratorTestCase):
     def prepare(self):
         LetterLayout = self.old_state.apps.get_model("letter_layouts", "LetterLayout")
         LetterTemplates = self.old_state.apps.get_model("letter_templates", "LetterTemplate")
-        f680_approval_layout = LetterLayout.objects.create(
+        f680_approval_layout, _ = LetterLayout.objects.get_or_create(
             id=APPROVAL_LAYOUT_ID, name="F680 Approval", filename="f680_approval"
         )
-        f680_refusal_layout = LetterLayout.objects.create(
+        f680_refusal_layout, _ = LetterLayout.objects.get_or_create(
             id=REFUSAL_LAYOUT_ID, name="F680 Refusal", filename="f680_refusal"
         )
 
-        LetterTemplates.objects.create(
+        LetterTemplates.objects.get_or_create(
             id=APPROVAL_LETTER_ID,
             name="F680 Approval",
             layout=f680_approval_layout,
             visible_to_exporter=True,
             include_digital_signature=True,
         )
-        LetterTemplates.objects.create(
+        LetterTemplates.objects.get_or_create(
             id=REFUSAL_LETTER_ID,
             name="F680 Refusal",
             layout=f680_refusal_layout,
