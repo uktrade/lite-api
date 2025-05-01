@@ -75,9 +75,9 @@ class LetterTemplatesListTests(DataTestClient):
         response = self.client.get(url, **self.gov_headers)
         response_data = response.json()
 
-        self.assertEqual(response_data["count"], expect_count)
-        template_names = [item["name"] for item in response_data["results"]]
-        decisions = list({item["decisions"][0]["name"]["value"] for item in response_data["results"]})
+        self.assertEqual(len(response_data), expect_count)
+        template_names = [item["name"] for item in response_data]
+        decisions = list({item["decisions"][0]["name"]["value"] for item in response_data})
         assert sorted(template_names) == sorted(expected_names)
         assert sorted(decisions) == sorted(expected_decisions)
 

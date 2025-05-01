@@ -2,11 +2,14 @@ from api.f680.models import F680Application
 from api.f680.caseworker.serializers import F680ApplicationSerializer
 from api.application_manifests.base import BaseManifest
 from api.application_manifests.registry import application_manifest_registry
-from api.cases.enums import ApplicationFeatures, CaseTypeSubTypeEnum
+from api.cases.enums import (
+    ApplicationFeatures,
+    CaseTypeReferenceEnum,
+)
 from gov_notify.enums import TemplateType
 
 
-@application_manifest_registry.register(CaseTypeSubTypeEnum.F680)
+@application_manifest_registry.register(CaseTypeReferenceEnum.F680)
 class F680ApplicationManifest(BaseManifest):
     model_class = F680Application
     caseworker_serializers = {"view": F680ApplicationSerializer}
@@ -21,4 +24,9 @@ class F680ApplicationManifest(BaseManifest):
             "template": TemplateType.EXPORTER_F680_ECJU_QUERY_CHASER,
             "frontend_url": "/f680/{case_id}/summary/ecju-queries/",
         },
+    }
+    document_signing = {
+        "signing_reason": "For Head Global Issues",
+        "location": "Export Control Joint Unit MOD Team",
+        "image_name": "mod_emblem.png",
     }

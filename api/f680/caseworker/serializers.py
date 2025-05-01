@@ -1,3 +1,4 @@
+from api.cases.generated_documents.models import GeneratedCaseDocument
 from rest_framework import serializers
 
 from api.applications.serializers.fields import CaseStatusField
@@ -74,6 +75,12 @@ class F680ApplicationSerializer(serializers.ModelSerializer):
     submitted_by = RelatedExporterUserSerializer(read_only=True)
     security_release_requests = SecurityReleaseRequestSerializer(many=True)
     product = ProductSerializer(source="get_product")
+    case_type = serializers.SerializerMethodField()
+
+    def get_case_type(self, instance):
+        from api.cases.serializers import CaseTypeSerializer
+
+        return CaseTypeSerializer(instance.case_type).data
 
     class Meta:
         model = F680Application
@@ -88,8 +95,17 @@ class F680ApplicationSerializer(serializers.ModelSerializer):
             "name",
             "security_release_requests",
             "product",
+            "case_type",
         ]
-        read_only_fields = ["id", "status", "reference_code", "organisation", "submitted_at", "submitted_by"]
+        read_only_fields = [
+            "id",
+            "status",
+            "reference_code",
+            "organisation",
+            "submitted_at",
+            "submitted_by",
+            "case_type",
+        ]
 
 
 class F680RecommendationSerializer(serializers.ModelSerializer):
@@ -97,6 +113,10 @@ class F680RecommendationSerializer(serializers.ModelSerializer):
     user = PrimaryKeyRelatedField(queryset=GovUser.objects.filter(status=UserStatuses.ACTIVE))
     team = PrimaryKeyRelatedField(queryset=Team.objects.all())
     type = KeyValueChoiceField(choices=enums.RecommendationType.choices)
+    security_grading = KeyValueChoiceField(
+        choices=enums.SecurityGrading.security_release_choices, allow_blank=True, allow_null=True
+    )
+    security_grading_other = serializers.CharField(allow_blank=True, allow_null=True, required=False)
     conditions = serializers.CharField(allow_blank=True, allow_null=True)
     refusal_reasons = serializers.CharField(allow_blank=True, allow_null=True)
     security_release_request = PrimaryKeyRelatedField(queryset=SecurityReleaseRequest.objects.all())
@@ -106,6 +126,8 @@ class F680RecommendationSerializer(serializers.ModelSerializer):
         fields = (
             "id",
             "type",
+            "security_grading",
+            "security_grading_other",
             "conditions",
             "refusal_reasons",
             "user",
@@ -114,6 +136,12 @@ class F680RecommendationSerializer(serializers.ModelSerializer):
             "security_release_request",
         )
         read_only_fields = ["id"]
+
+    def validate(self, data):
+        if data["type"] == enums.RecommendationType.APPROVE and not data["security_grading"]:
+            raise serializers.ValidationError("security_grading is required for recommendation")
+
+        return data
 
 
 class SecurityReleaseOutcomeSerializer(serializers.ModelSerializer):
@@ -178,6 +206,8 @@ class SecurityReleaseOutcomeSerializer(serializers.ModelSerializer):
 
 class SecurityReleaseOutcomeLetterSerializer(serializers.ModelSerializer):
     security_release_requests = SecurityReleaseRequestSerializer(many=True)
+    approval_types = serializers.MultipleChoiceField(choices=enums.ApprovalTypes.choices)
+    validity_end_date = serializers.DateField(format="%d %B %Y")
 
     class Meta:
         model = SecurityReleaseOutcome
@@ -188,4 +218,41 @@ class SecurityReleaseOutcomeLetterSerializer(serializers.ModelSerializer):
             "refusal_reasons",
             "security_grading",
             "approval_types",
+            "validity_start_date",
+            "validity_end_date",
+            "validity_period",
         ]
+
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        approval_types_dict = dict(enums.ApprovalTypes.choices)
+        all_activities = instance.security_release_requests.first().approval_types
+
+        if instance.outcome == enums.SecurityReleaseOutcomes.APPROVE:
+            approved = instance.approval_types
+            refused = list(set(all_activities) - set(approved))
+
+            representation["approval_types"] = [
+                {"key": key, "value": approval_types_dict[key], "status": "Approved"} for key in approved
+            ]
+            representation["approval_types"].extend(
+                [{"key": key, "value": approval_types_dict[key], "status": "Refused"} for key in refused]
+            )
+        elif instance.outcome == enums.SecurityReleaseOutcomes.REFUSE:
+            representation["approval_types"] = [
+                {"key": key, "value": approval_types_dict[key], "status": "Refused"} for key in all_activities
+            ]
+
+        return representation
+
+
+class OutcomeDocumentSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = GeneratedCaseDocument
+        fields = (
+            "id",
+            "template",
+            "name",
+            "visible_to_exporter",
+        )

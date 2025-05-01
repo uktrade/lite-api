@@ -152,6 +152,7 @@ class CaseTypeEnum:
         id = UUID("00000000-0000-0000-0000-000000000017")
         reference = CaseTypeReferenceEnum.EXPORT_LICENCE
         type = CaseTypeTypeEnum.APPLICATION
+        reference_code_identifier = "EL"
 
     class SIEL:
         id = UUID("00000000-0000-0000-0000-000000000004")
@@ -266,6 +267,7 @@ class CaseTypeEnum:
         OGTL,
         COMPLIANCE_SITE,
         COMPLIANCE_VISIT,
+        EXPORT_LICENCE,
     ]
 
     OPEN_GENERAL_LICENCE_IDS = [OGEL.id, OGTCL.id, OGTL.id]

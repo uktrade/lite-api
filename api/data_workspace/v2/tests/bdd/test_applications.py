@@ -29,7 +29,7 @@ def submit_application(api_client, exporter_headers, mocker):
     def _submit_application(draft_application):
         type_code = "T" if draft_application.export_type == ApplicationExportType.TEMPORARY else "P"
         reference_code = f"GBSIEL/2024/0000001/{type_code}"
-        mocker.patch("api.cases.models.generate_reference_code", return_value=reference_code)
+        mocker.patch("api.cases.models.Case.generate_reference_code", return_value=reference_code)
 
         response = api_client.put(
             reverse(

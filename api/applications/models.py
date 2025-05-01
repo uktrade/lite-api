@@ -2,7 +2,7 @@ import logging
 import uuid
 
 from django.contrib.postgres.fields import ArrayField
-from django.db import models, transaction
+from django.db import models
 from django.utils import timezone
 from django.utils.functional import cached_property
 from rest_framework.exceptions import APIException
@@ -14,14 +14,13 @@ from api.applications.enums import (
     SecurityClassifiedApprovalsType,
     NSGListType,
 )
-from api.applications.exceptions import AmendmentError
 from api.applications.managers import BaseApplicationManager, StandardApplicationQuerySet
 from api.applications.libraries.application_helpers import create_submitted_audit
 from api.appeals.models import Appeal
 from api.audit_trail.models import AuditType
 from api.audit_trail import service as audit_trail_service
 from api.cases.enums import AdviceType, AdviceLevel, CaseTypeEnum
-from api.cases.models import Advice, Case, CaseQueue
+from api.cases.models import Advice, Case
 from api.common.models import TimestampableModel
 from api.core.model_mixins import Clonable
 from api.documents.models import Document
@@ -44,8 +43,7 @@ from api.staticdata.statuses.libraries.case_status_validate import is_case_statu
 from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
 from api.staticdata.trade_control.enums import TradeControlProductCategory, TradeControlActivity
 from api.staticdata.units.enums import Units
-from api.users.enums import SystemUser
-from api.users.models import ExporterUser, GovUser, BaseUser
+from api.users.models import ExporterUser, GovUser
 from lite_content.lite_api.strings import PartyErrors
 from lite_routing.routing_rules_internal.enums import QueuesEnum
 
@@ -267,9 +265,6 @@ class BaseApplication(ApplicationPartyMixin, Case):
         self.set_sub_status(CaseSubStatusIdEnum.UNDER_APPEAL__APPEAL_RECEIVED)
         self.add_to_queue(Queue.objects.get(id=QueuesEnum.LU_APPEALS))
 
-    def create_amendment(self, user):
-        raise NotImplementedError()
-
     def get_required_decision_document_types(self):
         raise NotImplementedError()
 
@@ -382,50 +377,6 @@ class StandardApplication(BaseApplication, Clonable):
 
         return cloned_application
 
-    @transaction.atomic
-    def create_amendment(self, user):
-        # It's possible that we've arrived here multiple times simultaneously because multiple requests to create an
-        # amendment have been made at the same time.
-        # The views that call this may have already checked the status but it's possible that when they checked it was
-        # before the status has actually been updated on the application so we've got a potential race condition going.
-        # What we want to do here is lock the row to make sure that only one request can be trying to create an
-        # amendment at any one time and if we have multiple requests clashing we'll re-check the status once the lock
-        # has been removed from any other racing requests.
-        # To be helpful to the caller we'll return the amendment that did happen even if there are multiple requests.
-        original = StandardApplication.objects.select_for_update().get(pk=self.pk)
-        if not CaseStatusEnum.can_invoke_major_edit(original.status.status):
-            logger.warning(
-                "Attempted to create an amendment from an already amended application %s with status %s",
-                original.pk,
-                original.status,
-            )
-            if original.superseded_by:
-                logger.info(
-                    "Found an amendment already: %s for the application: %s",
-                    original.superseded_by.pk,
-                    original.pk,
-                )
-                return StandardApplication.objects.get(pk=original.superseded_by.pk)
-            raise AmendmentError(f"Failed to create an amendment from {original.pk}")
-
-        amendment_application = self.clone(amendment_of=self)
-        CaseQueue.objects.filter(case=self.case_ptr).delete()
-        audit_trail_service.create(
-            actor=user,
-            verb=AuditType.EXPORTER_CREATED_AMENDMENT,
-            target=self.get_case(),
-            payload={},
-        )
-        audit_trail_service.create_system_user_audit(
-            verb=AuditType.AMENDMENT_CREATED,
-            target=amendment_application.case_ptr,
-            payload={"superseded_case": {"reference_code": self.reference_code}},
-            ignore_case_status=True,
-        )
-        system_user = BaseUser.objects.get(id=SystemUser.id)
-        self.case_ptr.change_status(system_user, get_case_status_by_status(CaseStatusEnum.SUPERSEDED_BY_EXPORTER_EDIT))
-        return amendment_application
-
     def get_required_decision_document_types(self):
         case = self.case_ptr
         required_decisions = set(
@@ -451,6 +402,17 @@ class StandardApplication(BaseApplication, Clonable):
             required_decisions.discard(AdviceType.APPROVE)
 
         return required_decisions
+
+    def get_reference_code_prefix(self):
+        reference_code_prefix = super().get_reference_code_prefix()
+
+        return f"GB{reference_code_prefix}"
+
+    def get_reference_code_suffix(self):
+        return {
+            ApplicationExportType.PERMANENT: "P",
+            ApplicationExportType.TEMPORARY: "T",
+        }[self.export_type]
 
 
 class ApplicationDocument(Document, Clonable):

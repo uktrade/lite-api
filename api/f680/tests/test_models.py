@@ -1,10 +1,15 @@
 import pytest
 
-from .factories import F680ApplicationFactory
+from django.forms import model_to_dict
 
+from .factories import F680ApplicationFactory, SubmittedF680ApplicationFactory
+from api.users.tests.factories import ExporterUserFactory
 from api.f680.models import Product, SecurityReleaseRequest
 from api.f680.exporter.serializers import SubmittedApplicationJSONSerializer
-
+from api.cases.enums import CaseTypeEnum
+from api.applications.exceptions import AmendmentError
+from api.staticdata.statuses.enums import CaseStatusIdEnum
+from api.audit_trail.models import Audit
 
 pytestmark = pytest.mark.django_db
 
@@ -27,6 +32,7 @@ class TestF680Application:
         assert product.name == "some product name"
         assert product.description == "some product description"
         assert product.security_grading == "official"
+        assert product.security_grading_other == "some other grading"
         assert product.organisation == f680_application.organisation
 
         expected_security_release_count = len(data_application_json["sections"]["user_information"]["items"])
@@ -71,3 +77,104 @@ class TestF680Application:
         assert f680_application.name is None
         with pytest.raises(KeyError):
             f680_application.on_submit({})
+
+    def test_clone_application(self, data_application_json):
+        f680_application = F680ApplicationFactory(
+            name="F680_APP_1",
+            status_id=CaseStatusIdEnum.REOPENED_FOR_CHANGES,
+            sla_days=14,
+            application=data_application_json,
+        )
+        cloned_application = f680_application.clone(amendment_of=f680_application)
+        cloned_application_data = model_to_dict(cloned_application)
+
+        new_application_json = cloned_application_data.pop("application")
+        assert new_application_json != f680_application.application
+
+        # Remove items from application json to prove the difference lies in this section
+        f680_items = f680_application.application["sections"]["user_information"].pop("items")
+        new_f680_items = new_application_json["sections"]["user_information"].pop("items")
+        assert new_application_json == f680_application.application
+
+        # Remove the ids from items and assert they are different (so have therefore been updated)
+        assert [item.pop("id") for item in new_f680_items] != [item.pop("id") for item in f680_items]
+
+        # Assert the remaining items data is the same
+        assert new_f680_items == f680_items
+
+        assert cloned_application_data == {
+            "activity": None,
+            "additional_contacts": [],
+            "agreed_to_foi": None,
+            "amendment_of": f680_application.pk,
+            "appeal": None,
+            "appeal_deadline": None,
+            "baseapplication_ptr": cloned_application.pk,
+            "case_officer": None,
+            "case_ptr": cloned_application.pk,
+            "case_type": CaseTypeEnum.F680.id,
+            "clearance_level": None,
+            "compliant_limitations_eu_ref": None,
+            "copy_of": None,
+            "flags": [],
+            "foi_reason": "",
+            "informed_wmd_ref": None,
+            "intended_end_use": None,
+            "is_compliant_limitations_eu": None,
+            "is_eu_military": None,
+            "is_informed_wmd": None,
+            "is_military_end_use_controls": None,
+            "is_suspected_wmd": None,
+            "last_closed_at": None,
+            "military_end_use_controls_ref": None,
+            "name": "F680_APP_1",
+            "organisation": f680_application.organisation.pk,
+            "queues": [],
+            "sla_days": 0,
+            "sla_remaining_days": None,
+            "sla_updated_at": None,
+            "status": CaseStatusIdEnum.DRAFT,
+            "sub_status": None,
+            "submitted_at": None,
+            "submitted_by": None,
+            "suspected_wmd_ref": None,
+            "usage": None,
+        }
+
+    def test_create_amendment(self, data_application_json):
+        exporter_user = ExporterUserFactory()
+        f680_application = SubmittedF680ApplicationFactory(
+            name="F680_APP_1",
+            application=data_application_json,
+        )
+        assert f680_application.status_id == CaseStatusIdEnum.SUBMITTED
+        new_f680_application = f680_application.create_amendment(exporter_user)
+        f680_application.refresh_from_db()
+        assert f680_application.status_id == CaseStatusIdEnum.SUPERSEDED_BY_EXPORTER_EDIT
+        assert new_f680_application.status_id == CaseStatusIdEnum.DRAFT
+        assert new_f680_application.name == f680_application.name
+        assert new_f680_application.amendment_of == f680_application
+        assert Audit.objects.filter(target_object_id=f680_application.get_case().id).count() == 2
+        assert Audit.objects.filter(target_object_id=new_f680_application.get_case().id).count() == 1
+
+    def test_create_amendment_error(self, data_application_json):
+        exporter_user = ExporterUserFactory()
+        f680_application = F680ApplicationFactory(
+            name="F680_APP_1",
+            application=data_application_json,
+        )
+        assert f680_application.status_id == CaseStatusIdEnum.DRAFT
+        with pytest.raises(AmendmentError) as error:
+            f680_application.create_amendment(exporter_user)
+        assert "Failed to create an amendment from" in str(error.value)
+
+    def test_create_amendment_one_already_exists(self, data_application_json):
+        exporter_user = ExporterUserFactory()
+        f680_application = F680ApplicationFactory(
+            name="F680_APP_1",
+            application=data_application_json,
+        )
+        submitted_f680_application = SubmittedF680ApplicationFactory(amendment_of=f680_application)
+        assert f680_application.status_id == CaseStatusIdEnum.DRAFT
+        result = f680_application.create_amendment(exporter_user)
+        assert result == submitted_f680_application
