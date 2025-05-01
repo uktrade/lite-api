@@ -35,3 +35,9 @@ class StandardApplicationManifest(BaseManifest):
             "frontend_url": "/applications/{case_id}/ecju-queries/",
         },
     }
+
+    document_signing = {
+        "signing_reason": "On behalf of the Secretary of State",
+        "location": "Department for International Trade",
+        "image_name": "dit_emblem.png",
+    }

@@ -1,3 +1,4 @@
+from api.cases.generated_documents.tests.factories import F680ApproveDocumentFactory
 import pytest
 
 from dateutil.relativedelta import relativedelta
@@ -618,6 +619,14 @@ class TestF680OutcomeViewSet:
             "validity_period": 24,
         }
 
+        audit_record = Audit.objects.get(target_object_id=str(f680_application.id), verb=AuditType.CREATE_F680_OUTCOME)
+
+        assert audit_record.payload == {
+            "additional_text": f"Outcome was {outcome.outcome}",
+            "security_release_request_ids": release_request_ids,
+            "security_grading": outcome.security_grading,
+        }
+
     @freeze_time("2025-04-14 12:00:00")
     def test_POST_create_multiple_item_group_success(
         self, get_hawk_client, get_f680_application, team_case_advisor_headers
@@ -661,6 +670,14 @@ class TestF680OutcomeViewSet:
             "validity_start_date": None,
             "validity_end_date": None,
             "validity_period": 0,
+        }
+
+        audit_record = Audit.objects.get(target_object_id=str(f680_application.id), verb=AuditType.CREATE_F680_OUTCOME)
+
+        assert audit_record.payload == {
+            "additional_text": f"Outcome was {outcome.outcome}",
+            "security_release_request_ids": release_request_ids,
+            "security_grading": outcome.security_grading,
         }
 
     def test_POST_case_not_ready_for_outcome_permission_denied(
@@ -868,6 +885,11 @@ class TestF680OutcomeViewSet:
         assert response.status_code == 204
         assert SecurityReleaseOutcome.objects.count() == 0
 
+        audit_record = Audit.objects.get(target_object_id=str(f680_application.id), verb=AuditType.CLEAR_F680_OUTCOME)
+        assert audit_record.payload == {
+            "security_release_request_ids": release_request_ids,
+        }
+
     def test_DELETE_case_missing_404(self, get_hawk_client, get_f680_application, team_case_advisor_headers):
         f680_application = get_f680_application()
         f680_application.status = CaseStatus.objects.get(status=CaseStatusEnum.UNDER_FINAL_REVIEW)
@@ -887,3 +909,44 @@ class TestF680OutcomeViewSet:
         response = api_client.delete(target_url, **headers)
         assert response.status_code == 404
         assert SecurityReleaseOutcome.objects.first() == outcome
+
+
+class TestF680OutcomeDocumentViewSet:
+
+    def test_GET_outcome_document_success(self, get_hawk_client, get_f680_application, team_case_advisor_headers):
+        f680_application = get_f680_application()
+        f680_application_2 = SubmittedF680ApplicationFactory()
+
+        headers = team_case_advisor_headers(TeamIdEnum.MOD_ECJU)
+        approval_doc = F680ApproveDocumentFactory(case=f680_application)
+        F680ApproveDocumentFactory(case=f680_application_2)
+
+        url = reverse("caseworker_f680:outcome_document", kwargs={"pk": str(f680_application.id)})
+        api_client, target_url = get_hawk_client("GET", url, data=[])
+        response = api_client.get(target_url, **headers)
+        assert response.status_code == 200
+        assert response.json() == [
+            {
+                "id": str(approval_doc.pk),
+                "name": approval_doc.name,
+                "template": str(approval_doc.template.id),
+                "visible_to_exporter": approval_doc.visible_to_exporter,
+            }
+        ]
+
+    def test_GET_outcome_document_missing(self, get_hawk_client, get_f680_application, team_case_advisor_headers):
+        f680_application = get_f680_application()
+        headers = team_case_advisor_headers(TeamIdEnum.MOD_ECJU)
+
+        url = reverse("caseworker_f680:outcome_document", kwargs={"pk": str(f680_application.id)})
+        api_client, target_url = get_hawk_client("GET", url, data=[])
+        response = api_client.get(target_url, **headers)
+        assert response.status_code == 200
+        assert response.json() == []
+
+    def test_GET_outcome_document_case_missing_404(self, get_hawk_client, team_case_advisor_headers):
+        headers = team_case_advisor_headers(TeamIdEnum.MOD_ECJU)
+        url = reverse("caseworker_f680:outcome_document", kwargs={"pk": uuid4()})
+        api_client, target_url = get_hawk_client("GET", url, data=[])
+        response = api_client.get(target_url, **headers)
+        assert response.status_code == 404

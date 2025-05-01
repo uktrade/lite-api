@@ -149,6 +149,8 @@ class AuditType(LiteEnum):
     CREATE_BULK_APPROVAL_RECOMMENDATION = autostr()
     CREATE_OGD_F680_RECOMMENDATION = autostr()
     CLEAR_OGD_F680_RECOMMENDATION = autostr()
+    CREATE_F680_OUTCOME = autostr()
+    CLEAR_F680_OUTCOME = autostr()
 
     def human_readable(self):
         """

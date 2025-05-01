@@ -19,6 +19,7 @@ from api.applications.models import (
 )
 from api.cases.enums import AdviceLevel, AdviceType, CaseTypeEnum
 from api.cases.models import Advice
+from api.cases.tests.factories import LazyStatus
 from api.external_data.models import Denial, DenialEntity, SanctionMatch
 from api.documents.tests.factories import DocumentFactory
 from api.flags.enums import FlagLevels
@@ -79,6 +80,10 @@ class StandardApplicationFactory(factory.django.DjangoModelFactory):
 
 class ExportLicenceApplicationFactory(StandardApplicationFactory):
     case_type_id = CaseTypeEnum.EXPORT_LICENCE.id
+
+
+class DraftExportLicenceApplicationFactory(ExportLicenceApplicationFactory):
+    status = LazyStatus(CaseStatusEnum.DRAFT)
 
 
 class PartyOnApplicationFactory(factory.django.DjangoModelFactory):
