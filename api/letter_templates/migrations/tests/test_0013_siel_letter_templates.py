@@ -15,7 +15,7 @@ class TestSIELLetterTemplatesMigration(MigratorTestCase):
     migrate_to = ("letter_templates", "0013_siel_letter_templates")
 
     def test_siel_letter_templates(self):
-        CASETYPE_SIEL_ID = "00000000-0000-0000-0000-000000000001"
+        CASETYPE_SIEL_ID = "00000000-0000-0000-0000-000000000004"
         APPROVE_DECISION_ID = "00000000-0000-0000-0000-000000000001"
         REFUSE_DECISION_ID = "00000000-0000-0000-0000-000000000003"
         NLR_DECISION_ID = "00000000-0000-0000-0000-000000000004"
@@ -36,10 +36,10 @@ class TestSIELLetterTemplatesMigration(MigratorTestCase):
         assert refuse_template.case_types.filter(id=CASETYPE_SIEL_ID).exists()
         assert refuse_template.decisions.filter(id=REFUSE_DECISION_ID).exists()
 
-        assert str(refuse_template.id) == NLR_LETTER_ID
-        assert str(refuse_template.layout.name) == "No Licence Required Letter"
-        assert refuse_template.case_types.filter(id=CASETYPE_SIEL_ID).exists()
-        assert refuse_template.decisions.filter(id=NLR_DECISION_ID).exists()
+        assert str(nlr_template.id) == NLR_LETTER_ID
+        assert str(nlr_template.layout.name) == "No Licence Required Letter"
+        assert nlr_template.case_types.filter(id=CASETYPE_SIEL_ID).exists()
+        assert nlr_template.decisions.filter(id=NLR_DECISION_ID).exists()
 
 
 @pytest.mark.django_db()
@@ -50,31 +50,34 @@ class TestSIELExistingLetterTemplatesMigration(MigratorTestCase):
     def prepare(self):
         LetterLayout = self.old_state.apps.get_model("letter_layouts", "LetterLayout")
         LetterTemplates = self.old_state.apps.get_model("letter_templates", "LetterTemplate")
-        siel_approval_layout = LetterLayout.objects.create(id=APPROVAL_LAYOUT_ID, name="SIEL", filename="siel")
-        siel_refusal_layout = LetterLayout.objects.create(
+        # these are all get_or_create to allow for the tests to pass as expected
+        siel_approval_layout, _ = LetterLayout.objects.get_or_create(
+            id=APPROVAL_LAYOUT_ID, name="SIEL", filename="siel"
+        )
+        siel_refusal_layout, _ = LetterLayout.objects.get_or_create(
             id=REFUSAL_LAYOUT_ID, name="Refusal Letter", filename="refusal"
         )
-        nlr_layout = LetterLayout.objects.create(
+        nlr_layout, _ = LetterLayout.objects.get_or_create(
             id=NLR_LAYOUT_ID,
             name="No Licence Required Letter",
             filename="nlr",
         )
 
-        LetterTemplates.objects.create(
+        LetterTemplates.objects.get_or_create(
             id=APPROVAL_LETTER_ID,
             name="SIEL tempalte",
             layout=siel_approval_layout,
             visible_to_exporter=True,
             include_digital_signature=True,
         )
-        LetterTemplates.objects.create(
+        LetterTemplates.objects.get_or_create(
             id=REFUSAL_LETTER_ID,
             name="Refusal letter template",
             layout=siel_refusal_layout,
             visible_to_exporter=True,
             include_digital_signature=True,
         )
-        LetterTemplates.objects.create(
+        LetterTemplates.objects.get_or_create(
             id=REFUSAL_LETTER_ID,
             name="No licence required letter template",
             layout=nlr_layout,
