@@ -56,7 +56,7 @@ class F680ApplicationViewSet(viewsets.ModelViewSet):
             .get("answer", "")
         )
 
-        if incoming_application_name:
+        if not application.name and incoming_application_name:
             application.name = incoming_application_name
             application.save()
 
