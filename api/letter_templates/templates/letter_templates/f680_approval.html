@@ -37,16 +37,15 @@
   </ul>
   <h3>Export licences </h3>
   <p>It is also your responsibility to apply for any export licences you need.</p><br>
-  <a href="https://www.gov.uk/find-licences/apply-for-a-standard-individual-export-licence-siel">Apply for a standard individual export licence (SIEL) <a>
+  <a href="https://www.gov.uk/guidance/standard-individual-export-licences">Apply for a standard individual export licence (SIEL) <a>
   <br>
   <a href="https://www.spire.trade.gov.uk/spire/fox/espire/LOGIN/login">Apply or register for other licences<a>
   <h3>F680 renewal</h3>
   <p>
     If needed, make sure you apply for a new F680 clearance at least 30 days before this
-  one expires on [DD month YYYY]
+  one expires on {{ details.security_release_outcomes.approve.0.validity_end_date }}
   </p>
   <p>Yours sincerely,</p>
 
-  <p>signature here</P>
 </div>
 {% endblock %}
