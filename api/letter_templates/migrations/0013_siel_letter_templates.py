@@ -4,6 +4,7 @@ from django.db import migrations
 def populate_siel_letter_templates(apps, schema_editor):
 
     CASETYPE_SIEL_ID = "00000000-0000-0000-0000-000000000004"
+
     APPROVE_DECISION_ID = "00000000-0000-0000-0000-000000000001"
     REFUSE_DECISION_ID = "00000000-0000-0000-0000-000000000003"
     NLR_DECISION_ID = "00000000-0000-0000-0000-000000000004"
@@ -74,9 +75,7 @@ def populate_siel_letter_templates(apps, schema_editor):
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ("letter_templates", "0012_oiel_letter_templates"),
-    ]
+    dependencies = [("letter_templates", "0012_oiel_letter_templates"), ("cases", "0084_alter_casetype_sub_type")]
 
     operations = [
         migrations.RunPython(populate_siel_letter_templates, migrations.RunPython.noop),
