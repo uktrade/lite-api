@@ -9,15 +9,14 @@ from api.f680.caseworker import filters
 
 class F680CaseworkerApplicationMixin:
     authentication_classes = (GovAuthentication,)
-    filter_backends = (filters.CurrentCaseFilter,)
+    filter_backends = (filters.CurrentCaseFilter, filters.F680CaseFilter)
 
-    def dispatch(self, request, *args, **kwargs):
+    def initial(self, request, *args, **kwargs):
         try:
             self.application = get_application(self.kwargs["pk"])
         except (ObjectDoesNotExist, NotFoundError):
             raise Http404()
-
-        return super().dispatch(request, *args, **kwargs)
+        return super().initial(request, *args, **kwargs)
 
     def get_case(self):
         return self.application
