@@ -7,6 +7,7 @@ from api.cases.enums import (
     CaseTypeReferenceEnum,
 )
 from gov_notify.enums import TemplateType
+from lite_routing.routing_rules_internal.enums import TeamIdEnum
 
 
 @application_manifest_registry.register(CaseTypeReferenceEnum.EXPORT_LICENCE)
@@ -18,6 +19,7 @@ class ApplicationManifest(BaseManifest):
     # TODO: LTD-6203 Create a dedicated serializer for the exporter
     caseworker_serializers = {"view": StandardApplicationViewSerializer}
     exporter_serializers = {"view": StandardApplicationViewSerializer}
+    managing_team_id = TeamIdEnum.LICENSING_UNIT
     features = {
         ApplicationFeatures.LICENCE_ISSUE: True,
         ApplicationFeatures.ROUTE_TO_COUNTERSIGNING_QUEUES: True,

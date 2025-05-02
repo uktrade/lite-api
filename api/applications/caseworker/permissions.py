@@ -13,10 +13,17 @@ class CaseStatusCaseworkerChangeable(permissions.BasePermission):
         user = request.user.govuser
 
         if new_status == CaseStatusEnum.FINALISED:
-            lu_user = str(user.team.id) == TeamIdEnum.LICENSING_UNIT
-            if lu_user and user.has_permission(GovPermissions.MANAGE_LICENCE_FINAL_ADVICE):
-                return True
-            return False
+            application_manifest = application.get_application_manifest()
+
+            is_managing_user = str(user.team.id) == application_manifest.managing_team_id
+            if not is_managing_user:
+                return False
+
+            if application_manifest.managing_team_id == TeamIdEnum.LICENSING_UNIT and not user.has_permission(
+                GovPermissions.MANAGE_LICENCE_FINAL_ADVICE
+            ):
+                return False
+            return True
 
         if new_status == CaseStatusEnum.APPLICANT_EDITING:
             return False
