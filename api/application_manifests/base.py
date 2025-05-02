@@ -1,4 +1,5 @@
 class BaseManifest:
+    exporter_serializers = {}
     caseworker_serializers = {}
     model_class = None
     features = {}

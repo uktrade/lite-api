@@ -8,7 +8,7 @@ from elasticsearch_dsl import Search, Q
 from elasticsearch.exceptions import NotFoundError
 
 from api.appeals.constants import APPEAL_DAYS
-from api.applications.models import BaseApplication, GoodOnApplication
+from api.applications.models import GoodOnApplication
 from api.applications.serializers.good import GoodOnStandardLicenceSerializer
 from api.cases.enums import AdviceType, AdviceLevel
 from api.documents.models import Document
@@ -17,11 +17,6 @@ from api.external_data.models import SanctionMatch
 from api.licences.models import GoodOnLicence
 
 logger = logging.getLogger(__name__)
-
-
-def get_application_view_serializer(application: BaseApplication):
-    application_manifest = application.get_application_manifest()
-    return application_manifest.caseworker_serializers["view"]
 
 
 def validate_and_create_goods_on_licence(application_id, licence_id, data):
