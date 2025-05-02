@@ -8,6 +8,7 @@ from typing import Tuple
 import django.utils.timezone
 from django.db import connection
 from django.test import override_settings
+from api.f680.tests.factories import F680ApplicationFactory
 from rest_framework.test import APITestCase, URLPatternsTestCase, APIClient
 import pytest
 
@@ -669,6 +670,20 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             SiteOnApplication(site=organisation.primary_site, application=application).save()
 
         return application
+
+    def create_draft_f680_application(
+        self,
+        organisation: Organisation,
+        data_application_json,
+        reference_code=None,
+    ):
+
+        f680_application = F680ApplicationFactory(
+            organisation=organisation,
+            application=data_application_json,
+            reference_code=reference_code,
+        )
+        return f680_application
 
     def create_incorporated_good_and_ultimate_end_user_on_application(self, organisation, application):
         good = Good.objects.create(
