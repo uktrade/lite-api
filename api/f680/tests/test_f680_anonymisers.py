@@ -67,3 +67,4 @@ def test_sanitize_application():
         assert original_user_item["id"] == sanitized_user_item["id"]
         _assert_sanitized(original_user_item, sanitized_user_item, "fields.address")
         _assert_sanitized(original_user_item, sanitized_user_item, "fields.end_user_name")
+        _assert_sanitized(original_user_item, sanitized_user_item, "fields.end_user_intended_end_use")

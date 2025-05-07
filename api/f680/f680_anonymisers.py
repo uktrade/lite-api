@@ -36,6 +36,11 @@ def sanitize_user_information(application):
         sanitized_name = db_anonymiser_sanitizers.sanitize_name(full_name)
         _set_answer(full_name_field, sanitized_name)
 
+        end_user_intended_end_use_field = item["fields"]["end_user_intended_end_use"]
+        intended_end_use = end_user_intended_end_use_field["answer"]
+        sanitized_intended_end_use = db_anonymiser_sanitizers.sanitize_short_text(intended_end_use)
+        _set_answer(end_user_intended_end_use_field, sanitized_intended_end_use)
+
 
 def sanitize_application(value):
     application = json.loads(value)
