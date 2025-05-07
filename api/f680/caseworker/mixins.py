@@ -12,6 +12,7 @@ class F680CaseworkerApplicationMixin:
     filter_backends = (filters.CurrentCaseFilter, filters.F680CaseFilter)
 
     def initial(self, request, *args, **kwargs):
+        self.perform_authentication(request)
         try:
             self.application = get_application(self.kwargs["pk"])
         except (ObjectDoesNotExist, NotFoundError):
