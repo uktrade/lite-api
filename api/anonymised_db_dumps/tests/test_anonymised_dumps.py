@@ -24,8 +24,13 @@ from api.cases.models import CaseNote, EcjuQuery, Advice
 from api.documents.tests.factories import DocumentFactory
 from api.documents.models import Document
 from api.document_data.models import DocumentData
-from api.f680.models import F680Application, Recipient
-from api.f680.tests.factories import SubmittedF680ApplicationFactory, F680RecipientFactory
+from api.f680.models import F680Application, Recipient, SecurityReleaseRequest, Product
+from api.f680.tests.factories import (
+    SubmittedF680ApplicationFactory,
+    F680RecipientFactory,
+    F680ProductFactory,
+    F680SecurityReleaseRequestFactory,
+)
 from api.f680.tests.f680_test_data import APPLICATION_JSON as F680_APPLICATION_JSON
 from api.goods.tests.factories import GoodFactory
 from api.goods.models import Good
@@ -171,6 +176,10 @@ class TestAnonymiseDumps(TransactionTestCase):
     def create_f680_data(cls):
         cls.f680_application = SubmittedF680ApplicationFactory(application=F680_APPLICATION_JSON)
         cls.f680_recipient = F680RecipientFactory()
+        cls.f680_product = F680ProductFactory()
+        cls.f680_security_release_request = F680SecurityReleaseRequestFactory(
+            recipient=cls.f680_recipient, application=cls.f680_application, product=cls.f680_product
+        )
 
     @classmethod
     def create_audit_trail_data(cls):
@@ -769,3 +778,14 @@ class TestAnonymiseDumps(TransactionTestCase):
         updated_f680_recipient = Recipient.objects.get(id=previous_f680_recipient.id)
         assert updated_f680_recipient.address != previous_f680_recipient.address
         assert updated_f680_recipient.name != previous_f680_recipient.name
+
+    def test_f680_security_release_request_anonymisation_intended_use_anonymised(self):
+        previous_f680_release_request = self.f680_security_release_request
+        updated_f680_release_request = SecurityReleaseRequest.objects.get(id=previous_f680_release_request.id)
+        assert updated_f680_release_request.intended_use != previous_f680_release_request.intended_use
+
+    def test_f680_product_anonymisation_name_description_anonymised(self):
+        previous_f680_product = self.f680_product
+        updated_f680_product = Product.objects.get(id=previous_f680_product.id)
+        assert previous_f680_product.name != updated_f680_product.name
+        assert previous_f680_product.description != updated_f680_product.description
