@@ -110,7 +110,7 @@
   .document>p {
     margin-bottom: 0px;
   }
-.header {
+.document .header {
     padding: 5px;
     display: flex;
     flex-direction: row;
