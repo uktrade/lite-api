@@ -311,11 +311,9 @@ class CaseDetailSerializer(serializers.ModelSerializer):
         super().__init__(*args, **kwargs)
 
     def get_data(self, instance):
-        from api.applications.helpers import get_application_view_serializer
-
         application = get_application(instance.id)
-        serializer = get_application_view_serializer(application)
-
+        application_manifest = application.get_application_manifest()
+        serializer = application_manifest.caseworker_serializers["view"]
         return serializer(application).data
 
     def get_flags(self, instance):

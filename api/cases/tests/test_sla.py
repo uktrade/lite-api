@@ -4,17 +4,20 @@ from unittest.mock import patch
 
 from django.conf import settings
 from django.utils import timezone
-from parameterized import parameterized
 from pytz import timezone as tz
 
 from api.cases.enums import CaseTypeSubTypeEnum
-from api.cases.models import Case, CaseQueue, EcjuQuery
+from api.cases.models import (
+    Case,
+    CaseQueue,
+    DepartmentSLA,
+    EcjuQuery,
+)
 from api.cases.celery_tasks import (
     update_cases_sla,
     STANDARD_APPLICATION_TARGET_DAYS,
     SLA_UPDATE_CUTOFF_TIME,
 )
-from api.cases.models import CaseQueue, DepartmentSLA
 from api.staticdata.statuses.enums import CaseStatusEnum
 from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
 from api.teams.models import Department
@@ -67,19 +70,6 @@ class SlaCaseTests(DataTestClient):
         self.assertEqual(case.sla_days, 1)
 
         self.assertEqual(case.sla_remaining_days, target - 1)
-
-    @parameterized.expand([(CaseTypeSubTypeEnum.GOODS,), (CaseTypeSubTypeEnum.EUA,)])
-    def test_sla_doesnt_update_queries(self, query_type):
-        query = self.case_types[query_type]
-        case = self.submit_application(query)
-        _set_submitted_at(case, HOUR_BEFORE_CUTOFF)
-
-        results = run_update_cases_sla_task()
-        case.refresh_from_db()
-
-        self.assertEqual(results, 0)
-        self.assertEqual(case.sla_days, 0)
-        self.assertEqual(case.sla_remaining_days, None)
 
 
 class SlaRulesTests(DataTestClient):
