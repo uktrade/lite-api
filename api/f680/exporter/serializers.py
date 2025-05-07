@@ -4,6 +4,7 @@ from api.organisations.exporter.serializers import RelatedOrganisationSerializer
 from api.users.exporter.serializers import RelatedExporterUserSerializer
 from api.cases.serializers import CaseTypeSerializer
 from api.f680.models import F680Application
+from api.applications.serializers.fields import CaseStatusField
 
 
 class SectionType:
@@ -12,7 +13,7 @@ class SectionType:
 
 
 class F680ApplicationSerializer(serializers.ModelSerializer):
-    status = serializers.CharField(source="status__status", read_only=True)
+    status = CaseStatusField(read_only=True)
     organisation = RelatedOrganisationSerializer(read_only=True)
     submitted_by = RelatedExporterUserSerializer(read_only=True)
     case_type = serializers.SerializerMethodField()
