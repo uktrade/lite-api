@@ -41,6 +41,22 @@ class F680ApplicationSerializer(serializers.ModelSerializer):
     def get_case_type(self, instance):
         return CaseTypeSerializer(instance.case_type).data
 
+    def save(self, **kwargs):
+        incoming_application_name = (
+            self.validated_data.get("application", {})
+            .get("sections", {})
+            .get("general_application_details", {})
+            .get("fields", {})
+            .get("name", {})
+            .get("answer", "")
+        )
+
+        if self.instance and not self.instance.name and incoming_application_name:
+            self.instance.name = incoming_application_name
+            self.instance.save()
+
+        return super().save(**kwargs)
+
 
 class FieldSerializer(serializers.Serializer):
     key = serializers.SlugField(max_length=50)
