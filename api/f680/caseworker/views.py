@@ -135,7 +135,7 @@ class F680OutcomeViewSet(F680CaseworkerApplicationMixin, viewsets.ModelViewSet):
         return HttpResponse(status=response.status_code)
 
 
-class F680OutcomeDocumenViewSet(F680CaseworkerApplicationMixin, viewsets.ModelViewSet):
+class F680OutcomeDocumentViewSet(F680CaseworkerApplicationMixin, viewsets.ModelViewSet):
     queryset = GeneratedCaseDocument.objects.all()
     serializer_class = serializers.OutcomeDocumentSerializer
     lookup_url_kwarg = "case_id"
