@@ -528,10 +528,10 @@ APPLICATION_JSON = {
                 },
                 "cryptography_or_security_feature_info": {
                     "key": "cryptography_or_security_feature_info",
-                    "answer": "",
+                    "answer": "some info",
                     "datatype": "string",
                     "question": "Provide full details",
-                    "raw_answer": "",
+                    "raw_answer": "some info",
                 },
                 "is_item_rated_under_mctr": {
                     "key": "is_item_rated_under_mctr",
@@ -561,6 +561,34 @@ APPLICATION_JSON = {
                     "question": "Who is funding the item?",
                     "raw_answer": "mod",
                 },
+                "full_name": {
+                    "key": "full_name",
+                    "answer": "some name",
+                    "datatype": "string",
+                    "question": "Full name",
+                    "raw_answer": "some name",
+                },
+                "address": {
+                    "key": "address",
+                    "answer": "some address",
+                    "datatype": "string",
+                    "question": "Full name",
+                    "raw_answer": "some address",
+                },
+                "phone_number": {
+                    "key": "phone_number",
+                    "answer": "01202",
+                    "datatype": "string",
+                    "question": "Phone number",
+                    "raw_answer": "01202",
+                },
+                "email_address": {
+                    "key": "email_address",
+                    "answer": "a@example.net",  # /PS-IGNORE
+                    "datatype": "string",
+                    "question": "Email",
+                    "raw_answer": "a@example.net",  # /PS-IGNORE
+                },
                 "is_used_by_uk_armed_forces": {
                     "key": "is_used_by_uk_armed_forces",
                     "answer": "No",
@@ -570,10 +598,10 @@ APPLICATION_JSON = {
                 },
                 "used_by_uk_armed_forces_info": {
                     "key": "used_by_uk_armed_forces_info",
-                    "answer": "",
+                    "answer": "some info",
                     "datatype": "string",
                     "question": "Explain how it will be used",
-                    "raw_answer": "",
+                    "raw_answer": "some info",
                 },
             },
             "fields_sequence": [
@@ -596,6 +624,10 @@ APPLICATION_JSON = {
                 "funding_source",
                 "is_used_by_uk_armed_forces",
                 "used_by_uk_armed_forces_info",
+                "full_name",
+                "address",
+                "phone_number",
+                "email_address",
             ],
         },
         "general_application_details": {
@@ -616,8 +648,15 @@ APPLICATION_JSON = {
                     "question": "Do you have exceptional circumstances that mean you need F680 approval in less than 30 days?",
                     "raw_answer": False,
                 },
+                "previous_application_details": {
+                    "key": "previous_application_details",
+                    "answer": "some details",
+                    "datatype": "string",
+                    "question": "Previous application details",
+                    "raw_answer": "some details",
+                },
             },
-            "fields_sequence": ["name", "is_exceptional_circumstances"],
+            "fields_sequence": ["name", "is_exceptional_circumstances", "previous_application_details"],
         },
     },
 }
