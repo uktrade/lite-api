@@ -5,6 +5,7 @@ from api.core.authentication import GovAuthentication
 from api.core.exceptions import NotFoundError
 from api.applications.libraries.get_applications import get_application
 from api.f680.caseworker import filters
+from mohawk.exc import MisComputedContentHash as DoubleRequestException
 
 
 class F680CaseworkerApplicationMixin:
@@ -12,7 +13,16 @@ class F680CaseworkerApplicationMixin:
     filter_backends = (filters.CurrentCaseFilter, filters.F680CaseFilter)
 
     def initial(self, request, *args, **kwargs):
-        self.perform_authentication(request)
+        """
+        Below we are catching a situation where there is a post request inside of which auth
+        is performed and therefore we get a hawk exception due to the first post request hash not
+        being resolved before the Hawk receiver gets the second request.
+        """
+        try:
+            self.perform_authentication(request)
+        except DoubleRequestException:
+            raise Http404()
+
         try:
             self.application = get_application(self.kwargs["pk"])
         except (ObjectDoesNotExist, NotFoundError):
