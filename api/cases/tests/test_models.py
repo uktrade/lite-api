@@ -11,8 +11,11 @@ from django.test import TransactionTestCase
 from api.audit_trail.enums import AuditType
 from api.audit_trail.models import Audit
 from api.audit_trail.serializers import AuditSerializer
-from api.applications.application_manifest import StandardApplicationManifest
-from api.applications.tests.factories import StandardApplicationFactory
+from api.applications.application_manifest import ApplicationManifest
+from api.applications.tests.factories import (
+    ExportLicenceApplicationFactory,
+    StandardApplicationFactory,
+)
 from api.cases.models import (
     BadSubStatus,
     Case,
@@ -216,7 +219,8 @@ class CaseTests(DataTestClient):
 
     @parameterized.expand(
         [
-            (StandardApplicationFactory, StandardApplicationManifest),
+            (StandardApplicationFactory, ApplicationManifest),
+            (ExportLicenceApplicationFactory, ApplicationManifest),
             (SubmittedF680ApplicationFactory, F680ApplicationManifest),
         ]
     )
@@ -229,6 +233,7 @@ class CaseTests(DataTestClient):
     @parameterized.expand(
         [
             (StandardApplicationFactory,),
+            (ExportLicenceApplicationFactory,),
             (SubmittedF680ApplicationFactory,),
         ]
     )
