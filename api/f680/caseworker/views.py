@@ -5,16 +5,15 @@ from rest_framework.response import Response
 
 from api.audit_trail import service as audit_trail_service
 from api.audit_trail.enums import AuditType
+from api.cases.libraries.get_case import get_case
 
 from api.f680.models import Recommendation, SecurityReleaseOutcome
 from api.f680.caseworker import permissions
 from api.f680.caseworker import serializers
 from api.f680.caseworker import read_only_serializers
-
-from .mixins import F680CaseworkerApplicationMixin
+from api.f680.caseworker.mixins import F680CaseworkerApplicationMixin
 
 from api.staticdata.statuses.enums import CaseStatusEnum
-from api.cases.libraries.get_case import get_case
 
 
 class F680RecommendationViewSet(F680CaseworkerApplicationMixin, viewsets.ModelViewSet):
@@ -22,16 +21,11 @@ class F680RecommendationViewSet(F680CaseworkerApplicationMixin, viewsets.ModelVi
     serializer_class = serializers.F680RecommendationSerializer
     pagination_class = None
 
-    def initial(self, request, *args, **kwargs):
-        super().initial(request, *args, **kwargs)
-        self.case = get_case(self.kwargs["pk"])
-
     def get_queryset(self):
-        qs = Recommendation.objects.filter(
+        return Recommendation.objects.filter(
             case=self.case,
             case__status__status=CaseStatusEnum.OGD_ADVICE,
         )
-        return qs
 
     def prepare_data(self, request_data):
         return [
@@ -90,11 +84,15 @@ class F680RecommendationViewSet(F680CaseworkerApplicationMixin, viewsets.ModelVi
 
 
 class F680OutcomeViewSet(F680CaseworkerApplicationMixin, viewsets.ModelViewSet):
-    permission_classes = [permissions.CaseReadyForOutcome & permissions.CanUserMakeOutcome | permissions.ReadOnly]
-    queryset = SecurityReleaseOutcome.objects.all()
+    permission_classes = [permissions.CanUserMakeOutcome & permissions.CaseReadyForOutcome | permissions.ReadOnly]
     serializer_class = serializers.SecurityReleaseOutcomeSerializer
     lookup_url_kwarg = "outcome_id"
     pagination_class = None
+
+    def get_queryset(self):
+        return SecurityReleaseOutcome.objects.filter(
+            case=self.case,
+        )
 
     def prepare_data(self, request_data):
         return {
@@ -117,7 +115,7 @@ class F680OutcomeViewSet(F680CaseworkerApplicationMixin, viewsets.ModelViewSet):
         audit_trail_service.create(
             actor=self.request.user,
             verb=AuditType.CREATE_F680_OUTCOME,
-            target=get_case(self.kwargs["pk"]),
+            target=self.case,
             payload={
                 "security_release_request_ids": security_release_request_ids,
                 "additional_text": f"Outcome was {outcome}",
@@ -135,7 +133,7 @@ class F680OutcomeViewSet(F680CaseworkerApplicationMixin, viewsets.ModelViewSet):
         audit_trail_service.create(
             actor=self.request.user,
             verb=AuditType.CLEAR_F680_OUTCOME,
-            target=get_case(self.kwargs["pk"]),
+            target=self.case,
             payload={
                 "security_release_request_ids": security_release_request_ids,
             },
@@ -145,7 +143,11 @@ class F680OutcomeViewSet(F680CaseworkerApplicationMixin, viewsets.ModelViewSet):
 
 
 class F680OutcomeDocumentViewSet(F680CaseworkerApplicationMixin, viewsets.ModelViewSet):
-    queryset = GeneratedCaseDocument.objects.all()
     serializer_class = serializers.OutcomeDocumentSerializer
     lookup_url_kwarg = "case_id"
     pagination_class = None
+
+    def get_queryset(self):
+        return GeneratedCaseDocument.objects.filter(
+            case=self.case,
+        )
