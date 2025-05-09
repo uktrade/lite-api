@@ -19,8 +19,6 @@ from api.cases.libraries.get_case import get_case
 
 class F680RecommendationViewSet(F680CaseworkerApplicationMixin, viewsets.ModelViewSet):
     permission_classes = [permissions.CaseCanUserMakeRecommendations | permissions.ReadOnly]
-
-    queryset = Recommendation.objects.all()
     serializer_class = serializers.F680RecommendationSerializer
     pagination_class = None
 

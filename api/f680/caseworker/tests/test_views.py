@@ -473,9 +473,9 @@ class TestF680RecommendationViewSet:
         url = reverse("caseworker_f680:recommendation", kwargs={"pk": uuid4()})  # /PS-IGNORE
         headers = team_case_advisor_headers(TeamIdEnum.MOD_CAPPROT)
         # Data is intentionally empty as we fail before validating the data
-        api_client, target_url = get_hawk_client("POST", url, data=[])
-        response = api_client.post(target_url, [], **headers)
-        assert response.status_code == 404
+        api_client, target_url = get_hawk_client("POST", url, data=[{}])
+        response = api_client.post(target_url, [{}], **headers)
+        assert response.status_code == 400
 
     def test_DELETE_user_recommendation_success(self, get_hawk_client, get_f680_application, url, team_case_advisor):
         f680_application = get_f680_application()
