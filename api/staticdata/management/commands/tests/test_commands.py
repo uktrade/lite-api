@@ -3,23 +3,17 @@ import os
 import pytest
 
 from parameterized import parameterized
-from tempfile import NamedTemporaryFile
 
 from api.core.constants import GovPermissions, ExporterPermissions, Teams
-from api.conf.settings import BASE_DIR
-from api.letter_templates.models import LetterTemplate
 from api.staticdata.countries.models import Country
 from api.cases.enums import AdviceType
 from api.queues.constants import ALL_CASES_QUEUE_ID
 from api.staticdata.decisions.models import Decision
 from api.staticdata.denial_reasons.models import DenialReason
-from api.staticdata.letter_layouts.models import LetterLayout
 from api.staticdata.management.SeedCommand import SeedCommandTest
 from api.staticdata.management.commands import (
-    seedlayouts,
     seedcountries,
     seeddenialreasons,
-    seedlettertemplates,
     seedrolepermissions,
     seedfinaldecisions,
     seedinternalusers,
@@ -50,15 +44,6 @@ class SeedingTests(SeedCommandTest):
         )
 
     @pytest.mark.seeding
-    def test_seed_layouts(self):
-        self.seed_command(seedlayouts.Command)
-        csv = seedlayouts.Command.read_csv(seedlayouts.LAYOUTS_FILE)
-        html_layouts = os.listdir(os.path.join(BASE_DIR, "letter_templates", "templates", "letter_templates"))
-        for row in csv:
-            self.assertTrue(f"{row['filename']}.html" in html_layouts)
-        self.assertEqual(LetterLayout.objects.count(), len(csv))
-
-    @pytest.mark.seeding
     def test_seed_role_permissions(self):
         self.seed_command(seedrolepermissions.Command)
         self.assertTrue(Permission.objects.count() >= len(GovPermissions) + len(ExporterPermissions))
@@ -72,28 +57,6 @@ class SeedingTests(SeedCommandTest):
             self.assertTrue(
                 Decision.objects.filter(id=AdviceType.ids[key], name=key).exists(), f"Decision {key} does not exist"
             )
-
-    @pytest.mark.seeding
-    def test_seed_letter_templates(self):
-        # Since we are a migrating a letter template this command now requires an empty lettertemplate table
-        LetterLayout.objects.all().delete()
-        with NamedTemporaryFile(suffix=".csv", delete=True) as tmp_file:
-            layout = LetterLayout.objects.create(name="layout1", filename="filename1")
-            content = [
-                "name,layout_id,visible_to_exporter,include_digital_signature,casetype_id",
-                f"template1,{layout.id},true,true,00000000-0000-0000-0000-000000000004",
-                f"template2,{layout.id},true,true,00000000-0000-0000-0000-000000000004",
-            ]
-            tmp_file.write(("\n".join(content)).encode("utf-8"))
-            tmp_file.flush()
-            seedlettertemplates.LETTER_TEMPLATES_FILE = tmp_file.name
-            self.seed_command(seedlettertemplates.Command)
-
-            self.assertEqual(LetterTemplate.objects.count(), 2)
-
-            # running again with existing templates does nothing
-            self.seed_command(seedlettertemplates.Command)
-            self.assertEqual(LetterTemplate.objects.count(), 2)
 
     @pytest.mark.seeding
     @parameterized.expand(
