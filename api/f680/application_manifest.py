@@ -8,11 +8,13 @@ from api.cases.enums import (
     CaseTypeReferenceEnum,
 )
 from gov_notify.enums import TemplateType
+from lite_routing.routing_rules_internal.enums import TeamIdEnum
 
 
 @application_manifest_registry.register(CaseTypeReferenceEnum.F680)
 class F680ApplicationManifest(BaseManifest):
     model_class = F680Application
+    managing_team_id = TeamIdEnum.MOD_ECJU
     caseworker_serializers = {"view": F680ApplicationSerializer}
     exporter_serializers = {"view": ExporterF680ApplicationSerializer}
     features = {

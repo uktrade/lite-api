@@ -7,7 +7,7 @@ from api.core.constants import GovPermissions
 from api.staticdata.statuses.enums import CaseStatusEnum
 from api.staticdata.statuses.models import CaseStatus
 from api.teams.models import Team
-from api.teams.enums import TeamIdEnum
+from lite_routing.routing_rules_internal.enums import TeamIdEnum
 from api.users.models import Role
 
 
@@ -85,6 +85,18 @@ class TestChangeStatusCaseworkerChangeable(DataTestClient):
         self.gov_user.team = Team.objects.get(id=TeamIdEnum.LICENSING_UNIT)
         role = Role.objects.create(name="test")
         role.permissions.set([])
+        self.gov_user.role = role
+        self.gov_user.save()
+
+        mock_request = mock.Mock()
+        mock_request.user = self.gov_user.baseuser_ptr
+        mock_request.data = {"status": CaseStatusEnum.FINALISED}
+        assert self.permission_obj.has_object_permission(mock_request, None, self.application) is False
+
+    def test_has_object_permission_finalised_user_not_permitted_not_managing_team(self):
+        self.gov_user.team = Team.objects.get(id=TeamIdEnum.NCSC)
+        role = Role.objects.create(name="test")
+        role.permissions.set([GovPermissions.MANAGE_LICENCE_FINAL_ADVICE.name])
         self.gov_user.role = role
         self.gov_user.save()
 
