@@ -19,9 +19,9 @@ class ReadOnly(permissions.BasePermission):
         return request.method == "GET"
 
 
-class CaseCanAcceptRecommendations(permissions.BasePermission):
-    def has_permission(self, request, view):
-        return view.get_case().status.status == CaseStatusEnum.OGD_ADVICE
+# class CaseCanAcceptRecommendations(permissions.BasePermission):
+#     def has_permission(self, request, view):
+#         return view.get_case().status.status == CaseStatusEnum.OGD_ADVICE
 
 
 class CaseCanUserMakeRecommendations(permissions.BasePermission):

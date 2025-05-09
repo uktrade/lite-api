@@ -1,4 +1,4 @@
-from django.http import HttpResponse
+from django.http import HttpResponse, Http404
 from api.cases.generated_documents.models import GeneratedCaseDocument
 from rest_framework import status, viewsets
 from rest_framework.response import Response
@@ -13,15 +13,25 @@ from api.f680.caseworker import read_only_serializers
 
 from .mixins import F680CaseworkerApplicationMixin
 
+from api.staticdata.statuses.enums import CaseStatusEnum
+from api.cases.libraries.get_case import get_case
+
 
 class F680RecommendationViewSet(F680CaseworkerApplicationMixin, viewsets.ModelViewSet):
-    permission_classes = [
-        permissions.CaseCanAcceptRecommendations & permissions.CaseCanUserMakeRecommendations | permissions.ReadOnly
-    ]
+    permission_classes = [permissions.CaseCanUserMakeRecommendations | permissions.ReadOnly]
 
     queryset = Recommendation.objects.all()
     serializer_class = serializers.F680RecommendationSerializer
     pagination_class = None
+
+    def get_queryset(self):
+        qs = Recommendation.objects.filter(
+            case=self.kwargs["pk"],
+            case__status__status=CaseStatusEnum.OGD_ADVICE,
+        )
+        if not qs:
+            raise Http404()
+        return qs
 
     def prepare_data(self, request_data):
         return [
@@ -38,8 +48,7 @@ class F680RecommendationViewSet(F680CaseworkerApplicationMixin, viewsets.ModelVi
         data = self.prepare_data(request.data.copy())
         serializer = self.get_serializer(data=data, many=True)
         serializer.is_valid(raise_exception=True)
-
-        self.perform_create(serializer)
+        serializer.save()
 
         recommendation_type = serializer.data[0]["type"]["value"]
         qs = self.get_queryset().filter(user_id=request.user.id, team=request.user.govuser.team)
@@ -48,7 +57,7 @@ class F680RecommendationViewSet(F680CaseworkerApplicationMixin, viewsets.ModelVi
         audit_trail_service.create(
             actor=self.request.user,
             verb=AuditType.CREATE_OGD_F680_RECOMMENDATION,
-            target=self.application.get_case(),
+            target=get_case(self.kwargs["pk"]),
             payload={
                 "security_release_request_ids": security_release_request_ids,
                 "additional_text": f"Recommendation type added was {recommendation_type}",
@@ -73,7 +82,7 @@ class F680RecommendationViewSet(F680CaseworkerApplicationMixin, viewsets.ModelVi
         audit_trail_service.create(
             actor=self.request.user,
             verb=AuditType.CLEAR_OGD_F680_RECOMMENDATION,
-            target=self.application.get_case(),
+            target=get_case(self.kwargs["pk"]),
             payload={"security_release_request_ids": security_release_request_ids},
         )
 
@@ -108,7 +117,7 @@ class F680OutcomeViewSet(F680CaseworkerApplicationMixin, viewsets.ModelViewSet):
         audit_trail_service.create(
             actor=self.request.user,
             verb=AuditType.CREATE_F680_OUTCOME,
-            target=self.application.get_case(),
+            target=get_case(self.kwargs["pk"]),
             payload={
                 "security_release_request_ids": security_release_request_ids,
                 "additional_text": f"Outcome was {outcome}",
@@ -126,7 +135,7 @@ class F680OutcomeViewSet(F680CaseworkerApplicationMixin, viewsets.ModelViewSet):
         audit_trail_service.create(
             actor=self.request.user,
             verb=AuditType.CLEAR_F680_OUTCOME,
-            target=self.application.get_case(),
+            target=get_case(self.kwargs["pk"]),
             payload={
                 "security_release_request_ids": security_release_request_ids,
             },

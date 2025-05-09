@@ -470,9 +470,7 @@ class TestF680RecommendationViewSet:
         }
 
     def test_POST_recommendation_invalid_application_raises_error(self, get_hawk_client, team_case_advisor_headers):
-        url = reverse(
-            "caseworker_f680:recommendation", kwargs={"pk": "138d3a5f-5b5d-457d-8db0-723e14b36de4"}  # /PS-IGNORE
-        )
+        url = reverse("caseworker_f680:recommendation", kwargs={"pk": uuid4()})  # /PS-IGNORE
         headers = team_case_advisor_headers(TeamIdEnum.MOD_CAPPROT)
         # Data is intentionally empty as we fail before validating the data
         api_client, target_url = get_hawk_client("POST", url, data=[])
