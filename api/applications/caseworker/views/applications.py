@@ -36,6 +36,7 @@ class ApplicationChangeStatus(CaseworkerApplicationMixin, GenericAPIView):
 
 class ApplicationDocumentView(CaseworkerApplicationMixin, ListAPIView):
     serializer_class = ApplicationDocumentSerializer
+    pagination_class = None
 
     def get_queryset(self):
         return ApplicationDocument.objects.filter(application_id=self.application.pk)

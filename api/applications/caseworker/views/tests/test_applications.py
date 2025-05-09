@@ -115,40 +115,29 @@ class TestApplicationDocuments:
         response = api_client.get(url, **gov_headers)
 
         assert response.status_code == status.HTTP_200_OK
-        assert response.json() == {
-            "count": 2,
-            "total_pages": 1,
-            "results": [
-                {
-                    "id": str(doc_1.id),
-                    "created_at": "2023-11-03T12:00:00Z",
-                    "updated_at": "2023-11-03T12:00:00Z",
-                    "name": "",
-                    "s3_key": doc_1.s3_key,
-                    "size": None,
-                    "virus_scanned_at": None,
-                    "safe": None,
-                    "description": None,
-                    "document_type": None,
-                    "application": str(application.id),
-                },
-                {
-                    "id": str(doc_2.id),
-                    "created_at": "2023-11-03T12:00:00Z",
-                    "updated_at": "2023-11-03T12:00:00Z",
-                    "name": "",
-                    "s3_key": doc_2.s3_key,
-                    "size": None,
-                    "virus_scanned_at": None,
-                    "safe": None,
-                    "description": None,
-                    "document_type": None,
-                    "application": str(application.id),
-                },
-            ],
-        }
 
-        document_ids = [document["id"] for document in response.json()["results"]]
+        assert response.json() == [
+            {
+                "id": str(doc_1.id),
+                "created_at": "2023-11-03T12:00:00Z",
+                "name": "",
+                "safe": None,
+                "description": None,
+                "document_type": None,
+                "application": str(application.id),
+            },
+            {
+                "id": str(doc_2.id),
+                "created_at": "2023-11-03T12:00:00Z",
+                "name": "",
+                "safe": None,
+                "description": None,
+                "document_type": None,
+                "application": str(application.id),
+            },
+        ]
+
+        document_ids = [document["id"] for document in response.json()]
         assert other_doc.id not in document_ids
 
     @pytest.mark.parametrize("application_factory", [StandardApplicationFactory, F680ApplicationFactory])
@@ -165,7 +154,7 @@ class TestApplicationDocuments:
         response = api_client.get(url, **gov_headers)
 
         assert response.status_code == status.HTTP_200_OK
-        assert response.json() == {"count": 0, "total_pages": 1, "results": []}
+        assert response.json() == []
 
     def test_GET_fail_no_application_returns_404(self, api_client, gov_headers):
 
