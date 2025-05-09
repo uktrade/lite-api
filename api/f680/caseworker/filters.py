@@ -1,6 +1,7 @@
 from rest_framework import filters
+from api.cases.enums import CaseTypeSubTypeEnum
 
 
-class CurrentCaseFilter(filters.BaseFilterBackend):
+class F680CaseFilter(filters.BaseFilterBackend):
     def filter_queryset(self, request, queryset, view):
-        return queryset.filter(case_id=view.kwargs["pk"])
+        return queryset.filter(case__case_type__sub_type=CaseTypeSubTypeEnum.F680)
