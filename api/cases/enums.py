@@ -152,6 +152,7 @@ class CaseTypeEnum:
         id = UUID("00000000-0000-0000-0000-000000000017")
         reference = CaseTypeReferenceEnum.EXPORT_LICENCE
         type = CaseTypeTypeEnum.APPLICATION
+        reference_code_identifier = "EL"
 
     class SIEL:
         id = UUID("00000000-0000-0000-0000-000000000004")

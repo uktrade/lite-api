@@ -24,7 +24,6 @@ from api.appeals.serializers import AppealSerializer
 from api.applications import constants
 from api.applications.creators import validate_application_ready_for_submission, validate_agree_to_declaration
 from api.applications.helpers import (
-    get_application_view_serializer,
     validate_and_create_goods_on_licence,
     auto_match_sanctions,
 )
@@ -183,7 +182,8 @@ class ApplicationDetail(RetrieveUpdateDestroyAPIView):
         Retrieve an application instance
         """
         application = get_application(pk)
-        serializer = get_application_view_serializer(application)
+        application_manifest = application.get_application_manifest()
+        serializer = application_manifest.exporter_serializers["view"]
         data = serializer(
             application,
             context={
@@ -326,7 +326,8 @@ class ApplicationSubmission(APIView):
             auto_match_sanctions(application)
 
         # Serialize for the response message
-        serializer = get_application_view_serializer(application)
+        application_manifest = application.get_application_manifest()
+        serializer = application_manifest.exporter_serializers["view"]
         serializer = serializer(application, context={"user_type": request.user.type})
 
         application_data = serializer.data

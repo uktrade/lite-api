@@ -403,6 +403,17 @@ class StandardApplication(BaseApplication, Clonable):
 
         return required_decisions
 
+    def get_reference_code_prefix(self):
+        reference_code_prefix = super().get_reference_code_prefix()
+
+        return f"GB{reference_code_prefix}"
+
+    def get_reference_code_suffix(self):
+        return {
+            ApplicationExportType.PERMANENT: "P",
+            ApplicationExportType.TEMPORARY: "T",
+        }[self.export_type]
+
 
 class ApplicationDocument(Document, Clonable):
     application = models.ForeignKey(BaseApplication, on_delete=models.CASCADE)

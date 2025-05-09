@@ -19,6 +19,7 @@ from api.audit_trail.enums import AuditType
 from api.cases.enums import (
     AdviceType,
     CaseDocumentState,
+    CaseTypeEnum,
     CaseTypeTypeEnum,
     CaseTypeSubTypeEnum,
     CaseTypeReferenceEnum,
@@ -29,7 +30,6 @@ from api.cases.enums import (
     ApplicationFeatures,
 )
 from api.cases.helpers import working_days_in_range
-from api.cases.libraries.reference_code import generate_reference_code
 from api.cases.managers import CaseManager, CaseReferenceCodeManager, AdviceManager
 from api.common.models import TimestampableModel
 from api.documents.models import Document
@@ -150,11 +150,36 @@ class Case(TimestampableModel):
             CaseAssignment.objects.filter(case=self).delete()
 
         if not self.reference_code and self.status != get_case_status_by_status(CaseStatusEnum.DRAFT):
-            self.reference_code = generate_reference_code(self)
+            self.reference_code = self.generate_reference_code()
 
         self._reset_sub_status_on_status_change()
 
         super(Case, self).save(*args, **kwargs)
+
+    def get_reference_code_prefix(self):
+        case_type = CaseTypeEnum.reference_to_class(self.case_type.reference)
+        reference_code_prefix = getattr(case_type, "reference_code_identifier", case_type.reference)
+        return reference_code_prefix
+
+    def get_reference_code_suffix(self):
+        return ""
+
+    def generate_reference_code(self):
+        parts = []
+
+        prefix = self.get_reference_code_prefix()
+        if prefix:
+            parts.append(prefix)
+
+        case_reference_code = CaseReferenceCode.objects.create()
+        parts.append(str(case_reference_code.year))
+        parts.append(str(case_reference_code.reference_number).zfill(7))
+
+        suffix = self.get_reference_code_suffix()
+        if suffix:
+            parts.append(suffix)
+
+        return "/".join(parts).upper()
 
     @classmethod
     def get_decision_actions(cls):
