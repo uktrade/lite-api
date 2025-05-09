@@ -1,4 +1,4 @@
-from django.http import HttpResponse, Http404
+from django.http import HttpResponse
 from api.cases.generated_documents.models import GeneratedCaseDocument
 from rest_framework import status, viewsets
 from rest_framework.response import Response
@@ -22,13 +22,15 @@ class F680RecommendationViewSet(F680CaseworkerApplicationMixin, viewsets.ModelVi
     serializer_class = serializers.F680RecommendationSerializer
     pagination_class = None
 
+    def initial(self, request, *args, **kwargs):
+        super().initial(request, *args, **kwargs)
+        self.case = get_case(self.kwargs["pk"])
+
     def get_queryset(self):
         qs = Recommendation.objects.filter(
-            case=self.kwargs["pk"],
+            case=self.case,
             case__status__status=CaseStatusEnum.OGD_ADVICE,
         )
-        if not qs:
-            raise Http404()
         return qs
 
     def prepare_data(self, request_data):
@@ -55,7 +57,7 @@ class F680RecommendationViewSet(F680CaseworkerApplicationMixin, viewsets.ModelVi
         audit_trail_service.create(
             actor=self.request.user,
             verb=AuditType.CREATE_OGD_F680_RECOMMENDATION,
-            target=get_case(self.kwargs["pk"]),
+            target=self.case,
             payload={
                 "security_release_request_ids": security_release_request_ids,
                 "additional_text": f"Recommendation type added was {recommendation_type}",

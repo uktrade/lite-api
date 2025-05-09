@@ -475,7 +475,7 @@ class TestF680RecommendationViewSet:
         # Data is intentionally empty as we fail before validating the data
         api_client, target_url = get_hawk_client("POST", url, data=[{}])
         response = api_client.post(target_url, [{}], **headers)
-        assert response.status_code == 400
+        assert response.status_code == 404
 
     def test_DELETE_user_recommendation_success(self, get_hawk_client, get_f680_application, url, team_case_advisor):
         f680_application = get_f680_application()
