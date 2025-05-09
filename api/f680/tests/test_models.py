@@ -59,6 +59,7 @@ class TestF680Application:
         assert france_recipient.organisation == f680_application.organisation
         assert france_release.product == product
         assert france_release.security_grading == "official"
+        assert france_release.security_grading_other == "some other grading"
         assert france_release.intended_use == "france intended use"
 
         uae_release = SecurityReleaseRequest.objects.get(id=data_uae_release_id)

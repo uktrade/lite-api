@@ -73,6 +73,7 @@ class UserItemFieldsSerializer(serializers.Serializer):
     address = FieldSerializer()
     country = FieldSerializer()
     security_classification = FieldSerializer()
+    other_security_classification = FieldSerializer(required=False)
     end_user_intended_end_use = FieldSerializer()
     third_party_role = FieldSerializer(required=False)
     third_party_role_other = FieldSerializer(required=False)
