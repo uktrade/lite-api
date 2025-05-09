@@ -11,6 +11,7 @@ from api.organisations.libraries.get_organisation import get_organisation_by_pk
 from api.organisations.models import Organisation, Site
 from api.users.enums import UserStatuses, UserType
 from api.users.libraries.get_user import get_user_by_pk, get_exporter_user_by_email
+from api.users.libraries.notifications import get_exporter_user_notification_individual_count
 from api.users.models import (
     ExporterUser,
     BaseUser,
@@ -200,3 +201,24 @@ class SystemUserViewSerializer(serializers.ModelSerializer):
             "last_name",
             "email",
         )
+
+
+class UserNotificationsSerializer(serializers.Serializer):
+    exporter_user_notification_count = serializers.SerializerMethodField()
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.exporter_user = kwargs.get("context").get("exporter_user") if "context" in kwargs else None
+        self.organisation_id = kwargs.get("context").get("organisation_id") if "context" in kwargs else None
+        if not isinstance(self.exporter_user, ExporterUser):
+            self.fields.pop("exporter_user_notification_count")
+
+    def get_exporter_user_notification_count(self, instance):
+        return get_exporter_user_notification_individual_count(
+            exporter_user=self.exporter_user,
+            organisation_id=self.organisation_id,
+            case=instance,
+        )
+
+    class Meta:
+        fields = ("exporter_user_notification_count",)

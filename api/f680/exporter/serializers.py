@@ -5,6 +5,7 @@ from api.users.exporter.serializers import RelatedExporterUserSerializer
 from api.cases.serializers import CaseTypeSerializer
 from api.f680.models import F680Application
 from api.applications.serializers.fields import CaseStatusField
+from api.users.serializers import UserNotificationsSerializer
 
 
 class SectionType:
@@ -12,7 +13,7 @@ class SectionType:
     MULTIPLE = "multiple"
 
 
-class F680ApplicationSerializer(serializers.ModelSerializer):
+class F680ApplicationSerializer(UserNotificationsSerializer, serializers.ModelSerializer):
     status = CaseStatusField(read_only=True)
     organisation = RelatedOrganisationSerializer(read_only=True)
     submitted_by = RelatedExporterUserSerializer(read_only=True)
@@ -20,7 +21,7 @@ class F680ApplicationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = F680Application
-        fields = [
+        fields = (
             "id",
             "application",
             "status",
@@ -29,7 +30,7 @@ class F680ApplicationSerializer(serializers.ModelSerializer):
             "submitted_at",
             "submitted_by",
             "case_type",
-        ]
+        ) + UserNotificationsSerializer.Meta.fields
         read_only_fields = ["id", "status", "reference_code", "organisation", "submitted_at", "submitted_by"]
 
     def create(self, validated_data):

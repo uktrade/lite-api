@@ -14,8 +14,7 @@ from api.staticdata.statuses.libraries.get_case_status import (
     get_case_status_by_status,
     get_status_value_from_case_status_enum,
 )
-from api.users.libraries.notifications import get_exporter_user_notification_individual_count
-from api.users.models import ExporterUser
+from api.users.serializers import UserNotificationsSerializer
 
 
 class EndUserAdvisoryListCountrySerializer(serializers.Serializer):
@@ -36,7 +35,7 @@ class EndUserAdvisoryListSerializer(serializers.Serializer):
     reference_code = serializers.CharField()
 
 
-class EndUserAdvisoryViewSerializer(serializers.ModelSerializer):
+class EndUserAdvisoryViewSerializer(UserNotificationsSerializer, serializers.ModelSerializer):
     organisation = PrimaryKeyRelatedSerializerField(
         queryset=Organisation.objects.all(), serializer=OrganisationDetailSerializer
     )
@@ -46,7 +45,6 @@ class EndUserAdvisoryViewSerializer(serializers.ModelSerializer):
     contact_email = serializers.EmailField()
     copy_of = serializers.PrimaryKeyRelatedField(queryset=EndUserAdvisoryQuery.objects.all(), required=False)
     status = serializers.SerializerMethodField()
-    exporter_user_notification_count = serializers.SerializerMethodField()
     standard_blank_error_message = "This field may not be blank"
 
     class Meta:
@@ -64,21 +62,12 @@ class EndUserAdvisoryViewSerializer(serializers.ModelSerializer):
             "contact_job_title",
             "contact_telephone",
             "status",
-            "exporter_user_notification_count",
             "reference_code",
             "case_officer",
             "created_at",
             "updated_at",
             "submitted_by",
-        )
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-        self.exporter_user = kwargs.get("context").get("exporter_user") if "context" in kwargs else None
-        self.organisation_id = kwargs.get("context").get("organisation_id") if "context" in kwargs else None
-        if not isinstance(self.exporter_user, ExporterUser):
-            self.fields.pop("exporter_user_notification_count")
+        ) + UserNotificationsSerializer.Meta.fields
 
     def get_status(self, instance):
         if instance.status:
@@ -124,8 +113,3 @@ class EndUserAdvisoryViewSerializer(serializers.ModelSerializer):
         end_user_advisory_query.save()
 
         return end_user_advisory_query
-
-    def get_exporter_user_notification_count(self, instance):
-        return get_exporter_user_notification_individual_count(
-            exporter_user=self.exporter_user, organisation_id=self.organisation_id, case=instance
-        )
