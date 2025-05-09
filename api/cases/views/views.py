@@ -805,9 +805,8 @@ class FinaliseView(UpdateAPIView):
         Finalise & grant a Licence
         """
         case = self.get_case()
-        application = get_application(pk)
 
-        case_queues = list(CaseQueue.objects.filter(case=case))
+        application = get_application(pk)
         required_decisions = application.get_required_decision_document_types()
 
         # Inform letter isn't required for finalisation
@@ -835,6 +834,7 @@ class FinaliseView(UpdateAPIView):
         # When a case is finalised we must manually set an exit date for the CaseQueueMovement
         # records of the queues it was present on - we only expect there to be one queue at this stage,
         # but looping through all present queues makes this future proof
+        case_queues = list(CaseQueue.objects.filter(case=case))
         for case_queue in case_queues:
             CaseQueueMovement.record_exit_date(case, case_queue.queue_id)
 

@@ -29,7 +29,8 @@ from api.cases.enums import (
     LicenceDecisionType,
     ApplicationFeatures,
 )
-from api.cases.helpers import working_days_in_range
+
+from api.cases.helpers import working_days_in_range, is_case_already_finalised
 from api.cases.managers import CaseManager, CaseReferenceCodeManager, AdviceManager
 from api.common.models import TimestampableModel
 from api.documents.models import Document
@@ -347,7 +348,7 @@ class Case(TimestampableModel):
     def set_sub_status(self, sub_status_id):
         """
         Set the sub_status on this case.  Raises Exception if this sub_status
-        is not a vaild child sub_status of the current case status.
+        is not a valid child sub_status of the current case status.
         """
         from api.audit_trail import service as audit_trail_service
 
@@ -408,19 +409,8 @@ class Case(TimestampableModel):
         )
 
     @transaction.atomic
-    def finalise(self, user, decisions, note):
-        from api.audit_trail import service as audit_trail_service
-        from api.cases.libraries.finalise import remove_flags_on_finalisation, remove_flags_from_audit_trail
+    def issue_licence(self, user, decisions):
         from api.licences.models import Licence
-
-        original_case = Case.objects.select_for_update().get(pk=self.pk)
-        original_case.refresh_from_db()
-        if original_case.status.status == CaseStatusEnum.FINALISED:
-            try:
-                licence = Licence.objects.get(case=self)
-            except Licence.DoesNotExist:
-                return ""
-            return licence.id
 
         try:
             licence = Licence.objects.get_draft_licence(self)
@@ -431,7 +421,7 @@ class Case(TimestampableModel):
         if AdviceType.APPROVE in decisions and licence:
             licence.decisions.set([Decision.objects.get(name=decision) for decision in decisions])
 
-            logging.info("Initiate issue of licence %s (status: %s)", licence.reference_code, licence.status)
+            logger.info("Initiate issue of licence %s (status: %s)", licence.reference_code, licence.status)
             licence.issue()
 
             if Licence.objects.filter(case=self).count() > 1:
@@ -444,10 +434,27 @@ class Case(TimestampableModel):
                         "start_date": licence.start_date.strftime("%Y-%m-%d"),
                     },
                 )
+        return licence
 
-        # Finalise Case
+    @transaction.atomic
+    def finalise(self, user, decisions, note):
+        from api.cases.libraries.finalise import remove_flags_on_finalisation, remove_flags_from_audit_trail
+
+        is_finalised, licence = is_case_already_finalised(self)
+        if is_finalised:
+            return getattr(licence, "id", "")
+
+        application_manifest = self.get_application_manifest()
+        if application_manifest.has_feature(ApplicationFeatures.LICENCE_ISSUE):
+            licence = self.issue_licence(user, decisions)
+
         old_status = self.status.status
-        self.status = get_case_status_by_status(CaseStatusEnum.FINALISED)
+        finalised_status = get_case_status_by_status(CaseStatusEnum.FINALISED)
+
+        if old_status == finalised_status:
+            return getattr(licence, "id", "")
+
+        self.status = finalised_status
         self.save()
 
         audit_trail_service.create(
@@ -459,44 +466,19 @@ class Case(TimestampableModel):
                 "additional_text": note,
             },
         )
-        logging.info("Case is now finalised")
+        logger.info("Case is now finalised")
 
-        decision_actions = self.get_decision_actions()
-        # Ensure a consistent ordering of actions
-        # NOTE: reverse ordering important as it ensures that when there is a mixed decision
-        # (which can happen for F680s), "approve" actions happen last and thus the case is left
-        # with sub status approve
-        # TODO: Mixed decisions/decision actions need thinking about properly
-        ordered_decisions = sorted(decisions, reverse=True)
-        for advice_type in ordered_decisions:
-            decision_actions[advice_type](self)
-            self.create_licence_decisions(advice_type, licence)
-            licence_reference = licence.reference_code if licence and advice_type == AdviceType.APPROVE else ""
-            audit_trail_service.create(
-                actor=user,
-                verb=AuditType.CREATED_FINAL_RECOMMENDATION,
-                target=self,
-                payload={
-                    "case_reference": self.reference_code,
-                    "decision": advice_type,
-                    "licence_reference": licence_reference,
-                },
-            )
+        application = self.get_application()
+        application.manage_decisions(user, decisions, licence=licence)
 
         self.publish_decision_documents()
 
         # Remove Flags and related Audits when Finalising
         remove_flags_on_finalisation(self)
         remove_flags_from_audit_trail(self)
-
-        return licence.id if licence else ""
+        return getattr(licence, "id", "")
 
     def create_licence_decisions(self, advice_type, licence):
-        # Not every case type will have licences issued
-        application_manifest = self.get_application_manifest()
-        if not application_manifest.has_feature(ApplicationFeatures.LICENCE_ISSUE):
-            return
-
         # NLR is not considered as licence decision
         if advice_type not in [AdviceType.APPROVE, AdviceType.REFUSE]:
             return
@@ -544,7 +526,7 @@ class Case(TimestampableModel):
         for document in documents:
             document.send_exporter_notifications()
 
-        logging.info("Licence documents published to exporter, notification sent")
+        logger.info("Licence documents published to exporter, notification sent")
 
     def delete(self, *args, **kwargs):
         # This simulates `models.SET_NULL` as a `GenericRelation`, which `audit_trail` is, implicitly does a cascased

@@ -1,4 +1,5 @@
 import pytest
+from unittest import mock
 
 from django.forms import model_to_dict
 
@@ -6,12 +7,19 @@ from .factories import F680ApplicationFactory, SubmittedF680ApplicationFactory
 from api.users.tests.factories import ExporterUserFactory
 from api.f680.models import Product, SecurityReleaseRequest
 from api.f680.exporter.serializers import SubmittedApplicationJSONSerializer
-from api.cases.enums import CaseTypeEnum
+from api.cases.enums import AdviceType, CaseTypeEnum
 from api.applications.exceptions import AmendmentError
 from api.staticdata.statuses.enums import CaseStatusIdEnum
 from api.audit_trail.models import Audit
+from api.audit_trail.enums import AuditType
+from lite_routing.routing_rules_internal.enums import TeamIdEnum
+
 
 pytestmark = pytest.mark.django_db
+
+pytest_plugins = [
+    "api.tests.unit.fixtures.core",
+]
 
 
 class TestF680Application:
@@ -179,3 +187,42 @@ class TestF680Application:
         assert f680_application.status_id == CaseStatusIdEnum.DRAFT
         result = f680_application.create_amendment(exporter_user)
         assert result == submitted_f680_application
+
+    @mock.patch("api.cases.notify.notify_exporter_f680_outcome_issued")
+    def test_finalise_application(self, mock_notify, data_application_json, team_case_advisor):
+        gov_user = team_case_advisor(TeamIdEnum.MOD_ECJU)
+        f680_application = F680ApplicationFactory(
+            name="F680_APP_1",
+            application=data_application_json,
+            status_id=CaseStatusIdEnum.UNDER_REVIEW,
+            submitted_by=ExporterUserFactory(),
+        )
+        response = f680_application.finalise(gov_user, {AdviceType.APPROVE, AdviceType.REFUSE}, "Note")
+        assert response == ""
+        audit_trail = Audit.objects.filter(target_object_id=f680_application.get_case().id)
+        assert list(audit_trail.values_list("verb", flat=True)) == [
+            AuditType.FINALISED_APPLICATION,
+            AuditType.UPDATED_SUB_STATUS,
+            AuditType.UPDATED_SUB_STATUS,
+            AuditType.UPDATED_STATUS,
+        ]
+
+        f680_application.refresh_from_db()
+        assert f680_application.status_id == CaseStatusIdEnum.FINALISED
+        assert f680_application.sub_status.name == "Approved"
+        mock_notify.assert_called_with(f680_application)
+        assert mock_notify.call_count == 1
+
+    @mock.patch("api.cases.notify.notify_exporter_f680_outcome_issued")
+    def test_finalise_already_finalised_application(self, mock_notify, data_application_json, team_case_advisor):
+        gov_user = team_case_advisor(TeamIdEnum.MOD_ECJU)
+        f680_application = F680ApplicationFactory(
+            name="F680_APP_1",
+            application=data_application_json,
+            status_id=CaseStatusIdEnum.FINALISED,
+            submitted_by=ExporterUserFactory(),
+        )
+        response = f680_application.finalise(gov_user, {AdviceType.APPROVE}, "Note")
+        assert response == ""
+        assert not Audit.objects.filter(target_object_id=f680_application.get_case().id).exists()
+        assert mock_notify.call_count == 0

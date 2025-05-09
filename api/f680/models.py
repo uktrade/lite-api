@@ -14,11 +14,14 @@ from api.organisations.models import Organisation
 from api.staticdata.countries.models import Country
 from api.teams.models import Team
 from api.users.models import GovUser
+from api.cases.enums import AdviceType
+from api.audit_trail.enums import AuditType
+from api.audit_trail import service as audit_trail_service
 
 from api.f680.managers import F680ApplicationQuerySet
 from api.f680 import enums
 from api.core.model_mixins import Clonable
-from api.staticdata.statuses.enums import CaseStatusIdEnum
+from api.staticdata.statuses.enums import CaseStatusIdEnum, CaseSubStatusIdEnum
 
 
 class F680Application(BaseApplication, Clonable):
@@ -148,6 +151,39 @@ class F680Application(BaseApplication, Clonable):
         )
 
         return all_outcomes
+
+    @classmethod
+    def get_decision_actions(cls):
+        return {
+            AdviceType.APPROVE: cls.approve,
+            AdviceType.REFUSE: cls.refuse,
+        }
+
+    def approve(self):
+        self.set_sub_status(CaseSubStatusIdEnum.FINALISED__APPROVED)
+
+    def refuse(self):
+        self.set_sub_status(CaseSubStatusIdEnum.FINALISED__REFUSED)
+
+    def finalise_decisions(self, user):
+        from api.cases.notify import notify_exporter_f680_outcome_issued
+
+        notify_exporter_f680_outcome_issued(self)
+        audit_trail_service.create(
+            actor=user,
+            verb=AuditType.FINALISED_APPLICATION,
+            target=self,
+            payload={
+                "case_reference": self.reference_code,
+            },
+        )
+
+    def manage_decisions(self, user, decisions, **kwargs):
+        decision_actions = self.get_decision_actions()
+        ordered_decisions = sorted(decisions, reverse=True)
+        for advice_type in ordered_decisions:
+            decision_actions[advice_type](self)
+        self.finalise_decisions(user)
 
 
 # TODO: Eventually we may want to use this model more widely.  We can do that

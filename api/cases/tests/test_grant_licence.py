@@ -65,7 +65,7 @@ class FinaliseCaseTests(DataTestClient):
 
         self.assertIsNone(self.standard_case.appeal_deadline)
         send_exporter_notifications_func.assert_called()
-        mock_notify.assert_called_with(self.standard_case.get_case())
+        mock_notify.assert_called_with(self.standard_case)
 
     def test_grant_standard_application_wrong_permission_failure(self):
         self.gov_user.role.permissions.set([GovPermissions.MANAGE_CLEARANCE_FINAL_ADVICE.name])
@@ -119,7 +119,7 @@ class FinaliseCaseTests(DataTestClient):
             self.assertTrue(document.visible_to_exporter)
         # self.assertEqual(Audit.objects.count(), 4)
         send_exporter_notifications_func.assert_called()
-        mock_notify_licence_issue.assert_called_with(self.standard_case.get_case())
+        mock_notify_licence_issue.assert_called_with(self.standard_case)
 
         self.change_status_url = reverse("caseworker_applications:change_status", kwargs={"pk": self.standard_case.id})
         data = {"status": CaseStatusEnum.REVOKED}
@@ -156,7 +156,7 @@ class FinaliseCaseTests(DataTestClient):
             self.assertTrue(document.visible_to_exporter)
 
         send_exporter_notifications_func.assert_called()
-        mock_notify_licence_issue.assert_called_with(self.standard_case.get_case())
+        mock_notify_licence_issue.assert_called_with(self.standard_case)
 
         self.change_status_url = reverse("caseworker_applications:change_status", kwargs={"pk": self.standard_case.id})
         data = {"status": CaseStatusEnum.SUSPENDED}
