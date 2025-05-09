@@ -4,6 +4,8 @@ from api.organisations.exporter.serializers import RelatedOrganisationSerializer
 from api.users.exporter.serializers import RelatedExporterUserSerializer
 from api.cases.serializers import CaseTypeSerializer
 from api.f680.models import F680Application
+from api.applications.serializers.fields import CaseStatusField
+from api.users.serializers import UserNotificationsSerializer
 
 
 class SectionType:
@@ -11,15 +13,15 @@ class SectionType:
     MULTIPLE = "multiple"
 
 
-class F680ApplicationSerializer(serializers.ModelSerializer):
-    status = serializers.CharField(source="status__status", read_only=True)
+class F680ApplicationSerializer(UserNotificationsSerializer, serializers.ModelSerializer):
+    status = CaseStatusField(read_only=True)
     organisation = RelatedOrganisationSerializer(read_only=True)
     submitted_by = RelatedExporterUserSerializer(read_only=True)
     case_type = serializers.SerializerMethodField()
 
     class Meta:
         model = F680Application
-        fields = [
+        fields = (
             "id",
             "application",
             "status",
@@ -28,7 +30,7 @@ class F680ApplicationSerializer(serializers.ModelSerializer):
             "submitted_at",
             "submitted_by",
             "case_type",
-        ]
+        ) + UserNotificationsSerializer.Meta.fields
         read_only_fields = ["id", "status", "reference_code", "organisation", "submitted_at", "submitted_by"]
 
     def create(self, validated_data):
@@ -39,6 +41,22 @@ class F680ApplicationSerializer(serializers.ModelSerializer):
 
     def get_case_type(self, instance):
         return CaseTypeSerializer(instance.case_type).data
+
+    def save(self, **kwargs):
+        incoming_application_name = (
+            self.validated_data.get("application", {})
+            .get("sections", {})
+            .get("general_application_details", {})
+            .get("fields", {})
+            .get("name", {})
+            .get("answer", "")
+        )
+
+        if self.instance and not self.instance.name and incoming_application_name:
+            self.instance.name = incoming_application_name
+            self.instance.save()
+
+        return super().save(**kwargs)
 
 
 class FieldSerializer(serializers.Serializer):
@@ -55,6 +73,7 @@ class UserItemFieldsSerializer(serializers.Serializer):
     address = FieldSerializer()
     country = FieldSerializer()
     security_classification = FieldSerializer()
+    other_security_classification = FieldSerializer(required=False)
     end_user_intended_end_use = FieldSerializer()
     third_party_role = FieldSerializer(required=False)
     third_party_role_other = FieldSerializer(required=False)
