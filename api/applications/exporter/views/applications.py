@@ -13,7 +13,6 @@ from api.applications.exporter.serializers import (
     ApplicationHistorySerializer,
     ExporterApplicationDocumentSerializer,
 )
-from api.applications.helpers import get_application_view_serializer
 from api.core.permissions import IsExporterInOrganisation
 from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
 
@@ -33,9 +32,9 @@ class ApplicationChangeStatus(ExporterApplicationMixin, GenericAPIView):
         data = serializer.data
         application.change_status(request.user, get_case_status_by_status(data["status"]), data["note"])
 
-        response_data = get_application_view_serializer(application)(
-            application, context={"user_type": request.user.type}
-        ).data
+        application_manifest = application.get_application_manifest()
+        serializer = application_manifest.exporter_serializers["view"]
+        response_data = serializer(application, context={"user_type": request.user.type}).data
 
         return JsonResponse(data=response_data, status=status.HTTP_200_OK)
 
