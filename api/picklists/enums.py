@@ -8,6 +8,7 @@ class PicklistType:
     FOOTNOTES = "footnotes"
     PRE_VISIT_QUESTIONNAIRE = "pre_visit_questionnaire"
     COMPLIANCE_ACTIONS = "compliance_actions"
+    F680_PROVISO = "f680_proviso"
 
     choices = [
         (PROVISO, "Proviso"),
@@ -19,6 +20,7 @@ class PicklistType:
         (FOOTNOTES, "Footnotes"),
         (PRE_VISIT_QUESTIONNAIRE, "Pre-Visit Questionnaire questions (ECJU Query)"),
         (COMPLIANCE_ACTIONS, "Compliance Actions (ECJU Query)"),
+        (F680_PROVISO, "F680 Proviso"),
     ]
 
 
