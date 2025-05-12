@@ -13,19 +13,15 @@ from api.f680.caseworker import serializers
 from api.f680.caseworker import read_only_serializers
 from api.f680.caseworker.mixins import F680CaseworkerApplicationMixin
 
-from api.staticdata.statuses.enums import CaseStatusEnum
-
 
 class F680RecommendationViewSet(F680CaseworkerApplicationMixin, viewsets.ModelViewSet):
-    permission_classes = [permissions.CaseCanUserMakeRecommendations | permissions.ReadOnly]
+    permission_classes = [
+        permissions.CaseCanAcceptRecommendations,
+        permissions.CaseCanUserMakeRecommendations | permissions.ReadOnly,
+    ]
     serializer_class = serializers.F680RecommendationSerializer
     pagination_class = None
-
-    def get_queryset(self):
-        return Recommendation.objects.filter(
-            case=self.case,
-            case__status__status=CaseStatusEnum.OGD_ADVICE,
-        )
+    queryset = Recommendation.objects.all()
 
     def prepare_data(self, request_data):
         return [
@@ -85,14 +81,10 @@ class F680RecommendationViewSet(F680CaseworkerApplicationMixin, viewsets.ModelVi
 
 class F680OutcomeViewSet(F680CaseworkerApplicationMixin, viewsets.ModelViewSet):
     permission_classes = [permissions.CanUserMakeOutcome & permissions.CaseReadyForOutcome | permissions.ReadOnly]
+    queryset = SecurityReleaseOutcome.objects.all()
     serializer_class = serializers.SecurityReleaseOutcomeSerializer
     lookup_url_kwarg = "outcome_id"
     pagination_class = None
-
-    def get_queryset(self):
-        return SecurityReleaseOutcome.objects.filter(
-            case=self.case,
-        )
 
     def prepare_data(self, request_data):
         return {
@@ -143,11 +135,7 @@ class F680OutcomeViewSet(F680CaseworkerApplicationMixin, viewsets.ModelViewSet):
 
 
 class F680OutcomeDocumentViewSet(F680CaseworkerApplicationMixin, viewsets.ModelViewSet):
+    queryset = GeneratedCaseDocument.objects.all()
     serializer_class = serializers.OutcomeDocumentSerializer
     lookup_url_kwarg = "case_id"
     pagination_class = None
-
-    def get_queryset(self):
-        return GeneratedCaseDocument.objects.filter(
-            case=self.case,
-        )

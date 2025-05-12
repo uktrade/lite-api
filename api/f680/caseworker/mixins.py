@@ -5,7 +5,7 @@ from api.f680.caseworker import filters
 
 class F680CaseworkerApplicationMixin:
     authentication_classes = (GovAuthentication,)
-    filter_backends = (filters.F680CaseFilter,)
+    filter_backends = (filters.F680CaseFilter, filters.CurrentCaseFilter)
 
     def initial(self, request, *args, **kwargs):
         super().initial(request, *args, **kwargs)
