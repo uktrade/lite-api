@@ -78,7 +78,7 @@ class TestSIELExistingLetterTemplatesMigration(MigratorTestCase):
             include_digital_signature=True,
         )
         LetterTemplates.objects.get_or_create(
-            id=REFUSAL_LETTER_ID,
+            id=NLR_LETTER_ID,
             name="No licence required letter template",
             layout=nlr_layout,
             visible_to_exporter=True,
