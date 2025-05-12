@@ -65,7 +65,7 @@ class TestSIELExistingLetterTemplatesMigration(MigratorTestCase):
 
         LetterTemplates.objects.get_or_create(
             id=APPROVAL_LETTER_ID,
-            name="SIEL tempalte",
+            name="SIEL template",
             layout=siel_approval_layout,
             visible_to_exporter=True,
             include_digital_signature=True,
