@@ -104,7 +104,7 @@ class FirearmDetailsSerializer(serializers.ModelSerializer):
     deactivation_standard = serializers.CharField(allow_blank=True, required=False)
     deactivation_standard_other = serializers.CharField(allow_blank=True, required=False, allow_null=True)
     number_of_items = serializers.IntegerField(
-        allow_null=False,
+        allow_null=True,
         required=False,
         error_messages={"null": "Enter the number of items", "invalid": "Number of items must be valid"},
     )
