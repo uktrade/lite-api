@@ -147,6 +147,21 @@ class TestF680RecommendationViewSet:
             for item in Recommendation.objects.filter(case=f680_application)
         ]
 
+    # MOD-ECJU call this endpoint when they GET Case detail so we need to check they can get a response
+    # even though they don't make recommendations and a case can be without a recommendation.
+    @freeze_time("2025-01-01 12:00:01")
+    def test_GET_recommendation_details_mod_ecju_caseworker_success(
+        self, get_hawk_client, url, team_case_advisor, team_case_advisor_headers, organisation
+    ):
+        f680_application = SubmittedF680ApplicationFactory(organisation=organisation)
+        gov_user = team_case_advisor(TeamIdEnum.MOD_ECJU)
+
+        headers = {"HTTP_GOV_USER_TOKEN": user_to_token(gov_user.baseuser_ptr)}
+        api_client, target_url = get_hawk_client("GET", url(f680_application))
+        response = api_client.get(target_url, **headers)
+
+        assert response.status_code == 200
+
     def test_GET_recommendation_raises_notfound_error(
         self, get_hawk_client, get_f680_application, team_case_advisor_headers
     ):
