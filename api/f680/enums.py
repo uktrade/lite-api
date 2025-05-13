@@ -30,6 +30,20 @@ class RecipientRole:
     ]
 
 
+class SecurityGradingPrefix:
+    UK = "UK"
+    NATO = "NATO"
+    OCCAR = "OCCAR"
+    OTHER = "other"
+
+    prefix_choices = [
+        (UK, "UK"),
+        (NATO, "NATO"),
+        (OCCAR, "OCCAR"),
+        (OTHER, "Other"),
+    ]
+
+
 class SecurityGrading:
     UNCLASSIFIED = "unclassified"
     OFFICIAL = "official"
