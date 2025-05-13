@@ -10,19 +10,14 @@ from gov_notify.enums import TemplateType
 
 
 @application_manifest_registry.register(CaseTypeReferenceEnum.EXPORT_LICENCE)
-class ExportLicenceApplicationManifest(BaseManifest):
-    model_class = StandardApplication
-    caseworker_serializers = {"view": StandardApplicationViewSerializer}
-    features = {
-        ApplicationFeatures.LICENCE_ISSUE: True,
-        ApplicationFeatures.ROUTE_TO_COUNTERSIGNING_QUEUES: True,
-    }
-
-
 @application_manifest_registry.register(CaseTypeReferenceEnum.SIEL)
-class StandardApplicationManifest(BaseManifest):
+class ApplicationManifest(BaseManifest):
     model_class = StandardApplication
+    # Warning: Caseworker and exporter currently share the same serializer which could lead
+    # to internal data unintentional being shared with the exporter
+    # TODO: LTD-6203 Create a dedicated serializer for the exporter
     caseworker_serializers = {"view": StandardApplicationViewSerializer}
+    exporter_serializers = {"view": StandardApplicationViewSerializer}
     features = {
         ApplicationFeatures.LICENCE_ISSUE: True,
         ApplicationFeatures.ROUTE_TO_COUNTERSIGNING_QUEUES: True,
@@ -34,4 +29,10 @@ class StandardApplicationManifest(BaseManifest):
             "template": TemplateType.EXPORTER_ECJU_QUERY_CHASER,
             "frontend_url": "/applications/{case_id}/ecju-queries/",
         },
+    }
+
+    document_signing = {
+        "signing_reason": "On behalf of the Secretary of State",
+        "location": "Department for International Trade",
+        "image_name": "dit_emblem.png",
     }

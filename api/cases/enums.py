@@ -52,10 +52,15 @@ class CaseTypeReferenceEnum:
     STANDARD_LICENCES = [SIEL, SICL, SITL]
     OPEN_LICENCES = [OIEL, OICL, OGEL, OGTCL, OGTL]
     MOD_LICENCES = [F680, EXHC, GIFT]
+    ACTIVE_CASE_TYPES = [SIEL, F680]
 
     @classmethod
     def as_list(cls):
         return [{"key": choice[0], "value": choice[1]} for choice in cls.choices]
+
+    @classmethod
+    def get_active_choices(cls):
+        return [{"key": choice[0], "value": choice[1]} for choice in cls.choices if choice[0] in cls.ACTIVE_CASE_TYPES]
 
     @classmethod
     def get_text(cls, status):
@@ -152,6 +157,7 @@ class CaseTypeEnum:
         id = UUID("00000000-0000-0000-0000-000000000017")
         reference = CaseTypeReferenceEnum.EXPORT_LICENCE
         type = CaseTypeTypeEnum.APPLICATION
+        reference_code_identifier = "EL"
 
     class SIEL:
         id = UUID("00000000-0000-0000-0000-000000000004")

@@ -105,7 +105,10 @@ class GeneratedDocuments(generics.ListAPIView):
             )
 
         if document.template.include_digital_signature:
-            pdf = sign_pdf(pdf)
+            document_signing = document.case.get_application_manifest().document_signing
+            pdf = sign_pdf(
+                pdf, document_signing["signing_reason"], document_signing["location"], document_signing["image_name"]
+            )
 
         advice_type = get_decision_type(request.data.get("advice_type"), document.template)
 

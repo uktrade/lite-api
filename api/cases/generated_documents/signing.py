@@ -14,7 +14,6 @@ from cryptography.hazmat.primitives.serialization import Encoding, pkcs12
 
 SIGNATURE_TITLE = "Digital Signature"
 FONT = os.path.join(os.path.dirname(settings.BASE_DIR), "assets", "fonts", "light.ttf")
-BACKGROUND_IMAGE = os.path.join(os.path.dirname(settings.BASE_DIR), "assets", "images", "dit_emblem.png")
 TITLE_FONT_SIZE = 80
 FONT_SIZE = 50
 SIGNATURE_POSITIONING = (50, 675, 450, 775)
@@ -38,12 +37,19 @@ def _load_certificate_and_key():
     )
 
 
-def _get_signature_text(date):
+def _get_signature_image_location(image_name):
+    """
+    Returns the location of the background image to use
+    """
+    return os.path.join(os.path.dirname(settings.BASE_DIR), "assets", "images", image_name)
+
+
+def _get_signature_text(date, signing_reason, location):
     return "\n\n".join(
         [
             f"Date: {date.strftime('%Y.%m.%d %H:%M:%S GMT')}",
-            f"Reason: {settings.SIGNING_REASON}",
-            f"Location: {settings.SIGNING_LOCATION}",
+            f"Reason: {signing_reason}",
+            f"Location: {location}",
         ]
     )
 
@@ -72,9 +78,9 @@ def _add_blank_page(pdf_bytes: bytes):
     return output_buffer.read(), num_pages
 
 
-def _get_signature_image(text):
+def _get_signature_image(text, image_name):
     # Load image and fonts
-    image = Image.open(BACKGROUND_IMAGE)
+    image = Image.open(_get_signature_image_location(image_name))
     title_font = ImageFont.truetype(FONT, TITLE_FONT_SIZE)
     text_font = ImageFont.truetype(FONT, FONT_SIZE)
     drawing = ImageDraw.Draw(image)
@@ -86,25 +92,27 @@ def _get_signature_image(text):
     return image
 
 
-def sign_pdf(original_pdf: bytes):
+def sign_pdf(original_pdf: bytes, signing_reason: str, location: str, image_name: str):
     """
     Takes raw bytes of a PDF file and adds a new page with a digital signature.
     Relies on a p12 file specified in CERTIFICATE_PATH & CERTIFICATE_PASSWORD.
     Also uses SIGNING_EMAIL, SIGNING_LOCATION & SIGNING_REASON as key data in the signing process.
     """
+
     if settings.DOCUMENT_SIGNING_ENABLED:
         from endesive.pdf.cms import sign  # noqa
 
         date = timezone.localtime()
         # Specify signing metadata
+        signature_text = _get_signature_text(date, signing_reason, location)
         signing_metadata = {
             "sigandcertify": True,
             "signaturebox": SIGNATURE_POSITIONING,
-            "signature_img": _get_signature_image(_get_signature_text(date)),
+            "signature_img": _get_signature_image(signature_text, image_name),
             "contact": settings.SIGNING_EMAIL,
-            "location": settings.SIGNING_LOCATION,
+            "location": location,
             "signingdate": date.strftime("D:%Y%m%d%H%M%S+00'00'"),
-            "reason": settings.SIGNING_REASON,
+            "reason": image_name,
         }
 
         # Load key & certificate

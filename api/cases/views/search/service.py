@@ -15,7 +15,7 @@ from api.staticdata.countries.serializers import CountrySerializer
 
 from api.applications.models import PartyOnApplication, GoodOnApplication, DenialMatchOnApplication
 from api.audit_trail.models import Audit
-from api.cases.enums import CaseTypeEnum, AdviceType
+from api.cases.enums import CaseTypeReferenceEnum, AdviceType
 from api.cases import serializers as cases_serializers
 from api.applications.serializers.advice import AdviceSearchViewSerializer
 from api.cases.models import Case, EcjuQuery, Advice
@@ -38,7 +38,7 @@ def get_case_sub_status_list() -> List[Dict]:
 
 
 def get_case_type_type_list() -> List[Dict]:
-    return CaseTypeEnum.case_types_to_representation()
+    return CaseTypeReferenceEnum.get_active_choices()
 
 
 def get_gov_users_list():

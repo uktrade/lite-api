@@ -50,6 +50,7 @@ class F680ApplicationViewSetTests(DataTestClient):  # /PS-IGNORE
             "results": [
                 {
                     "id": str(f680_application.id),
+                    "name": None,
                     "application": {"some": "json"},
                     "reference_code": f680_application.reference_code,
                     "organisation": {
@@ -66,6 +67,7 @@ class F680ApplicationViewSetTests(DataTestClient):  # /PS-IGNORE
                         "type": {"key": "security_clearance", "value": "Security Clearance"},
                         "sub_type": {"key": "f680_clearance", "value": "MOD F680 Clearance"},
                     },
+                    "status": {"id": f680_application.status_id, "key": "draft", "value": "draft"},
                 },
             ],
         }
@@ -80,7 +82,7 @@ class F680ApplicationViewSetTests(DataTestClient):  # /PS-IGNORE
             "total_pages": 1,
             "results": [],
         }
-        self.assertEqual(response.data, expected_result)
+        self.assertDictEqual(response.data, expected_result)
 
     def test_GET_single_empty_data_not_found(self):
         f680_application = SubmittedF680ApplicationFactory(organisation=self.organisation)
@@ -100,6 +102,7 @@ class F680ApplicationViewSetTests(DataTestClient):  # /PS-IGNORE
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         expected_result = {
             "id": str(f680_application.id),
+            "name": None,
             "application": {"some": "json"},
             "reference_code": f680_application.reference_code,
             "organisation": {
@@ -116,8 +119,9 @@ class F680ApplicationViewSetTests(DataTestClient):  # /PS-IGNORE
                 "type": {"key": "security_clearance", "value": "Security Clearance"},
                 "sub_type": {"key": "f680_clearance", "value": "MOD F680 Clearance"},
             },
+            "status": {"id": f680_application.status_id, "key": "draft", "value": "draft"},
         }
-        self.assertEqual(response.data, expected_result)
+        self.assertDictEqual(response.data, expected_result)
 
     def test_GET_single_different_organisation_not_found(self):
         f680_application = F680ApplicationFactory()
@@ -139,6 +143,7 @@ class F680ApplicationViewSetTests(DataTestClient):  # /PS-IGNORE
         # Check the API result
         expected_result = {
             "id": str(f680_application.id),
+            "name": None,
             "application": {"name": "test application"},
             "reference_code": None,
             "organisation": {
@@ -155,8 +160,9 @@ class F680ApplicationViewSetTests(DataTestClient):  # /PS-IGNORE
                 "type": {"key": "security_clearance", "value": "Security Clearance"},
                 "sub_type": {"key": "f680_clearance", "value": "MOD F680 Clearance"},
             },
+            "status": {"id": f680_application.status_id, "key": "draft", "value": "draft"},
         }
-        self.assertEqual(response.data, expected_result)
+        self.assertDictEqual(response.data, expected_result)
 
     def test_POST_create_bad_request(self):
         response = self.client.post(self.f680_url, **self.exporter_headers)
@@ -166,7 +172,7 @@ class F680ApplicationViewSetTests(DataTestClient):  # /PS-IGNORE
                 "application": [ErrorDetail("This field is required.", code="required")],
             },
         }
-        self.assertEqual(response.data, expected_response)
+        self.assertDictEqual(response.data, expected_response)
 
     @parameterized.expand(
         [
@@ -193,6 +199,7 @@ class F680ApplicationViewSetTests(DataTestClient):  # /PS-IGNORE
         # Check the API result
         expected_result = {
             "id": str(f680_application.id),
+            "name": None,
             "application": {"name": "test application"},
             "reference_code": None,
             "organisation": {
@@ -209,8 +216,9 @@ class F680ApplicationViewSetTests(DataTestClient):  # /PS-IGNORE
                 "type": {"key": "security_clearance", "value": "Security Clearance"},
                 "sub_type": {"key": "f680_clearance", "value": "MOD F680 Clearance"},
             },
+            "status": {"id": f680_application.status_id, "key": "draft", "value": "draft"},
         }
-        self.assertEqual(response.data, expected_result)
+        self.assertDictEqual(response.data, expected_result)
 
     def test_PATCH_partial_update_empty_data_not_found(self):
         url = reverse("exporter_f680:application", kwargs={"f680_application_id": uuid4()})
@@ -229,11 +237,46 @@ class F680ApplicationViewSetTests(DataTestClient):  # /PS-IGNORE
             application={"old key": "old value"},
         )
         url = reverse("exporter_f680:application", kwargs={"f680_application_id": f680_application.id})
-        patch_data = {"application": {"new key": "new value"}}
+
+        patch_data = {
+            "application": {
+                "sections": {
+                    "general_application_details": {
+                        "label": "General application details",
+                        "fields": {
+                            "name": {
+                                "key": "name",
+                                "answer": "F680 Test 1",
+                                "raw_answer": "F680 Test 1",
+                                "question": "Name the application",
+                                "datatype": "string",
+                            },
+                            "has_made_previous_application": {
+                                "key": "has_made_previous_application",
+                                "answer": "No",
+                                "raw_answer": False,
+                                "question": "Have you made a previous application?",
+                                "datatype": "boolean",
+                            },
+                            "is_exceptional_circumstances": {
+                                "key": "is_exceptional_circumstances",
+                                "answer": "No",
+                                "raw_answer": False,
+                                "question": "Do you have exceptional circumstances that mean you need F680 approval in less than 30 days?",
+                                "datatype": "boolean",
+                            },
+                        },
+                        "fields_sequence": ["name", "has_made_previous_application", "is_exceptional_circumstances"],
+                        "type": "single",
+                    }
+                }
+            }
+        }
         response = self.client.patch(url, patch_data, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         expected_result = {
             "id": str(f680_application.id),
+            "name": "F680 Test 1",
             "application": patch_data["application"],
             "reference_code": f680_application.reference_code,
             "organisation": {
@@ -250,8 +293,15 @@ class F680ApplicationViewSetTests(DataTestClient):  # /PS-IGNORE
                 "type": {"key": "security_clearance", "value": "Security Clearance"},
                 "sub_type": {"key": "f680_clearance", "value": "MOD F680 Clearance"},
             },
+            "status": {"id": f680_application.status_id, "key": "draft", "value": "draft"},
         }
-        self.assertEqual(response.data, expected_result)
+        self.assertDictEqual(response.data, expected_result)
+
+        f680_application.refresh_from_db()
+        incoming_name_data = patch_data["application"]["sections"]["general_application_details"]["fields"]["name"][
+            "answer"
+        ]
+        self.assertEqual(f680_application.name, incoming_name_data)
 
     def test_PATCH_partial_update_different_organisation_not_found(self):
         f680_application = SubmittedF680ApplicationFactory()  # /PS-IGNORE
@@ -289,6 +339,7 @@ class F680ApplicationViewSetTests(DataTestClient):  # /PS-IGNORE
         # Check the API result
         expected_result = {
             "id": str(f680_application.id),
+            "name": None,
             "application": {"name": "test application"},
             "reference_code": f680_application.reference_code,
             "organisation": {
@@ -305,8 +356,9 @@ class F680ApplicationViewSetTests(DataTestClient):  # /PS-IGNORE
                 "type": {"key": "security_clearance", "value": "Security Clearance"},
                 "sub_type": {"key": "f680_clearance", "value": "MOD F680 Clearance"},
             },
+            "status": {"id": f680_application.status_id, "key": "draft", "value": "draft"},
         }
-        self.assertEqual(response.data, expected_result)
+        self.assertDictEqual(response.data, expected_result)
 
 
 class TestF680ApplicationViewSet:
@@ -352,6 +404,7 @@ class TestF680ApplicationViewSet:
 
         expected_result = {
             "id": str(f680_application.id),
+            "name": "some name",
             "application": data_application_json,
             "reference_code": f680_application.reference_code,
             "organisation": {
@@ -374,6 +427,7 @@ class TestF680ApplicationViewSet:
                 "type": {"key": "security_clearance", "value": "Security Clearance"},
                 "sub_type": {"key": "f680_clearance", "value": "MOD F680 Clearance"},
             },
+            "status": {"id": f680_application.status_id, "key": "submitted", "value": "Submitted"},
         }
         assert response.data == expected_result
 

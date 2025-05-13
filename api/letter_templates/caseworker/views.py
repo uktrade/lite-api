@@ -13,3 +13,4 @@ class LetterTemplatesList(ListAPIView):
     filterset_class = LetterTemplateFilter
     serializer_class = LetterTemplatesSerializer
     queryset = LetterTemplate.objects.order_by("name")
+    pagination_class = None

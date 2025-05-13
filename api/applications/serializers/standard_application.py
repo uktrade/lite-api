@@ -42,8 +42,7 @@ from api.staticdata.statuses.libraries.get_case_status import get_case_status_by
 from api.staticdata.statuses.models import CaseStatus
 from api.staticdata.statuses.serializers import CaseSubStatusSerializer
 from api.staticdata.trade_control.enums import TradeControlProductCategory, TradeControlActivity
-from api.users.libraries.notifications import get_exporter_user_notification_individual_count
-from api.users.models import ExporterUser
+from api.users.serializers import UserNotificationsSerializer
 
 from .denial import DenialMatchOnApplicationViewSerializer
 from .generic_application import GenericApplicationListSerializer
@@ -51,7 +50,9 @@ from .good import GoodOnApplicationViewSerializer
 from .fields import CaseStatusField
 
 
-class StandardApplicationViewSerializer(PartiesSerializerMixin, serializers.ModelSerializer):
+class StandardApplicationViewSerializer(
+    PartiesSerializerMixin, UserNotificationsSerializer, serializers.ModelSerializer
+):
     name = CharField(
         max_length=100,
         required=True,
@@ -64,7 +65,6 @@ class StandardApplicationViewSerializer(PartiesSerializerMixin, serializers.Mode
     status = CaseStatusField()
     organisation = OrganisationDetailSerializer()
     case = serializers.SerializerMethodField()
-    exporter_user_notification_count = serializers.SerializerMethodField()
     is_major_editable = serializers.SerializerMethodField(required=False)
     goods_locations = serializers.SerializerMethodField()
     case_officer = GovUserSimpleSerializer()
@@ -87,78 +87,74 @@ class StandardApplicationViewSerializer(PartiesSerializerMixin, serializers.Mode
     class Meta:
         model = StandardApplication
         fields = (
-            "id",
-            "name",
-            "organisation",
-            "case_type",
-            "export_type",
-            "created_at",
-            "updated_at",
-            "submitted_at",
-            "submitted_by",
-            "status",
-            "case",
-            "exporter_user_notification_count",
-            "reference_code",
-            "is_major_editable",
-            "goods_locations",
-            "case_officer",
-            "agreed_to_foi",
-            "foi_reason",
-            "sla_days",
-            "sla_remaining_days",
-            "sla_updated_at",
-            "last_closed_at",
-            "goods",
-            "have_you_been_informed",
-            "reference_number_on_information_form",
-            "activity",
-            "usage",
-            "destinations",
-            "denial_matches",
-            "additional_documents",
-            "is_military_end_use_controls",
-            "military_end_use_controls_ref",
-            "is_informed_wmd",
-            "informed_wmd_ref",
-            "is_suspected_wmd",
-            "suspected_wmd_ref",
-            "is_eu_military",
-            "is_compliant_limitations_eu",
-            "compliant_limitations_eu_ref",
-            "intended_end_use",
-            "licence",
-            "is_shipped_waybill_or_lading",
-            "non_waybill_or_lading_route_details",
-            "temp_export_details",
-            "is_temp_direct_control",
-            "temp_direct_control_details",
-            "proposed_return_date",
-            "trade_control_activity",
-            "trade_control_product_categories",
-            "sanction_matches",
-            "is_amended",
-            "goods_starting_point",
-            "goods_recipients",
-            "is_mod_security_approved",
-            "security_approvals",
-            "f680_reference_number",
-            "f1686_contracting_authority",
-            "f1686_reference_number",
-            "f1686_approval_date",
-            "other_security_approval_details",
-            "appeal_deadline",
-            "appeal",
-            "sub_status",
-            "subject_to_itar_controls",
-        ) + PartiesSerializerMixin.Meta.fields
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.exporter_user = kwargs.get("context").get("exporter_user") if "context" in kwargs else None
-        self.organisation_id = kwargs.get("context").get("organisation_id") if "context" in kwargs else None
-        if not isinstance(self.exporter_user, ExporterUser):
-            self.fields.pop("exporter_user_notification_count")
+            (
+                "id",
+                "name",
+                "organisation",
+                "case_type",
+                "export_type",
+                "created_at",
+                "updated_at",
+                "submitted_at",
+                "submitted_by",
+                "status",
+                "case",
+                "reference_code",
+                "is_major_editable",
+                "goods_locations",
+                "case_officer",
+                "agreed_to_foi",
+                "foi_reason",
+                "sla_days",
+                "sla_remaining_days",
+                "sla_updated_at",
+                "last_closed_at",
+                "goods",
+                "have_you_been_informed",
+                "reference_number_on_information_form",
+                "activity",
+                "usage",
+                "destinations",
+                "denial_matches",
+                "additional_documents",
+                "is_military_end_use_controls",
+                "military_end_use_controls_ref",
+                "is_informed_wmd",
+                "informed_wmd_ref",
+                "is_suspected_wmd",
+                "suspected_wmd_ref",
+                "is_eu_military",
+                "is_compliant_limitations_eu",
+                "compliant_limitations_eu_ref",
+                "intended_end_use",
+                "licence",
+                "is_shipped_waybill_or_lading",
+                "non_waybill_or_lading_route_details",
+                "temp_export_details",
+                "is_temp_direct_control",
+                "temp_direct_control_details",
+                "proposed_return_date",
+                "trade_control_activity",
+                "trade_control_product_categories",
+                "sanction_matches",
+                "is_amended",
+                "goods_starting_point",
+                "goods_recipients",
+                "is_mod_security_approved",
+                "security_approvals",
+                "f680_reference_number",
+                "f1686_contracting_authority",
+                "f1686_reference_number",
+                "f1686_approval_date",
+                "other_security_approval_details",
+                "appeal_deadline",
+                "appeal",
+                "sub_status",
+                "subject_to_itar_controls",
+            )
+            + PartiesSerializerMixin.Meta.fields
+            + UserNotificationsSerializer.Meta.fields
+        )
 
     def get_submitted_by(self, instance):
         return f"{instance.submitted_by.first_name} {instance.submitted_by.last_name}" if instance.submitted_by else ""
@@ -177,13 +173,6 @@ class StandardApplicationViewSerializer(PartiesSerializerMixin, serializers.Mode
 
     def get_case(self, instance):
         return instance.pk
-
-    def get_exporter_user_notification_count(self, instance):
-        return get_exporter_user_notification_individual_count(
-            exporter_user=self.exporter_user,
-            organisation_id=self.organisation_id,
-            case=instance,
-        )
 
     def get_is_major_editable(self, instance):
         return instance.is_major_editable()
