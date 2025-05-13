@@ -94,6 +94,16 @@ class F680Application(BaseApplication, Clonable):
                 "raw_answer"
             ],
             organisation=self.organisation,
+            security_grading_prefix=(
+                product_information_fields["prefix"]["raw_answer"]
+                if "security_classification" in product_information_fields
+                else None
+            ),
+            security_grading_prefix_other=(
+                product_information_fields["other_prefix"]["raw_answer"]
+                if "other_prefix" in product_information_fields
+                else None
+            ),
             security_grading=(
                 product_information_fields["security_classification"]["raw_answer"]
                 if "security_classification" in product_information_fields
@@ -130,8 +140,12 @@ class F680Application(BaseApplication, Clonable):
                 recipient=recipient,
                 product=product,
                 application=self,
+                security_grading_prefix=item_fields["prefix"]["raw_answer"],
                 security_grading=item_fields["security_classification"]["raw_answer"],
                 intended_use=item_fields["end_user_intended_end_use"]["raw_answer"],
+                security_grading_prefix_other=(
+                    item_fields["other_prefix"]["raw_answer"] if "other_prefix" in item_fields else None
+                ),
                 security_grading_other=(
                     item_fields["other_security_classification"]["raw_answer"]
                     if "other_security_classification" in item_fields
@@ -207,6 +221,10 @@ class Product(TimestampableModel):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.TextField()
     description = models.TextField()
+    security_grading_prefix = models.CharField(
+        choices=enums.SecurityGradingPrefix.prefix_choices, max_length=50, null=True, default=None
+    )
+    security_grading_prefix_other = models.TextField(null=True, default=None)
     security_grading = models.CharField(
         choices=enums.SecurityGrading.product_choices, max_length=50, null=True, default=None
     )
@@ -219,6 +237,10 @@ class SecurityReleaseRequest(TimestampableModel):
     recipient = models.ForeignKey(Recipient, on_delete=models.CASCADE, related_name="security_release_requests")
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name="security_release_requests")
     application = models.ForeignKey(F680Application, on_delete=models.CASCADE, related_name="security_release_requests")
+    security_grading_prefix = models.CharField(
+        choices=enums.SecurityGradingPrefix.prefix_choices, max_length=50, null=True, default=None
+    )
+    security_grading_prefix_other = models.TextField(null=True, default=None)
     security_grading = models.CharField(choices=enums.SecurityGrading.security_release_choices, max_length=50)
     security_grading_other = models.TextField(null=True, default=None)
     approval_types = ArrayField(models.CharField(choices=enums.ApprovalTypes.choices, max_length=50))
@@ -230,6 +252,8 @@ class Recommendation(TimestampableModel):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     case = models.ForeignKey(Case, related_name="recommendations", on_delete=models.CASCADE)
     type = models.CharField(choices=enums.RecommendationType.choices, max_length=30)
+    # prefix = models.CharField(choices=enums.SecurityGradingPrefix.prefix_choices, blank=True, null=True, max_length=50)
+    # prefix_other = models.TextField(null=True, default="", blank=True)
     security_grading = models.CharField(
         choices=enums.SecurityGrading.security_release_choices, blank=True, null=True, max_length=50
     )
