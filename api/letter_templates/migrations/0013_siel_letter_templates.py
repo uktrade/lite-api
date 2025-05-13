@@ -14,11 +14,11 @@ def populate_siel_letter_templates(apps, schema_editor):
 
     # Create the template and layout
     APPROVAL_LAYOUT_ID = "00000000-0000-0000-0000-000000000001"  # /PS-IGNORE
-    APPROVAL_LETTER_ID = "f689b40d-82cd-462e-82c4-e7e44700f7bd"
+    APPROVAL_LETTER_ID = "d159b195-9256-4a00-9bc8-1eb2cebfa1d2"
     REFUSAL_LAYOUT_ID = "00000000-0000-0000-0000-000000000006"  # /PS-IGNORE
-    REFUSAL_LETTER_ID = "dddc0fe2-a869-47d6-8eff-971db490862c"
+    REFUSAL_LETTER_ID = "074d8a54-ee10-4dca-82ba-650460650342"
     NLR_LAYOUT_ID = "00000000-0000-0000-0000-000000000003"
-    NLR_LETTER_ID = "e492fabc-976c-48f0-9b75-b5e06aeaeba4"
+    NLR_LETTER_ID = "d71c3cfc-a127-46b6-96c0-a435cdd63cdb"
 
     # approval
     siel_approval_layout, _ = LetterLayout.objects.get_or_create(
