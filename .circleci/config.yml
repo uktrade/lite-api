@@ -492,6 +492,7 @@ workflows:
               - migration_tests
               - lite_routing_tests
               - requires_transactions_tests
+              - anonymised_db_dump_tests
       - check-lite-routing-sha
       - check_routing_docs
       - e2e_tests

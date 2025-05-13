@@ -50,6 +50,7 @@ class F680ApplicationViewSetTests(DataTestClient):  # /PS-IGNORE
             "results": [
                 {
                     "id": str(f680_application.id),
+                    "name": None,
                     "application": {"some": "json"},
                     "reference_code": f680_application.reference_code,
                     "organisation": {
@@ -101,6 +102,7 @@ class F680ApplicationViewSetTests(DataTestClient):  # /PS-IGNORE
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         expected_result = {
             "id": str(f680_application.id),
+            "name": None,
             "application": {"some": "json"},
             "reference_code": f680_application.reference_code,
             "organisation": {
@@ -141,6 +143,7 @@ class F680ApplicationViewSetTests(DataTestClient):  # /PS-IGNORE
         # Check the API result
         expected_result = {
             "id": str(f680_application.id),
+            "name": None,
             "application": {"name": "test application"},
             "reference_code": None,
             "organisation": {
@@ -196,6 +199,7 @@ class F680ApplicationViewSetTests(DataTestClient):  # /PS-IGNORE
         # Check the API result
         expected_result = {
             "id": str(f680_application.id),
+            "name": None,
             "application": {"name": "test application"},
             "reference_code": None,
             "organisation": {
@@ -272,6 +276,7 @@ class F680ApplicationViewSetTests(DataTestClient):  # /PS-IGNORE
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         expected_result = {
             "id": str(f680_application.id),
+            "name": "F680 Test 1",
             "application": patch_data["application"],
             "reference_code": f680_application.reference_code,
             "organisation": {
@@ -334,6 +339,7 @@ class F680ApplicationViewSetTests(DataTestClient):  # /PS-IGNORE
         # Check the API result
         expected_result = {
             "id": str(f680_application.id),
+            "name": None,
             "application": {"name": "test application"},
             "reference_code": f680_application.reference_code,
             "organisation": {
@@ -398,6 +404,7 @@ class TestF680ApplicationViewSet:
 
         expected_result = {
             "id": str(f680_application.id),
+            "name": "some name",
             "application": data_application_json,
             "reference_code": f680_application.reference_code,
             "organisation": {

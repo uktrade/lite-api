@@ -10,21 +10,8 @@ from gov_notify.enums import TemplateType
 
 
 @application_manifest_registry.register(CaseTypeReferenceEnum.EXPORT_LICENCE)
-class ExportLicenceApplicationManifest(BaseManifest):
-    model_class = StandardApplication
-    # Warning: Caseworker and exporter currently share the same serializer which could lead
-    # to internal data unintentional being shared with the exporter
-    # TODO: Create a dedicated serializer for the exporter
-    caseworker_serializers = {"view": StandardApplicationViewSerializer}
-    exporter_serializers = {"view": StandardApplicationViewSerializer}
-    features = {
-        ApplicationFeatures.LICENCE_ISSUE: True,
-        ApplicationFeatures.ROUTE_TO_COUNTERSIGNING_QUEUES: True,
-    }
-
-
 @application_manifest_registry.register(CaseTypeReferenceEnum.SIEL)
-class StandardApplicationManifest(BaseManifest):
+class ApplicationManifest(BaseManifest):
     model_class = StandardApplication
     # Warning: Caseworker and exporter currently share the same serializer which could lead
     # to internal data unintentional being shared with the exporter
