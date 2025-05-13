@@ -1,43 +1,27 @@
-from django.core.exceptions import ObjectDoesNotExist
-from django.http import Http404, HttpResponse
+from django.http import HttpResponse
 from api.cases.generated_documents.models import GeneratedCaseDocument
 from rest_framework import status, viewsets
 from rest_framework.response import Response
 
-from api.applications.libraries.get_applications import get_application
 from api.audit_trail import service as audit_trail_service
 from api.audit_trail.enums import AuditType
-from api.core.authentication import GovAuthentication
-from api.core.exceptions import NotFoundError
+from api.cases.libraries.get_case import get_case
 
 from api.f680.models import Recommendation, SecurityReleaseOutcome
-from api.f680.caseworker import filters
 from api.f680.caseworker import permissions
 from api.f680.caseworker import serializers
 from api.f680.caseworker import read_only_serializers
+from api.f680.caseworker.mixins import F680CaseworkerApplicationMixin
 
 
-class F680RecommendationViewSet(viewsets.ModelViewSet):
-    authentication_classes = (GovAuthentication,)
+class F680RecommendationViewSet(F680CaseworkerApplicationMixin, viewsets.ModelViewSet):
     permission_classes = [
-        permissions.CaseCanAcceptRecommendations & permissions.CaseCanUserMakeRecommendations | permissions.ReadOnly
+        permissions.CaseCanAcceptRecommendations,
+        permissions.CaseCanUserMakeRecommendations | permissions.ReadOnly,
     ]
-    filter_backends = (filters.CurrentCaseFilter,)
-    queryset = Recommendation.objects.all()
     serializer_class = serializers.F680RecommendationSerializer
     pagination_class = None
-
-    def dispatch(self, request, *args, **kwargs):
-        # TODO: Review dispatch methods in LTD-6085
-        try:
-            self.application = get_application(self.kwargs["pk"])
-        except (ObjectDoesNotExist, NotFoundError):
-            raise Http404()
-
-        return super().dispatch(request, *args, **kwargs)
-
-    def get_case(self):
-        return self.application
+    queryset = Recommendation.objects.all()
 
     def prepare_data(self, request_data):
         return [
@@ -54,8 +38,7 @@ class F680RecommendationViewSet(viewsets.ModelViewSet):
         data = self.prepare_data(request.data.copy())
         serializer = self.get_serializer(data=data, many=True)
         serializer.is_valid(raise_exception=True)
-
-        self.perform_create(serializer)
+        serializer.save()
 
         recommendation_type = serializer.data[0]["type"]["value"]
         qs = self.get_queryset().filter(user_id=request.user.id, team=request.user.govuser.team)
@@ -64,7 +47,7 @@ class F680RecommendationViewSet(viewsets.ModelViewSet):
         audit_trail_service.create(
             actor=self.request.user,
             verb=AuditType.CREATE_OGD_F680_RECOMMENDATION,
-            target=self.application.get_case(),
+            target=self.case,
             payload={
                 "security_release_request_ids": security_release_request_ids,
                 "additional_text": f"Recommendation type added was {recommendation_type}",
@@ -89,33 +72,19 @@ class F680RecommendationViewSet(viewsets.ModelViewSet):
         audit_trail_service.create(
             actor=self.request.user,
             verb=AuditType.CLEAR_OGD_F680_RECOMMENDATION,
-            target=self.application.get_case(),
+            target=get_case(self.kwargs["pk"]),
             payload={"security_release_request_ids": security_release_request_ids},
         )
 
         return HttpResponse(status=status.HTTP_204_NO_CONTENT)
 
 
-class F680OutcomeViewSet(viewsets.ModelViewSet):
-    authentication_classes = (GovAuthentication,)
-    permission_classes = [permissions.CaseReadyForOutcome & permissions.CanUserMakeOutcome | permissions.ReadOnly]
-    filter_backends = (filters.CurrentCaseFilter,)
+class F680OutcomeViewSet(F680CaseworkerApplicationMixin, viewsets.ModelViewSet):
+    permission_classes = [permissions.CanUserMakeOutcome & permissions.CaseReadyForOutcome | permissions.ReadOnly]
     queryset = SecurityReleaseOutcome.objects.all()
     serializer_class = serializers.SecurityReleaseOutcomeSerializer
     lookup_url_kwarg = "outcome_id"
     pagination_class = None
-
-    def dispatch(self, request, *args, **kwargs):
-        # TODO: Review dispatch methods in LTD-6085
-        try:
-            self.application = get_application(self.kwargs["pk"])
-        except (ObjectDoesNotExist, NotFoundError):
-            raise Http404()
-
-        return super().dispatch(request, *args, **kwargs)
-
-    def get_case(self):
-        return self.application
 
     def prepare_data(self, request_data):
         return {
@@ -138,7 +107,7 @@ class F680OutcomeViewSet(viewsets.ModelViewSet):
         audit_trail_service.create(
             actor=self.request.user,
             verb=AuditType.CREATE_F680_OUTCOME,
-            target=self.application.get_case(),
+            target=self.case,
             payload={
                 "security_release_request_ids": security_release_request_ids,
                 "additional_text": f"Outcome was {outcome}",
@@ -156,7 +125,7 @@ class F680OutcomeViewSet(viewsets.ModelViewSet):
         audit_trail_service.create(
             actor=self.request.user,
             verb=AuditType.CLEAR_F680_OUTCOME,
-            target=self.application.get_case(),
+            target=self.case,
             payload={
                 "security_release_request_ids": security_release_request_ids,
             },
@@ -165,18 +134,8 @@ class F680OutcomeViewSet(viewsets.ModelViewSet):
         return HttpResponse(status=response.status_code)
 
 
-class F680OutcomeDocumenViewSet(viewsets.ModelViewSet):
-    authentication_classes = (GovAuthentication,)
-    filter_backends = (filters.CurrentCaseFilter,)
+class F680OutcomeDocumentViewSet(F680CaseworkerApplicationMixin, viewsets.ModelViewSet):
     queryset = GeneratedCaseDocument.objects.all()
     serializer_class = serializers.OutcomeDocumentSerializer
     lookup_url_kwarg = "case_id"
     pagination_class = None
-
-    def dispatch(self, request, *args, **kwargs):
-        try:
-            self.application = get_application(self.kwargs["pk"])
-        except (ObjectDoesNotExist, NotFoundError):
-            raise Http404()
-
-        return super().dispatch(request, *args, **kwargs)
