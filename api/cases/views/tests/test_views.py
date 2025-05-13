@@ -1,6 +1,7 @@
 import pytest
 from uuid import uuid4
 from unittest import mock
+from http import HTTPStatus
 
 from django.urls import reverse
 from rest_framework.exceptions import ErrorDetail
@@ -13,8 +14,8 @@ from api.f680.tests.factories import (
     F680SecurityReleaseOutcomeFactory,
     SubmittedF680ApplicationFactory,
 )
-from api.staticdata.statuses.enums import CaseStatusEnum
-from api.staticdata.statuses.models import CaseStatus
+from api.staticdata.statuses.enums import CaseStatusEnum, CaseStatusIdEnum, CaseSubStatusIdEnum
+from api.staticdata.statuses.models import CaseStatus, CaseSubStatus
 from api.staticdata.countries.factories import CountryFactory
 from api.users.libraries.user_to_token import user_to_token
 
@@ -127,7 +128,7 @@ def get_f680_application_with_mixed_outcome(get_f680_application):
 # TODO: Move SIEL tests over to this file and harmonise test cases
 class TestFinaliseView:
 
-    @mock.patch("api.cases.notify.notify_exporter_licence_issued")
+    @mock.patch("api.cases.notify.notify_exporter_f680_outcome_issued")
     def test_finalise_f680_approve_success(
         self,
         mock_notify,
@@ -138,8 +139,7 @@ class TestFinaliseView:
         team_case_advisor_headers,
     ):
         f680_application = get_f680_application_with_approve_outcome()
-        case = f680_application.case_ptr
-        generated_document = F680ApproveDocumentFactory(case=f680_application.case_ptr)
+        F680ApproveDocumentFactory(case=f680_application.case_ptr)
 
         gov_user = team_case_advisor(TeamIdEnum.MOD_ECJU)
         headers = {"HTTP_GOV_USER_TOKEN": user_to_token(gov_user.baseuser_ptr)}
@@ -151,9 +151,32 @@ class TestFinaliseView:
         assert f680_application.status.status == CaseStatusEnum.FINALISED
         assert f680_application.sub_status.name == "Approved"
         assert LicenceDecision.objects.all().count() == 0
-        mock_notify.assert_called_with(case)
+        mock_notify.assert_called_with(f680_application)
+        assert mock_notify.call_count == 1
 
-    @mock.patch("api.cases.notify.notify_exporter_licence_refused")
+    @mock.patch("api.cases.notify.notify_exporter_f680_outcome_issued")
+    def test_finalise_f680_already_finalised(
+        self,
+        mock_notify,
+        get_hawk_client,
+        url,
+        get_f680_application_with_approve_outcome,
+        team_case_advisor,
+    ):
+        sub_status = CaseSubStatus.objects.get(pk=CaseSubStatusIdEnum.FINALISED__APPROVED)
+        f680_application = get_f680_application_with_approve_outcome()
+        f680_application.status_id = CaseStatusIdEnum.FINALISED
+        f680_application.save()
+        f680_application.sub_status = sub_status
+        f680_application.save()
+        gov_user = team_case_advisor(TeamIdEnum.MOD_ECJU)
+        headers = {"HTTP_GOV_USER_TOKEN": user_to_token(gov_user.baseuser_ptr)}
+        api_client, target_url = get_hawk_client("PUT", url(f680_application))
+        response = api_client.put(target_url, **headers)
+        assert response.status_code == HTTPStatus.FORBIDDEN
+        assert mock_notify.call_count == 0
+
+    @mock.patch("api.cases.notify.notify_exporter_f680_outcome_issued")
     def test_finalise_f680_refuse_success(
         self,
         mock_notify,
@@ -164,22 +187,22 @@ class TestFinaliseView:
         team_case_advisor_headers,
     ):
         f680_application = get_f680_application_with_refuse_outcome()
-        case = f680_application.case_ptr
-        generated_document = F680RefuseDocumentFactory(case=f680_application.case_ptr)
+        F680RefuseDocumentFactory(case=f680_application.case_ptr)
 
         gov_user = team_case_advisor(TeamIdEnum.MOD_ECJU)
         headers = {"HTTP_GOV_USER_TOKEN": user_to_token(gov_user.baseuser_ptr)}
         api_client, target_url = get_hawk_client("PUT", url(f680_application))
         response = api_client.put(target_url, **headers)
-        assert response.status_code == 201
+        assert response.status_code == HTTPStatus.CREATED
         assert response.json() == {"case": str(f680_application.id), "licence": ""}
         f680_application.refresh_from_db()
         assert f680_application.status.status == CaseStatusEnum.FINALISED
         assert f680_application.sub_status.name == "Refused"
         assert LicenceDecision.objects.all().count() == 0
-        mock_notify.assert_called_with(case)
+        mock_notify.assert_called_with(f680_application)
+        assert mock_notify.call_count == 1
 
-    @mock.patch("api.cases.notify.notify_exporter_licence_refused")
+    @mock.patch("api.cases.notify.notify_exporter_f680_outcome_issued")
     def test_finalise_f680_mixed_outcome_success(
         self,
         mock_notify,
@@ -190,22 +213,22 @@ class TestFinaliseView:
         team_case_advisor_headers,
     ):
         f680_application = get_f680_application_with_mixed_outcome()
-        case = f680_application.case_ptr
-        generated_document = F680RefuseDocumentFactory(case=f680_application.case_ptr)
-        generated_document = F680ApproveDocumentFactory(case=f680_application.case_ptr)
+        F680RefuseDocumentFactory(case=f680_application.case_ptr)
+        F680ApproveDocumentFactory(case=f680_application.case_ptr)
 
         gov_user = team_case_advisor(TeamIdEnum.MOD_ECJU)
         headers = {"HTTP_GOV_USER_TOKEN": user_to_token(gov_user.baseuser_ptr)}
         api_client, target_url = get_hawk_client("PUT", url(f680_application))
         response = api_client.put(target_url, **headers)
-        assert response.status_code == 201
+        assert response.status_code == HTTPStatus.CREATED
         assert response.json() == {"case": str(f680_application.id), "licence": ""}
         f680_application.refresh_from_db()
         assert f680_application.status.status == CaseStatusEnum.FINALISED
         # TODO: Should a case with a mixed outcome have sub status refused or approved?
         assert f680_application.sub_status.name == "Approved"
         assert LicenceDecision.objects.all().count() == 0
-        mock_notify.assert_called_with(case)
+        mock_notify.assert_called_with(f680_application)
+        assert mock_notify.call_count == 1
 
     def test_finalise_f680_missing_letters(
         self,
@@ -221,7 +244,7 @@ class TestFinaliseView:
         headers = {"HTTP_GOV_USER_TOKEN": user_to_token(gov_user.baseuser_ptr)}
         api_client, target_url = get_hawk_client("PUT", url(f680_application))
         response = api_client.put(target_url, **headers)
-        assert response.status_code == 400
+        assert response.status_code == HTTPStatus.BAD_REQUEST
         assert response.data == {
             "errors": {
                 "decision-approve": [
@@ -249,7 +272,7 @@ class TestFinaliseView:
         headers = {"HTTP_GOV_USER_TOKEN": user_to_token(gov_user.baseuser_ptr)}
         api_client, target_url = get_hawk_client("PUT", url(f680_application))
         response = api_client.put(target_url, **headers)
-        assert response.status_code == 403
+        assert response.status_code == HTTPStatus.FORBIDDEN
         f680_application.refresh_from_db()
         assert f680_application.status.status == CaseStatusEnum.OGD_ADVICE
 
@@ -267,6 +290,6 @@ class TestFinaliseView:
         headers = {"HTTP_GOV_USER_TOKEN": user_to_token(gov_user.baseuser_ptr)}
         api_client, target_url = get_hawk_client("PUT", url(f680_application))
         response = api_client.put(target_url, **headers)
-        assert response.status_code == 403
+        assert response.status_code == HTTPStatus.FORBIDDEN
         f680_application.refresh_from_db()
         assert f680_application.status.status == CaseStatusEnum.UNDER_FINAL_REVIEW
