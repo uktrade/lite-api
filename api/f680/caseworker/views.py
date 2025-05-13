@@ -16,8 +16,7 @@ from api.f680.caseworker.mixins import F680CaseworkerApplicationMixin
 
 class F680RecommendationViewSet(F680CaseworkerApplicationMixin, viewsets.ModelViewSet):
     permission_classes = [
-        permissions.CaseCanAcceptRecommendations,
-        permissions.CaseCanUserMakeRecommendations | permissions.ReadOnly,
+        permissions.CaseCanAcceptRecommendations & permissions.CaseCanUserMakeRecommendations | permissions.ReadOnly
     ]
     serializer_class = serializers.F680RecommendationSerializer
     pagination_class = None
