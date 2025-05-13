@@ -146,6 +146,37 @@ class TestPicklistItemsView:
         assert audit_event.actor == gov_user
 
 
+class TestPicklistItemDetailView:
+
+    @pytest.mark.parametrize(
+        "team_id",
+        (
+            TeamIdEnum.FCDO,
+            TeamIdEnum.MOD_CAPPROT,
+            TeamIdEnum.MOD_DI,
+            TeamIdEnum.MOD_DSR,
+            TeamIdEnum.MOD_DSTL,
+            TeamIdEnum.NCSC,
+        ),
+    )
+    def test_ogds_view_picklist_item_details(
+        self, gov_user_permissions, get_hawk_client, team_case_advisor_headers, team_id
+    ):
+        team = Team.objects.get(id=team_id)
+        f680_proviso = PicklistItemFactory(team_id=team_id, name=f"{team.name}", type=PicklistType.F680_PROVISO)
+
+        url = reverse("picklist_items:picklist_item", kwargs={"pk": f680_proviso.id})
+        headers = team_case_advisor_headers(team_id)
+        api_client, target_url = get_hawk_client("GET", url)
+        response = api_client.get(target_url, **headers)
+        assert response.status_code == status.HTTP_200_OK
+        actual = response.json()["picklist_item"]
+        assert actual["name"] == team.name
+        assert actual["type"]["key"] == PicklistType.F680_PROVISO
+        assert actual["team"]["id"] == team_id
+        assert actual["status"]["key"] == PickListStatus.ACTIVE
+
+
 class PicklistsViews(DataTestClient):
     url = reverse("picklist_items:picklist_items")
 
@@ -214,25 +245,3 @@ class PicklistsViews(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response_data["results"]), 2)
-
-
-class PicklistView(DataTestClient):
-    def setUp(self):
-        super().setUp()
-        self.picklist = self.create_picklist_item("#1", self.team, PicklistType.PROVISO, PickListStatus.ACTIVE)
-        self.url = reverse("picklist_items:picklist_item", kwargs={"pk": self.picklist.id})
-
-    def test_gov_user_can_view_a_picklist_item(self):
-        self.gov_user.role.permissions.set([GovPermissions.MANAGE_PICKLISTS.name])
-
-        response = self.client.get(self.url, **self.gov_headers)
-        response_data = response.json()["picklist_item"]
-
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response_data["id"], str(self.picklist.id))
-        self.assertEqual(response_data["name"], self.picklist.name)
-        self.assertEqual(response_data["text"], self.picklist.text)
-        self.assertEqual(response_data["team"]["id"], str(self.team.id))
-        self.assertEqual(response_data["team"]["name"], self.team.name)
-        self.assertEqual(response_data["type"]["key"], self.picklist.type)
-        self.assertEqual(response_data["status"]["key"], self.picklist.status)
