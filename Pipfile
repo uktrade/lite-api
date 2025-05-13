@@ -83,6 +83,7 @@ djangorestframework-csv = "~=3.0.2"
 endesive = "~=1.5.9"
 django-filter = "~=25.1"
 weasyprint = "==65.1"
+django-waffle = "==4.2.0"
 
 [requires]
 python_version = "3.9"
