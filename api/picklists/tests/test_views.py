@@ -16,8 +16,6 @@ from api.picklists.tests.factories import PicklistItemFactory
 from api.teams.models import Team
 from api.users.libraries.user_to_token import user_to_token
 
-from test_helpers.clients import DataTestClient
-
 from lite_routing.routing_rules_internal.enums import TeamIdEnum
 
 pytest_plugins = [
@@ -145,6 +143,108 @@ class TestPicklistItemsView:
         audit_event = Audit.objects.get(verb=AuditType.CREATED_PICKLIST, target_object_id=obj.id)
         assert audit_event.actor == gov_user
 
+    @pytest.mark.parametrize(
+        "query_params, query_filters, expected_count",
+        (
+            ({"show_deactivated": False}, [PickListStatus.ACTIVE], 2),
+            ({"show_deactivated": True}, [PickListStatus.ACTIVE, PickListStatus.DEACTIVATED], 3),
+        ),
+    )
+    def test_filter_by_status(
+        self, get_hawk_client, team_case_advisor_headers, url, query_params, query_filters, expected_count
+    ):
+        PicklistItemFactory(team_id=TeamIdEnum.MOD_CAPPROT, type=PicklistType.PROVISO)
+        PicklistItemFactory(team_id=TeamIdEnum.MOD_CAPPROT, type=PicklistType.F680_PROVISO)
+        PicklistItemFactory(
+            team_id=TeamIdEnum.MOD_CAPPROT, type=PicklistType.FOOTNOTES, status=PickListStatus.DEACTIVATED
+        )
+        PicklistItemFactory(team_id=TeamIdEnum.FCDO, type=PicklistType.STANDARD_ADVICE)
+
+        url = f'{reverse("picklist_items:picklist_items")}?{parse.urlencode(query_params, doseq=True)}'
+        api_client, target_url = get_hawk_client("GET", url)
+        headers = team_case_advisor_headers(TeamIdEnum.MOD_CAPPROT)
+        response = api_client.get(target_url, **headers)
+        assert response.status_code == status.HTTP_200_OK
+        response = response.json()
+        assert response["count"] == expected_count
+        actual = sorted(
+            [
+                {"team_id": item["team"]["id"], "type": item["type"]["key"], "status": item["status"]["key"]}
+                for item in response["results"]
+            ],
+            key=lambda x: x["type"],
+        )
+        expected = [
+            {"team_id": str(item.team_id), "type": item.type, "status": item.status}
+            for item in PicklistItem.objects.filter(team_id=TeamIdEnum.MOD_CAPPROT, status__in=query_filters).order_by(
+                "type"
+            )
+        ]
+        assert actual == expected
+
+    @pytest.mark.parametrize(
+        "query_params, expected_count",
+        (
+            ({"type": PicklistType.STANDARD_ADVICE}, 1),
+            ({"type": PicklistType.PROVISO}, 1),
+            ({"type": PicklistType.F680_PROVISO}, 1),
+            ({"type": PicklistType.REFUSAL_REASON}, 0),
+        ),
+    )
+    def test_filter_by_type(self, get_hawk_client, team_case_advisor_headers, url, query_params, expected_count):
+        PicklistItemFactory(team_id=TeamIdEnum.MOD_CAPPROT, type=PicklistType.PROVISO)
+        PicklistItemFactory(team_id=TeamIdEnum.MOD_CAPPROT, type=PicklistType.F680_PROVISO)
+        PicklistItemFactory(team_id=TeamIdEnum.MOD_CAPPROT, type=PicklistType.STANDARD_ADVICE)
+        PicklistItemFactory(team_id=TeamIdEnum.FCDO, type=PicklistType.FOOTNOTES)
+
+        url = f'{reverse("picklist_items:picklist_items")}?{parse.urlencode(query_params, doseq=True)}'
+        api_client, target_url = get_hawk_client("GET", url)
+        headers = team_case_advisor_headers(TeamIdEnum.MOD_CAPPROT)
+        response = api_client.get(target_url, **headers)
+        assert response.status_code == status.HTTP_200_OK
+        response = response.json()
+        assert response["count"] == expected_count
+        actual = [
+            {"team_id": item["team"]["id"], "type": item["type"]["key"], "status": item["status"]["key"]}
+            for item in response["results"]
+        ]
+        expected = [
+            {"team_id": str(item.team_id), "type": item.type, "status": item.status}
+            for item in PicklistItem.objects.filter(team_id=TeamIdEnum.MOD_CAPPROT, type=query_params["type"])
+        ]
+        assert actual == expected
+
+    @pytest.mark.parametrize(
+        "query_params, expected_count",
+        (
+            ({"name": "FCDO"}, 3),
+            ({"name": "FCDO 1"}, 1),
+            ({"name": "FCDO 4"}, 0),
+        ),
+    )
+    def test_filter_by_name(self, get_hawk_client, team_case_advisor_headers, url, query_params, expected_count):
+        team = Team.objects.get(id=TeamIdEnum.FCDO)
+        PicklistItemFactory(team_id=TeamIdEnum.FCDO, name=f"{team.name} 1")
+        PicklistItemFactory(team_id=TeamIdEnum.FCDO, name=f"{team.name} 2")
+        PicklistItemFactory(team_id=TeamIdEnum.FCDO, name=f"{team.name} 3")
+
+        url = f'{reverse("picklist_items:picklist_items")}?{parse.urlencode(query_params, doseq=True)}'
+        api_client, target_url = get_hawk_client("GET", url)
+        headers = team_case_advisor_headers(TeamIdEnum.FCDO)
+        response = api_client.get(target_url, **headers)
+        assert response.status_code == status.HTTP_200_OK
+        response = response.json()
+        assert response["count"] == expected_count
+        actual = [
+            {"team_id": item["team"]["id"], "type": item["type"]["key"], "name": item["name"]}
+            for item in response["results"]
+        ]
+        expected = [
+            {"team_id": str(item.team_id), "type": item.type, "name": item.name}
+            for item in PicklistItem.objects.filter(team_id=TeamIdEnum.FCDO, name__icontains=query_params["name"])
+        ]
+        assert actual == expected
+
 
 class TestPicklistItemDetailView:
 
@@ -175,73 +275,3 @@ class TestPicklistItemDetailView:
         assert actual["type"]["key"] == PicklistType.F680_PROVISO
         assert actual["team"]["id"] == team_id
         assert actual["status"]["key"] == PickListStatus.ACTIVE
-
-
-class PicklistsViews(DataTestClient):
-    url = reverse("picklist_items:picklist_items")
-
-    def setUp(self):
-        super().setUp()
-        other_team = self.create_team("Team")
-        self.picklist_item_1 = self.create_picklist_item("#1", self.team, PicklistType.PROVISO, PickListStatus.ACTIVE)
-        self.picklist_item_2 = self.create_picklist_item("#2", self.team, PicklistType.PROVISO, PickListStatus.ACTIVE)
-        self.create_picklist_item("#3", self.team, PicklistType.REPORT_SUMMARY, PickListStatus.ACTIVE)
-        self.create_picklist_item("#4", self.team, PicklistType.REPORT_SUMMARY, PickListStatus.DEACTIVATED)
-        self.create_picklist_item("#5", other_team, PicklistType.ECJU, PickListStatus.ACTIVE)
-
-    def test_gov_user_can_see_all_their_teams_picklist_items(self):
-        response = self.client.get(self.url + "?show_deactivated=True", **self.gov_headers)
-        response_data = response.json()
-
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response_data["results"]), 4)
-
-    def test_gov_user_can_see_all_their_teams_picklist_items_excluding_deactivated(
-        self,
-    ):
-        response = self.client.get(self.url + "?show_deactivated=False", **self.gov_headers)
-        response_data = response.json()
-
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response_data["results"]), 3)
-
-    def test_gov_user_can_see_all_their_teams_picklist_items_filter_by_name(
-        self,
-    ):
-        response = self.client.get(self.url + "?name=3", **self.gov_headers)
-        response_data = response.json()
-
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response_data["results"]), 1)
-
-    def test_gov_user_can_see_filtered_picklist_items(self):
-        response = self.client.get(
-            self.url + "?type=" + PicklistType.REPORT_SUMMARY + "?show_deactivated=True", **self.gov_headers
-        )
-        response_data = response.json()
-
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response_data["results"]), 1)
-
-    def test_gov_user_can_see_filtered_picklist_items_excluding_deactivated(self):
-        response = self.client.get(self.url + "?type=" + PicklistType.REPORT_SUMMARY, **self.gov_headers)
-        response_data = response.json()
-
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response_data["results"]), 1)
-
-    def test_gov_user_can_see_items_by_ids_filter(self):
-        response = self.client.get(
-            self.url
-            + "?type="
-            + PicklistType.PROVISO
-            + "&ids="
-            + str(self.picklist_item_1.id)
-            + ","
-            + str(self.picklist_item_2.id),
-            **self.gov_headers,
-        )
-        response_data = response.json()
-
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response_data["results"]), 2)
