@@ -3,7 +3,7 @@ from django.http import Http404
 from django.shortcuts import redirect
 from django.urls import reverse
 from django.views.generic import View
-from api.core.authentication import HawkOnlyAuthentication
+from api.core.authentication import ExporterAuthentication
 
 from rest_framework.generics import RetrieveAPIView
 from rest_framework.views import APIView
@@ -37,12 +37,13 @@ class DocumentStreamAPIView(RetrieveAPIView):
 
 
 class FeatureFlagAPIView(APIView):
-    authentication_classes = (HawkOnlyAuthentication,)
+    authentication_classes = (ExporterAuthentication,)
 
     def get(self, request, *args, **kwargs):
         """
         Return True if the Flag is on otherwise False
         """
+        print(f"user is {request.user.pk}")
         flag_name = self.kwargs["flag_name"]
         if self.flag_is_active(request, flag_name):
             print("flag active api view")
