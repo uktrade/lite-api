@@ -28,7 +28,7 @@ class F680ApplicationManifest(BaseManifest):
         },
     }
     document_signing = {
-        "signing_reason": "For Head Global Issues",
+        "signing_reason": "For the Secretary of State for Defence",
         "location": "Export Control Joint Unit MOD Team",
         "image_name": "mod_emblem.png",
     }

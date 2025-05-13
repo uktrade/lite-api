@@ -23,6 +23,7 @@ class F680ApplicationSerializer(UserNotificationsSerializer, serializers.ModelSe
         model = F680Application
         fields = (
             "id",
+            "name",
             "application",
             "status",
             "reference_code",
@@ -31,7 +32,7 @@ class F680ApplicationSerializer(UserNotificationsSerializer, serializers.ModelSe
             "submitted_by",
             "case_type",
         ) + UserNotificationsSerializer.Meta.fields
-        read_only_fields = ["id", "status", "reference_code", "organisation", "submitted_at", "submitted_by"]
+        read_only_fields = ["id", "name", "status", "reference_code", "organisation", "submitted_at", "submitted_by"]
 
     def create(self, validated_data):
         validated_data["organisation"] = self.context["organisation"]
