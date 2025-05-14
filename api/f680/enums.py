@@ -55,29 +55,29 @@ class SecurityGrading:
     OTHER = "other"
 
     product_choices = [
-        (UNCLASSIFIED, "Unclassified"),
-        (OFFICIAL, "Official"),
-        (OFFICIAL_SENSITIVE, "Official - sensitive"),
-        (RESTRICTED, "Restricted"),
-        (CONFIDENTIAL, "Confidential"),
-        (SECRET, "Secret"),
-        (TOP_SECRET, "Top-secret"),
+        (UNCLASSIFIED, "UNCLASSIFIED"),
+        (OFFICIAL, "OFFICIAL"),
+        (OFFICIAL_SENSITIVE, "OFFICIAL - SENSITIVE"),
+        (RESTRICTED, "RESTRICTED"),
+        (CONFIDENTIAL, "CONFIDENTIAL"),
+        (SECRET, "CONFIDENTIAL"),
+        (TOP_SECRET, "TOP-SECRET"),
         (OTHER, "Other"),
     ]
 
     security_release_choices = [
-        (OFFICIAL, "Official"),
-        (OFFICIAL_SENSITIVE, "Official - sensitive"),
-        (SECRET, "Secret"),
-        (TOP_SECRET, "Top-secret"),
+        (OFFICIAL, "OFFICIAL"),
+        (OFFICIAL_SENSITIVE, "OFFICIAL - SENSITIVE"),
+        (SECRET, "SECRET"),
+        (TOP_SECRET, "TOP-SECRET"),
         (OTHER, "Other"),
     ]
 
     security_release_outcome_choices = [
-        (OFFICIAL, "Official"),
-        (OFFICIAL_SENSITIVE, "Official - sensitive"),
-        (SECRET, "Secret"),
-        (TOP_SECRET, "Top-secret"),
+        (OFFICIAL, "OFFICIAL"),
+        (OFFICIAL_SENSITIVE, "OFFICIAL - SENSITIVE"),
+        (SECRET, "SECRET"),
+        (TOP_SECRET, "TOP-SECRET"),
     ]
 
 
