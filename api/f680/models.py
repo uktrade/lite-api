@@ -88,6 +88,18 @@ class F680Application(BaseApplication, Clonable):
 
         product_information_fields = application_data["sections"]["product_information"]["fields"]
         # Create the Product for this application - F680s just have the one
+
+        security_grading_prefix = (
+            product_information_fields["prefix"]["raw_answer"] if "prefix" in product_information_fields else None
+        )
+
+        if security_grading_prefix == enums.SecurityGradingPrefix.OTHER:
+            security_grading_prefix = (
+                product_information_fields["other_prefix"]["raw_answer"]
+                if "other_prefix" in product_information_fields
+                else None
+            )
+
         product = Product.objects.create(
             name=application_data["sections"]["product_information"]["fields"]["product_name"]["raw_answer"],
             description=application_data["sections"]["product_information"]["fields"]["product_description"][
@@ -95,14 +107,7 @@ class F680Application(BaseApplication, Clonable):
             ],
             organisation=self.organisation,
             security_grading_prefix=(
-                product_information_fields["prefix"]["raw_answer"]
-                if "security_classification" in product_information_fields
-                else None
-            ),
-            security_grading_prefix_other=(
-                product_information_fields["other_prefix"]["raw_answer"]
-                if "other_prefix" in product_information_fields
-                else None
+                product_information_fields["prefix"]["raw_answer"] if "prefix" in product_information_fields else None
             ),
             security_grading=(
                 product_information_fields["security_classification"]["raw_answer"]
@@ -135,6 +140,11 @@ class F680Application(BaseApplication, Clonable):
                 ),
             )
 
+            security_grading_prefix = item_fields["prefix"]["raw_answer"]
+            if security_grading_prefix == enums.SecurityGradingPrefix.OTHER:
+                security_grading_prefix = (
+                    item_fields["other_prefix"]["raw_answer"] if "other_prefix" in item_fields else None
+                )
             SecurityReleaseRequest.objects.create(
                 id=item["id"],  # Use the JSON item ID for the security release so we can tally the two easily later
                 recipient=recipient,
@@ -143,9 +153,6 @@ class F680Application(BaseApplication, Clonable):
                 security_grading_prefix=item_fields["prefix"]["raw_answer"],
                 security_grading=item_fields["security_classification"]["raw_answer"],
                 intended_use=item_fields["end_user_intended_end_use"]["raw_answer"],
-                security_grading_prefix_other=(
-                    item_fields["other_prefix"]["raw_answer"] if "other_prefix" in item_fields else None
-                ),
                 security_grading_other=(
                     item_fields["other_security_classification"]["raw_answer"]
                     if "other_security_classification" in item_fields
@@ -224,7 +231,6 @@ class Product(TimestampableModel):
     security_grading_prefix = models.CharField(
         choices=enums.SecurityGradingPrefix.prefix_choices, max_length=50, null=True, default=None
     )
-    security_grading_prefix_other = models.TextField(null=True, default=None)
     security_grading = models.CharField(
         choices=enums.SecurityGrading.product_choices, max_length=50, null=True, default=None
     )
@@ -240,7 +246,6 @@ class SecurityReleaseRequest(TimestampableModel):
     security_grading_prefix = models.CharField(
         choices=enums.SecurityGradingPrefix.prefix_choices, max_length=50, null=True, default=None
     )
-    security_grading_prefix_other = models.TextField(null=True, default=None)
     security_grading = models.CharField(choices=enums.SecurityGrading.security_release_choices, max_length=50)
     security_grading_other = models.TextField(null=True, default=None)
     approval_types = ArrayField(models.CharField(choices=enums.ApprovalTypes.choices, max_length=50))
