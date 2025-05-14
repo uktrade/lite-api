@@ -120,7 +120,8 @@ class Command(BaseCommand):
         # adding each group to the flag individually
         options_append = options.pop("append")
 
-        if groups := options.pop("group"):
+        groups = options.pop("group")
+        if groups:
             group_hash = {}
             for group in groups:
                 try:
@@ -135,7 +136,8 @@ class Command(BaseCommand):
             for group_id in group_hash.values():
                 flag.groups.add(group_id)
 
-        if users := options.pop("user"):
+        users = options.pop("user")
+        if users:
             user_hash = set()
             for username in users:
                 try:
@@ -152,7 +154,8 @@ class Command(BaseCommand):
             # for user in user_hash:
             flag.users.add(*[user.id for user in user_hash])
 
-        if organisations := options.pop("organisations"):
+        organisations = options.pop("organisations")
+        if organisations:
             organisations_hash = {}
             for organisation in organisations:
                 try:
