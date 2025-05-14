@@ -518,11 +518,7 @@ class CaseGetTests(DataTestClient):
                         "role": request.recipient.role,
                         "role_other": request.recipient.role_other,
                     },
-                    "security_grading_prefix": {
-                        "key": request.security_grading_prefix,
-                        "value": request.get_security_grading_prefix_display(),
-                    },
-                    "security_grading_prefix_other": request.security_grading_prefix_other,
+                    "security_grading_prefix": request.security_grading_prefix,
                     "security_grading": {
                         "key": request.security_grading,
                         "value": request.get_security_grading_display(),
@@ -538,11 +534,7 @@ class CaseGetTests(DataTestClient):
                 "id": str(product.id),
                 "name": product.name,
                 "description": product.description,
-                "security_grading_prefix": {
-                    "key": product.security_grading_prefix,
-                    "value": product.get_security_grading_prefix_display(),
-                },
-                "security_grading_prefix_other": product.security_grading_prefix_other,
+                "security_grading_prefix": product.security_grading_prefix,
                 "security_grading": {"key": product.security_grading, "value": product.get_security_grading_display()},
                 "security_grading_other": product.security_grading_other,
             },

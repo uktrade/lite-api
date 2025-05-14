@@ -106,9 +106,7 @@ class F680Application(BaseApplication, Clonable):
                 "raw_answer"
             ],
             organisation=self.organisation,
-            security_grading_prefix=(
-                product_information_fields["prefix"]["raw_answer"] if "prefix" in product_information_fields else None
-            ),
+            security_grading_prefix=security_grading_prefix,
             security_grading=(
                 product_information_fields["security_classification"]["raw_answer"]
                 if "security_classification" in product_information_fields
@@ -150,7 +148,7 @@ class F680Application(BaseApplication, Clonable):
                 recipient=recipient,
                 product=product,
                 application=self,
-                security_grading_prefix=item_fields["prefix"]["raw_answer"],
+                security_grading_prefix=security_grading_prefix,
                 security_grading=item_fields["security_classification"]["raw_answer"],
                 intended_use=item_fields["end_user_intended_end_use"]["raw_answer"],
                 security_grading_other=(
