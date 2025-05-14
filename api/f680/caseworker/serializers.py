@@ -18,6 +18,7 @@ from api.teams.models import Team
 from api.users.exporter.serializers import RelatedExporterUserSerializer
 from api.users.enums import UserStatuses
 from api.users.models import GovUser
+from api.staticdata.statuses.serializers import CaseSubStatusSerializer
 
 
 class ProductSerializer(serializers.ModelSerializer):
@@ -71,6 +72,7 @@ class SecurityReleaseRequestSerializer(serializers.ModelSerializer):
 
 class F680ApplicationSerializer(serializers.ModelSerializer):
     status = CaseStatusField(read_only=True)
+    sub_status = CaseSubStatusSerializer()
     organisation = RelatedOrganisationSerializer(read_only=True)
     submitted_by = RelatedExporterUserSerializer(read_only=True)
     security_release_requests = SecurityReleaseRequestSerializer(many=True)
@@ -89,6 +91,7 @@ class F680ApplicationSerializer(serializers.ModelSerializer):
             "application",
             "status",
             "reference_code",
+            "sub_status",
             "organisation",
             "submitted_at",
             "submitted_by",
@@ -100,6 +103,7 @@ class F680ApplicationSerializer(serializers.ModelSerializer):
         read_only_fields = [
             "id",
             "status",
+            "sub_status",
             "reference_code",
             "organisation",
             "submitted_at",

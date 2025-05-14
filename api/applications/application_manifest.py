@@ -18,6 +18,9 @@ class ApplicationManifest(BaseManifest):
     # TODO: LTD-6203 Create a dedicated serializer for the exporter
     caseworker_serializers = {"view": StandardApplicationViewSerializer}
     exporter_serializers = {"view": StandardApplicationViewSerializer}
+    # Use and add manifest features sparingly.
+    # Consider if using an IF statement based on these flags is the best approach.
+    # Maybe create a dedicated end point instead.
     features = {
         ApplicationFeatures.LICENCE_ISSUE: True,
         ApplicationFeatures.ROUTE_TO_COUNTERSIGNING_QUEUES: True,

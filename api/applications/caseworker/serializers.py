@@ -13,4 +13,13 @@ class ApplicationChangeStatusSerializer(serializers.Serializer):
 class ApplicationDocumentSerializer(serializers.ModelSerializer):
     class Meta:
         model = ApplicationDocument
-        fields = "__all__"
+        fields = (
+            "id",
+            "name",
+            "application",
+            "description",
+            "document_type",
+            "created_at",
+            "safe",
+            "description",
+        )
