@@ -127,7 +127,7 @@ class TestF680RecommendationViewSet:
                 "case": str(item.case_id),
                 "type": {"key": "approve", "value": "Approve"},
                 "created_at": item.created_at.strftime("%Y-%m-%dT%H:%M:%SZ"),
-                "security_grading": {"key": "official", "value": "Official"},
+                "security_grading": {"key": "official", "value": "OFFICIAL"},
                 "security_grading_other": item.security_grading_other,
                 "conditions": item.conditions,
                 "refusal_reasons": item.refusal_reasons,
