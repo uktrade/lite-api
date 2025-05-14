@@ -1,5 +1,6 @@
 from rest_framework import permissions
 
+from api.cases.libraries.get_case import get_case
 from api.staticdata.statuses.enums import CaseStatusEnum
 
 from lite_routing.routing_rules_internal.enums import TeamIdEnum
@@ -21,7 +22,7 @@ class ReadOnly(permissions.BasePermission):
 
 class CaseCanAcceptRecommendations(permissions.BasePermission):
     def has_permission(self, request, view):
-        return view.get_case().status.status == CaseStatusEnum.OGD_ADVICE
+        return get_case(str(view.kwargs["pk"])).status.status == CaseStatusEnum.OGD_ADVICE
 
 
 class CaseCanUserMakeRecommendations(permissions.BasePermission):
@@ -33,7 +34,7 @@ class CaseCanUserMakeRecommendations(permissions.BasePermission):
 
 class CaseReadyForOutcome(permissions.BasePermission):
     def has_permission(self, request, view):
-        return view.get_case().status.status == CaseStatusEnum.UNDER_FINAL_REVIEW
+        return get_case(str(view.kwargs["pk"])).status.status == CaseStatusEnum.UNDER_FINAL_REVIEW
 
 
 class CanUserMakeOutcome(permissions.BasePermission):

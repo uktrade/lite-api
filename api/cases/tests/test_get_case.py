@@ -458,6 +458,7 @@ class CaseGetTests(DataTestClient):
                 "type": {"key": "security_clearance", "value": "Security Clearance"},
                 "sub_type": {"key": "f680_clearance", "value": "MOD F680 Clearance"},
             },
+            "sub_status": None,
         }
         self.assertEqual(response_data["case"]["data"], expected_case_data)
 
@@ -540,5 +541,6 @@ class CaseGetTests(DataTestClient):
                 "type": {"key": "security_clearance", "value": "Security Clearance"},
                 "sub_type": {"key": "f680_clearance", "value": "MOD F680 Clearance"},
             },
+            "sub_status": None,
         }
         self.assertEqual(response_data["case"]["data"], expected_case_data)
