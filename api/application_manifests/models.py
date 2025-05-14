@@ -1,5 +1,5 @@
 from django.db import models
-from api.cases.enums import ApplicationFeatures, CaseTypeReferenceEnum
+from api.cases.enums import CaseTypeReferenceEnum
 
 class ApplicationManifestFeatures(models.Model):
     case_type = models.CharField(
