@@ -235,6 +235,15 @@ class Product(TimestampableModel):
     security_grading_other = models.TextField(null=True, default=None)
     organisation = models.ForeignKey(Organisation, related_name="organisation_product", on_delete=models.CASCADE)
 
+    @property
+    def security_grading_final(self):
+        if self.security_grading == enums.SecurityGrading.OTHER:
+            security_grading_final = f"{self.security_grading_prefix.upper()} {self.security_grading_other.upper()}"
+        else:
+            security_grading_final = f"{self.security_grading_prefix.upper()} {self.security_grading.upper()}"
+
+        return security_grading_final
+
 
 class SecurityReleaseRequest(TimestampableModel):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -249,6 +258,15 @@ class SecurityReleaseRequest(TimestampableModel):
     approval_types = ArrayField(models.CharField(choices=enums.ApprovalTypes.choices, max_length=50))
     # We need details of the release, this doesn't appear to be in the frontend flows yet..
     intended_use = models.TextField()
+
+    @property
+    def security_grading_final(self):
+        if self.security_grading == enums.SecurityGrading.OTHER:
+            security_grading_final = f"{self.security_grading_prefix.upper()} {self.security_grading_other.upper()}"
+        else:
+            security_grading_final = f"{self.security_grading_prefix.upper()} {self.security_grading.upper()}"
+
+        return security_grading_final
 
 
 class Recommendation(TimestampableModel):
