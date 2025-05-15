@@ -47,11 +47,19 @@ class BadRequestDebugMiddleware:
     def __init__(self, get_response=None):
         self.get_response = get_response
 
+    def process_view(self, request, view_func, view_args, view_kwargs):
+        self.view_func = view_func
+
     def __call__(self, request):
         response = self.get_response(request)
 
         if response.status_code != 400:
             return response
+
+        if hasattr(self.view_func, "cls"):
+            logger.debug(self.view_func.cls)
+        else:
+            logger.debug(self.view_func)
 
         if hasattr(response, "data"):
             logger.debug(response.data)
