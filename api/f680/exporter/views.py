@@ -57,6 +57,7 @@ class F680ApplicationViewSet(viewsets.ModelViewSet):
 
         # TODO: some sort of validation that we have everything we need on the application -
         #   this may duplicate frontend validation in some way so needs some consideration.
+        old_application_status = application.status.status
         application.status = get_case_status_by_status(CaseStatusEnum.SUBMITTED)
         application.submitted_at = timezone.now()
         application.sla_remaining_days = get_application_target_sla(application.case_type.sub_type)
@@ -66,7 +67,7 @@ class F680ApplicationViewSet(viewsets.ModelViewSet):
         application.foi_reason = application_declaration_serializer.data.get("foi_reason", "")
 
         application.save()
-        application.on_submit(application_json_serializer.data)
+        application.on_submit(old_application_status, application_json_serializer.data)
 
         apply_flagging_rules_to_case(application)
         queues_assigned = run_routing_rules(application)
