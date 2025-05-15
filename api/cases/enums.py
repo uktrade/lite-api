@@ -480,6 +480,7 @@ class LicenceDecisionType:
     def advice_type_to_decision(cls, advice_type):
         return cls.decision_map[advice_type]
 
+
 from enum import Enum
 class ApplicationFeatures(Enum):
     LICENCE_ISSUE = "licence_issue"

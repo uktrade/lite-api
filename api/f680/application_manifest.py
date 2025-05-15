@@ -26,6 +26,7 @@ class F680ApplicationManifest(BaseManifest):
             ApplicationFeatures.ROUTE_TO_COUNTERSIGNING_QUEUES: False,
         }
 
+
     ecju_max_days = 30
     notification_config = {
         "ecju_query": {"template": TemplateType.EXPORTER_F680_ECJU_QUERY, "frontend_url": "/"},

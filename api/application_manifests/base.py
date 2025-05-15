@@ -10,3 +10,4 @@ class BaseManifest:
             ApplicationFeatures.LICENCE_ISSUE: False,
             ApplicationFeatures.ROUTE_TO_COUNTERSIGNING_QUEUES: False,
         }
+
