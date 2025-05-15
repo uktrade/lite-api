@@ -138,6 +138,7 @@ INSTALLED_APPS = [
     "reversion",
     "drf_spectacular",
     "api.application_manifests",
+    "waffle",
 ]
 
 MOCK_VIRUS_SCAN_ACTIVATE_ENDPOINTS = env("MOCK_VIRUS_SCAN_ACTIVATE_ENDPOINTS")
@@ -577,3 +578,5 @@ if additional_logger_config:
     LOGGING["loggers"].update(additional_logger_config)
 
 ROUTING_DOCS_DIRECTORY = os.path.join(BASE_DIR, "..", "lite_routing", "docs")
+
+WAFFLE_FLAG_MODEL = "core.FeatureFlag"
