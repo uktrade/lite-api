@@ -556,7 +556,6 @@ class GoodOnApplication(AbstractGoodOnApplication, Clonable):
 
     good = models.ForeignKey(Good, related_name="goods_on_application", on_delete=models.CASCADE)
 
-    # Every application except Exhibition applications contains the following data, as a result these can be null
     quantity = models.FloatField(null=True, blank=True, default=None)
     unit = models.CharField(choices=Units.choices, max_length=50, null=True, blank=True, default=None)
     value = models.DecimalField(max_digits=15, decimal_places=2, null=True, blank=True, default=None)
