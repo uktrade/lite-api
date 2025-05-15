@@ -1,13 +1,12 @@
-class BaseManifest:
-    exporter_serializers = {}
-    caseworker_serializers = {}
-    model_class = None
-    # Use and add manifest features sparingly.
-    # Consider if using an IF statement based on these flags is the best approach.
-    # Maybe create a dedicated end point instead.
-    features = {}
-    email_templates = {}
-    ecju_max_days = None
 
-    def has_feature(self, feature):
-        return self.features.get(feature, False)
+from api.cases.enums import ApplicationFeatures
+class BaseManifest:
+    def __init__(self):
+        self.case_type_reference = None
+
+    @property
+    def _default_settings(self):
+        return {
+            ApplicationFeatures.LICENCE_ISSUE: False,
+            ApplicationFeatures.ROUTE_TO_COUNTERSIGNING_QUEUES: False,
+        }

@@ -18,10 +18,14 @@ class F680ApplicationManifest(BaseManifest):
     # Use and add manifest features sparingly.
     # Consider if using an IF statement based on these flags is the best approach.
     # Maybe create a dedicated end point instead.
-    features = {
-        ApplicationFeatures.LICENCE_ISSUE: False,
-        ApplicationFeatures.ROUTE_TO_COUNTERSIGNING_QUEUES: False,
-    }
+
+    @property
+    def _default_settings(self):
+        return {
+            ApplicationFeatures.LICENCE_ISSUE: False,
+            ApplicationFeatures.ROUTE_TO_COUNTERSIGNING_QUEUES: False,
+        }
+
     ecju_max_days = 30
     notification_config = {
         "ecju_query": {"template": TemplateType.EXPORTER_F680_ECJU_QUERY, "frontend_url": "/"},
