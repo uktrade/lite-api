@@ -238,7 +238,8 @@ class Product(TimestampableModel):
     @property
     def security_grading_final(self):
         if self.security_grading == enums.SecurityGrading.OTHER:
-            security_grading_final = f"{self.security_grading_prefix.upper()} {self.security_grading_other.upper()}"
+            security_grading = self.security_grading_other.upper() if self.security_grading_other else ""
+            security_grading_final = f"{self.security_grading_prefix.upper()} {security_grading}"
         else:
             security_grading_final = f"{self.security_grading_prefix.upper()} {self.security_grading.upper()}"
 
@@ -262,7 +263,8 @@ class SecurityReleaseRequest(TimestampableModel):
     @property
     def security_grading_final(self):
         if self.security_grading == enums.SecurityGrading.OTHER:
-            security_grading_final = f"{self.security_grading_prefix.upper()} {self.security_grading_other.upper()}"
+            security_grading = self.security_grading_other.upper() if self.security_grading_other else ""
+            security_grading_final = f"{self.security_grading_prefix.upper()} {security_grading}"
         else:
             security_grading_final = f"{self.security_grading_prefix.upper()} {self.security_grading.upper()}"
 
