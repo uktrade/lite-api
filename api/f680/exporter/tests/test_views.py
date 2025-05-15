@@ -1,3 +1,6 @@
+from api.audit_trail.enums import AuditType
+from api.audit_trail.models import Audit
+from api.staticdata.statuses.enums import CaseStatusEnum
 import pytest
 from parameterized import parameterized
 from uuid import uuid4
@@ -430,6 +433,12 @@ class TestF680ApplicationViewSet:
             "status": {"id": f680_application.status_id, "key": "submitted", "value": "Submitted"},
         }
         assert response.data == expected_result
+        # Check Audit
+        case_status_audits = Audit.objects.filter(
+            target_object_id=f680_application.id, verb=AuditType.UPDATED_STATUS
+        ).values_list("payload", flat=True)
+
+        assert case_status_audits[0] == {"status": {"new": CaseStatusEnum.SUBMITTED, "old": CaseStatusEnum.DRAFT}}
 
     @pytest.mark.parametrize(
         "application_json, expected_result",
