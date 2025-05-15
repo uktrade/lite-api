@@ -1,11 +1,11 @@
 from datetime import timedelta
 
 from api.audit_trail.enums import AuditType
-from api.common.dates import is_bank_holiday, is_weekend
-from api.users.models import BaseUser, GovUser
-from api.users.enums import SystemUser
-from api.staticdata.statuses.enums import CaseStatusEnum
 from api.cases.enums import ApplicationFeatures
+from api.common.dates import is_bank_holiday, is_weekend
+from api.staticdata.statuses.enums import CaseStatusEnum
+from api.users.enums import SystemUser
+from api.users.models import BaseUser, GovUser
 
 
 def get_assigned_to_user_case_ids(user: GovUser, queue_id=None):
@@ -65,10 +65,10 @@ def is_case_already_finalised(case):
 
     # If a licence does not need to be issued for this application type then exit
     application_manifest = case.get_application_manifest()
-    if not application_manifest.has_feature(ApplicationFeatures.LICENCE_ISSUE):
+    if not application_manifest.get_setting(ApplicationFeatures.LICENCE_ISSUE):
         return True, None
 
-    # If a licence exists return it if not the application was rejected so no licence present
+    # If a licence exists return it. If not, the application was rejected so no licence present
     try:
         licence = Licence.objects.get(case=case)
     except Licence.DoesNotExist:
