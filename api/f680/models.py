@@ -88,12 +88,25 @@ class F680Application(BaseApplication, Clonable):
 
         product_information_fields = application_data["sections"]["product_information"]["fields"]
         # Create the Product for this application - F680s just have the one
+
+        security_grading_prefix = (
+            product_information_fields["prefix"]["raw_answer"] if "prefix" in product_information_fields else None
+        )
+
+        if security_grading_prefix == enums.SecurityGradingPrefix.OTHER:
+            security_grading_prefix = (
+                product_information_fields["other_prefix"]["raw_answer"]
+                if "other_prefix" in product_information_fields
+                else None
+            )
+
         product = Product.objects.create(
             name=application_data["sections"]["product_information"]["fields"]["product_name"]["raw_answer"],
             description=application_data["sections"]["product_information"]["fields"]["product_description"][
                 "raw_answer"
             ],
             organisation=self.organisation,
+            security_grading_prefix=security_grading_prefix,
             security_grading=(
                 product_information_fields["security_classification"]["raw_answer"]
                 if "security_classification" in product_information_fields
@@ -125,11 +138,17 @@ class F680Application(BaseApplication, Clonable):
                 ),
             )
 
+            security_grading_prefix = item_fields["prefix"]["raw_answer"]
+            if security_grading_prefix == enums.SecurityGradingPrefix.OTHER:
+                security_grading_prefix = (
+                    item_fields["other_prefix"]["raw_answer"] if "other_prefix" in item_fields else None
+                )
             SecurityReleaseRequest.objects.create(
                 id=item["id"],  # Use the JSON item ID for the security release so we can tally the two easily later
                 recipient=recipient,
                 product=product,
                 application=self,
+                security_grading_prefix=security_grading_prefix,
                 security_grading=item_fields["security_classification"]["raw_answer"],
                 intended_use=item_fields["end_user_intended_end_use"]["raw_answer"],
                 security_grading_other=(
@@ -207,11 +226,24 @@ class Product(TimestampableModel):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.TextField()
     description = models.TextField()
+    security_grading_prefix = models.CharField(
+        choices=enums.SecurityGradingPrefix.prefix_choices, max_length=50, null=True, default=None
+    )
     security_grading = models.CharField(
         choices=enums.SecurityGrading.product_choices, max_length=50, null=True, default=None
     )
     security_grading_other = models.TextField(null=True, default=None)
     organisation = models.ForeignKey(Organisation, related_name="organisation_product", on_delete=models.CASCADE)
+
+    @property
+    def security_grading_final(self):
+        if self.security_grading == enums.SecurityGrading.OTHER:
+            security_grading = self.security_grading_other.upper() if self.security_grading_other else ""
+            security_grading_final = f"{self.security_grading_prefix.upper()} {security_grading}"
+        else:
+            security_grading_final = f"{self.security_grading_prefix.upper()} {self.security_grading.upper()}"
+
+        return security_grading_final
 
 
 class SecurityReleaseRequest(TimestampableModel):
@@ -219,17 +251,32 @@ class SecurityReleaseRequest(TimestampableModel):
     recipient = models.ForeignKey(Recipient, on_delete=models.CASCADE, related_name="security_release_requests")
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name="security_release_requests")
     application = models.ForeignKey(F680Application, on_delete=models.CASCADE, related_name="security_release_requests")
+    security_grading_prefix = models.CharField(
+        choices=enums.SecurityGradingPrefix.prefix_choices, max_length=50, null=True, default=None
+    )
     security_grading = models.CharField(choices=enums.SecurityGrading.security_release_choices, max_length=50)
     security_grading_other = models.TextField(null=True, default=None)
     approval_types = ArrayField(models.CharField(choices=enums.ApprovalTypes.choices, max_length=50))
     # We need details of the release, this doesn't appear to be in the frontend flows yet..
     intended_use = models.TextField()
 
+    @property
+    def security_grading_final(self):
+        if self.security_grading == enums.SecurityGrading.OTHER:
+            security_grading = self.security_grading_other.upper() if self.security_grading_other else ""
+            security_grading_final = f"{self.security_grading_prefix.upper()} {security_grading}"
+        else:
+            security_grading_final = f"{self.security_grading_prefix.upper()} {self.security_grading.upper()}"
+
+        return security_grading_final
+
 
 class Recommendation(TimestampableModel):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     case = models.ForeignKey(Case, related_name="recommendations", on_delete=models.CASCADE)
     type = models.CharField(choices=enums.RecommendationType.choices, max_length=30)
+    # prefix = models.CharField(choices=enums.SecurityGradingPrefix.prefix_choices, blank=True, null=True, max_length=50)
+    # prefix_other = models.TextField(null=True, default="", blank=True)
     security_grading = models.CharField(
         choices=enums.SecurityGrading.security_release_choices, blank=True, null=True, max_length=50
     )
