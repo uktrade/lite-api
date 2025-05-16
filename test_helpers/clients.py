@@ -810,7 +810,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             )
         letter_layout = LetterLayout.objects.get(id=uuid.UUID(int=1))
 
-        letter_template = LetterTemplate.objects.create(
+        letter_template, _ = LetterTemplate.objects.get_or_create(
             name=name,
             layout=letter_layout,
             visible_to_exporter=visible_to_exporter,
