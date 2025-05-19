@@ -93,20 +93,22 @@ class F680Application(BaseApplication, Clonable):
             product_information_fields["prefix"]["raw_answer"] if "prefix" in product_information_fields else None
         )
 
-        if security_grading_prefix == enums.SecurityGradingPrefix.OTHER:
-            security_grading_prefix = (
-                product_information_fields["other_prefix"]["raw_answer"]
-                if "other_prefix" in product_information_fields
-                else None
-            )
-
         product = Product.objects.create(
             name=application_data["sections"]["product_information"]["fields"]["product_name"]["raw_answer"],
             description=application_data["sections"]["product_information"]["fields"]["product_description"][
                 "raw_answer"
             ],
             organisation=self.organisation,
-            security_grading_prefix=security_grading_prefix,
+            security_grading_prefix=(
+                product_information_fields["prefix"]["raw_answer"]
+                if "security_classification" in product_information_fields
+                else None
+            ),
+            security_grading_prefix_other=(
+                product_information_fields["other_prefix"]["raw_answer"]
+                if "other_prefix" in product_information_fields
+                else None
+            ),
             security_grading=(
                 product_information_fields["security_classification"]["raw_answer"]
                 if "security_classification" in product_information_fields
@@ -138,19 +140,17 @@ class F680Application(BaseApplication, Clonable):
                 ),
             )
 
-            security_grading_prefix = item_fields["prefix"]["raw_answer"]
-            if security_grading_prefix == enums.SecurityGradingPrefix.OTHER:
-                security_grading_prefix = (
-                    item_fields["other_prefix"]["raw_answer"] if "other_prefix" in item_fields else None
-                )
             SecurityReleaseRequest.objects.create(
                 id=item["id"],  # Use the JSON item ID for the security release so we can tally the two easily later
                 recipient=recipient,
                 product=product,
                 application=self,
-                security_grading_prefix=security_grading_prefix,
+                security_grading_prefix=item_fields["prefix"]["raw_answer"],
                 security_grading=item_fields["security_classification"]["raw_answer"],
                 intended_use=item_fields["end_user_intended_end_use"]["raw_answer"],
+                security_grading_prefix_other=(
+                    item_fields["other_prefix"]["raw_answer"] if "other_prefix" in item_fields else None
+                ),
                 security_grading_other=(
                     item_fields["other_security_classification"]["raw_answer"]
                     if "other_security_classification" in item_fields
@@ -229,21 +229,42 @@ class Product(TimestampableModel):
     security_grading_prefix = models.CharField(
         choices=enums.SecurityGradingPrefix.prefix_choices, max_length=50, null=True, default=None
     )
+    security_grading_prefix_other = models.TextField(null=True, default=None)
     security_grading = models.CharField(
         choices=enums.SecurityGrading.product_choices, max_length=50, null=True, default=None
     )
     security_grading_other = models.TextField(null=True, default=None)
     organisation = models.ForeignKey(Organisation, related_name="organisation_product", on_delete=models.CASCADE)
 
+    # @property
+    # def security_grading_final(self):
+    #     if self.security_grading == enums.SecurityGrading.OTHER:
+    #         security_grading = self.security_grading_other.upper() if self.security_grading_other else ""
+    #         security_grading_final = f"{self.security_grading_prefix.upper()} {security_grading}"
+    #     else:
+    #         security_grading_final = f"{self.security_grading_prefix.upper()} {self.security_grading.upper()}"
+
+    #     return security_grading_final
+
     @property
     def security_grading_final(self):
-        if self.security_grading == enums.SecurityGrading.OTHER:
-            security_grading = self.security_grading_other.upper() if self.security_grading_other else ""
-            security_grading_final = f"{self.security_grading_prefix.upper()} {security_grading}"
-        else:
-            security_grading_final = f"{self.security_grading_prefix.upper()} {self.security_grading.upper()}"
+        return f"{self.composed_security_grading_prefix.upper()} {self.composed_security_grading.upper()}"
 
-        return security_grading_final
+    @property
+    def composed_security_grading_prefix(self):
+        return (
+            self.security_grading_prefix_other
+            if self.security_grading_prefix == enums.SecurityGradingPrefix.OTHER
+            else self.get_security_grading_prefix_display()
+        )
+
+    @property
+    def composed_security_grading(self):
+        return (
+            self.security_grading_other
+            if self.security_grading == enums.SecurityGrading.OTHER
+            else self.get_security_grading_display()
+        )
 
 
 class SecurityReleaseRequest(TimestampableModel):
@@ -254,6 +275,7 @@ class SecurityReleaseRequest(TimestampableModel):
     security_grading_prefix = models.CharField(
         choices=enums.SecurityGradingPrefix.prefix_choices, max_length=50, null=True, default=None
     )
+    security_grading_prefix_other = models.TextField(null=True, default=None)
     security_grading = models.CharField(choices=enums.SecurityGrading.security_release_choices, max_length=50)
     security_grading_other = models.TextField(null=True, default=None)
     approval_types = ArrayField(models.CharField(choices=enums.ApprovalTypes.choices, max_length=50))
@@ -262,21 +284,29 @@ class SecurityReleaseRequest(TimestampableModel):
 
     @property
     def security_grading_final(self):
-        if self.security_grading == enums.SecurityGrading.OTHER:
-            security_grading = self.security_grading_other.upper() if self.security_grading_other else ""
-            security_grading_final = f"{self.security_grading_prefix.upper()} {security_grading}"
-        else:
-            security_grading_final = f"{self.security_grading_prefix.upper()} {self.security_grading.upper()}"
+        return f"{self.composed_security_grading_prefix.upper()} {self.composed_security_grading.upper()}"
 
-        return security_grading_final
+    @property
+    def composed_security_grading_prefix(self):
+        return (
+            self.security_grading_prefix_other
+            if self.security_grading_prefix == enums.SecurityGradingPrefix.OTHER
+            else self.get_security_grading_prefix_display()
+        )
+
+    @property
+    def composed_security_grading(self):
+        return (
+            self.security_grading_other
+            if self.security_grading == enums.SecurityGrading.OTHER
+            else self.get_security_grading_display()
+        )
 
 
 class Recommendation(TimestampableModel):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     case = models.ForeignKey(Case, related_name="recommendations", on_delete=models.CASCADE)
     type = models.CharField(choices=enums.RecommendationType.choices, max_length=30)
-    # prefix = models.CharField(choices=enums.SecurityGradingPrefix.prefix_choices, blank=True, null=True, max_length=50)
-    # prefix_other = models.TextField(null=True, default="", blank=True)
     security_grading = models.CharField(
         choices=enums.SecurityGrading.security_release_choices, blank=True, null=True, max_length=50
     )
