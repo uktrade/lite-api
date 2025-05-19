@@ -19,8 +19,6 @@ from api.audit_trail.enums import AuditType
 from api.audit_trail.models import Audit
 from api.audit_trail.serializers import AuditSerializer
 from api.applications.enums import NSGListType
-from api.cases.enums import CaseTypeEnum
-from api.cases.models import Case
 from api.core.serializers import KeyValueChoiceField
 from api.documents.libraries.process_document import process_document
 from api.goods.enums import GoodControlled, ItemType
@@ -216,18 +214,29 @@ class GoodOnApplicationDataWorkspaceSerializer(serializers.ModelSerializer):
 class GoodOnApplicationCreateSerializer(serializers.ModelSerializer):
     good = PrimaryKeyRelatedField(queryset=Good.objects.all())
     application = PrimaryKeyRelatedField(queryset=BaseApplication.objects.all())
-    value = DecimalField(max_digits=15, decimal_places=2, error_messages={"invalid": strings.Goods.INVALID_VALUE})
-    quantity = DecimalField(max_digits=15, decimal_places=6, error_messages={"invalid": strings.Goods.INVALID_QUANTITY})
+    value = DecimalField(
+        allow_null=True,
+        decimal_places=2,
+        error_messages={"invalid": strings.Goods.INVALID_VALUE},
+        max_digits=15,
+    )
+    quantity = DecimalField(
+        allow_null=True,
+        decimal_places=6,
+        error_messages={"invalid": strings.Goods.INVALID_QUANTITY},
+        max_digits=15,
+    )
     unit = ChoiceField(
+        allow_null=True,
         choices=Units.choices,
-        error_messages={"required": strings.Goods.REQUIRED_UNIT, "invalid_choice": strings.Goods.REQUIRED_UNIT},
+        error_messages={
+            "required": strings.Goods.REQUIRED_UNIT,
+            "invalid_choice": strings.Goods.REQUIRED_UNIT,
+        },
     )
     is_good_incorporated = BooleanField(required=True, error_messages={"required": strings.Goods.INCORPORATED_ERROR})
-    item_type = serializers.ChoiceField(choices=ItemType.choices, error_messages={"required": strings.Goods.ITEM_TYPE})
-    other_item_type = serializers.CharField(
-        max_length=100,
-        error_messages={"required": strings.Goods.OTHER_ITEM_TYPE, "blank": strings.Goods.OTHER_ITEM_TYPE},
-    )
+    item_type = serializers.ChoiceField(choices=ItemType.choices, required=False)
+    other_item_type = serializers.CharField(max_length=100, required=False)
     firearm_details = FirearmDetailsSerializer(required=False)
 
     class Meta:
@@ -249,26 +258,6 @@ class GoodOnApplicationCreateSerializer(serializers.ModelSerializer):
             "is_onward_incorporated",
             "is_onward_incorporated_comments",
         )
-
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        data = self.initial_data
-        case_type = Case.objects.get(id=data["application"]).case_type
-        # Exbition queries do not have the typical data for goods on applications that other goods do
-        #  as a result, we have to set them as false when not required and vice versa for other applications
-        if case_type.id == CaseTypeEnum.EXHIBITION.id:
-            self.fields["value"].required = False
-            self.fields["quantity"].required = False
-            self.fields["unit"].required = False
-            self.fields["is_good_incorporated"].required = False
-            # If the user passes item_type forward as anything but other, we do not want to store "other_item_type"
-            if not data.get("item_type") == ItemType.OTHER:
-                if isinstance(data.get("other_item_type"), str):
-                    del data["other_item_type"]
-                self.fields["other_item_type"].required = False
-        else:
-            self.fields["item_type"].required = False
-            self.fields["other_item_type"].required = False
 
     def to_internal_value(self, data):
         try:
