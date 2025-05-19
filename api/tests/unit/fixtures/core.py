@@ -254,7 +254,7 @@ def final_advice_url(standard_case):
 
 @pytest.fixture()
 def team_case_advisor():
-    def _team_case_advisor(team_id):
+    def _team_case_advisor(team_id, permissions=None):
         gov_user = GovUserFactory()
         if not Role.objects.filter(id=Roles.INTERNAL_DEFAULT_ROLE_ID, type=UserType.INTERNAL.value).exists():
             gov_user.role = RoleFactory(
@@ -262,6 +262,9 @@ def team_case_advisor():
             )
 
         gov_user.team = Team.objects.get(id=team_id)
+        if permissions and isinstance(permissions, list):
+            gov_user.role.permissions.set(permissions)
+
         gov_user.save()
         return gov_user
 

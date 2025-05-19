@@ -8,7 +8,6 @@ from api.audit_trail.models import Audit
 from api.goods.tests.factories import GoodFactory
 from api.staticdata.units.enums import Units
 from test_helpers.clients import DataTestClient
-from test_helpers.decorators import none_param_tester
 
 
 class AddingGoodsOnApplicationTests(DataTestClient):
@@ -17,7 +16,25 @@ class AddingGoodsOnApplicationTests(DataTestClient):
         self.draft = self.create_draft_standard_application(self.organisation)
         self.good = GoodFactory(name="A good", organisation=self.organisation)
 
-    def test_add_a_good_to_a_draft(self):
+    @parameterized.expand(
+        [
+            [
+                {
+                    "quantity": 1200.098896,
+                    "unit": Units.NAR,
+                    "value": 50000.45,
+                },
+            ],
+            [
+                {
+                    "quantity": None,
+                    "unit": None,
+                    "value": None,
+                },
+            ],
+        ]
+    )
+    def test_add_a_good_to_a_draft(self, additional_quantity_and_value_data):
         self.create_good_document(
             self.good,
             user=self.exporter_user,
@@ -26,15 +43,13 @@ class AddingGoodsOnApplicationTests(DataTestClient):
             s3_key="doc3",
         )
 
+        url = reverse("applications:application_goods", kwargs={"pk": self.draft.id})
+
         data = {
             "good_id": self.good.id,
-            "quantity": 1200.098896,
-            "unit": Units.NAR,
-            "value": 50000.45,
             "is_good_incorporated": True,
+            **additional_quantity_and_value_data,
         }
-
-        url = reverse("applications:application_goods", kwargs={"pk": self.draft.id})
 
         response = self.client.post(url, data, **self.exporter_headers)
 
@@ -239,11 +254,19 @@ class AddingGoodsOnApplicationTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-    @none_param_tester(12, Units.NAR, 50, True)
-    def test_add_a_good_to_a_draft_failure(self, quantity, unit, value, is_good_incorporated):
-        """
-        Ensure all params have to be sent otherwise fail
-        """
+    @parameterized.expand(
+        [
+            [{}],
+            [
+                {
+                    "quantity": 1200.098896,
+                    "unit": Units.NAR,
+                    "value": 50000.45,
+                },  # No "is_good_incorporated" here
+            ],
+        ]
+    )
+    def test_add_a_good_to_a_draft_failure(self, additional_data):
         self.create_draft_standard_application(self.organisation)
         GoodFactory(organisation=self.organisation)
         self.create_good_document(
@@ -255,10 +278,7 @@ class AddingGoodsOnApplicationTests(DataTestClient):
         )
         data = {
             "good_id": self.good.id,
-            "quantity": quantity,
-            "unit": unit,
-            "value": value,
-            "is_good_incorporated": is_good_incorporated,
+            **additional_data,
         }
 
         response = self.client.post(
@@ -299,6 +319,21 @@ class AddingGoodsOnApplicationFirearmsTests(DataTestClient):
                     "is_good_incorporated": True,
                 },
                 False,
+            ),
+            (
+                {
+                    "quantity": None,
+                    "unit": None,
+                    "value": None,
+                    "is_good_incorporated": True,
+                    "firearm_details": {
+                        "year_of_manufacture": 2020,
+                        "section_certificate_date_of_expiry": "2025-12-31",
+                        "number_of_items": None,
+                        "serial_numbers": ["serial1"],
+                    },
+                },
+                True,
             ),
         ]
     )
