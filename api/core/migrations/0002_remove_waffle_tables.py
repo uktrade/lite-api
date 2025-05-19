@@ -15,4 +15,5 @@ class Migration(migrations.Migration):
     operations = [
         migrations.RunSQL("DROP TABLE IF EXISTS waffle_flag_groups"),
         migrations.RunSQL("DROP TABLE IF EXISTS waffle_flag_users"),
+        migrations.RunSQL("DROP TABLE IF EXISTS waffle_flag"),
     ]
