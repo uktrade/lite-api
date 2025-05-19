@@ -64,6 +64,8 @@ class F680ProductFactory(factory.django.DjangoModelFactory):
     description = factory.LazyAttribute(lambda n: faker.name())
     security_grading_prefix = factory.fuzzy.FuzzyChoice(SecurityGradingPrefix.prefix_choices, getter=lambda t: t[0])
     security_grading = factory.fuzzy.FuzzyChoice(SecurityGrading.product_choices, getter=lambda t: t[0])
+    security_grading_prefix_other = factory.LazyAttribute(lambda n: faker.name())
+    security_grading_other = factory.LazyAttribute(lambda n: faker.name())
     organisation = factory.SubFactory(OrganisationFactory)
 
     class Meta:
@@ -88,6 +90,8 @@ class F680SecurityReleaseRequestFactory(factory.django.DjangoModelFactory):
     application = factory.SubFactory(SubmittedF680ApplicationFactory)
     security_grading_prefix = factory.fuzzy.FuzzyChoice(SecurityGradingPrefix.prefix_choices, getter=lambda t: t[0])
     security_grading = factory.fuzzy.FuzzyChoice(SecurityGrading.security_release_choices, getter=lambda t: t[0])
+    security_grading_prefix_other = factory.LazyAttribute(lambda n: faker.name())
+    security_grading_other = factory.LazyAttribute(lambda n: faker.name())
     approval_types = factory.List(
         [
             ApprovalTypes.INITIAL_DISCUSSION_OR_PROMOTING,

@@ -89,10 +89,6 @@ class F680Application(BaseApplication, Clonable):
         product_information_fields = application_data["sections"]["product_information"]["fields"]
         # Create the Product for this application - F680s just have the one
 
-        security_grading_prefix = (
-            product_information_fields["prefix"]["raw_answer"] if "prefix" in product_information_fields else None
-        )
-
         product = Product.objects.create(
             name=application_data["sections"]["product_information"]["fields"]["product_name"]["raw_answer"],
             description=application_data["sections"]["product_information"]["fields"]["product_description"][
@@ -236,19 +232,13 @@ class Product(TimestampableModel):
     security_grading_other = models.TextField(null=True, default=None)
     organisation = models.ForeignKey(Organisation, related_name="organisation_product", on_delete=models.CASCADE)
 
-    # @property
-    # def security_grading_final(self):
-    #     if self.security_grading == enums.SecurityGrading.OTHER:
-    #         security_grading = self.security_grading_other.upper() if self.security_grading_other else ""
-    #         security_grading_final = f"{self.security_grading_prefix.upper()} {security_grading}"
-    #     else:
-    #         security_grading_final = f"{self.security_grading_prefix.upper()} {self.security_grading.upper()}"
-
-    #     return security_grading_final
-
     @property
     def security_grading_final(self):
-        return f"{self.composed_security_grading_prefix.upper()} {self.composed_security_grading.upper()}"
+        composed_security_grading_prefix = (
+            self.composed_security_grading_prefix.upper() if self.composed_security_grading_prefix else ""
+        )
+        composed_security_grading = self.composed_security_grading.upper() if self.composed_security_grading else ""
+        return f"{composed_security_grading_prefix} {composed_security_grading}"
 
     @property
     def composed_security_grading_prefix(self):
@@ -284,7 +274,11 @@ class SecurityReleaseRequest(TimestampableModel):
 
     @property
     def security_grading_final(self):
-        return f"{self.composed_security_grading_prefix.upper()} {self.composed_security_grading.upper()}"
+        composed_security_grading_prefix = (
+            self.composed_security_grading_prefix.upper() if self.composed_security_grading_prefix else ""
+        )
+        composed_security_grading = self.composed_security_grading.upper() if self.composed_security_grading else ""
+        return f"{composed_security_grading_prefix} {composed_security_grading}"
 
     @property
     def composed_security_grading_prefix(self):
