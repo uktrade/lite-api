@@ -83,6 +83,7 @@ class F680Application(BaseApplication, Clonable):
         return self.security_release_requests.first().product
 
     def on_submit(self, old_application_status, application_data):
+
         self.name = application_data["sections"]["general_application_details"]["fields"]["name"]["raw_answer"]
         self.save()
         super().on_submit(old_application_status)

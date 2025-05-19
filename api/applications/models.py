@@ -214,6 +214,7 @@ class BaseApplication(ApplicationPartyMixin, Case):
                 },
             )
             additional_payload["amendment_of"] = {"reference_code": self.amendment_of.reference_code}
+
         create_submitted_audit(self.submitted_by, self, old_status, additional_payload)
 
     def add_to_queue(self, queue):
