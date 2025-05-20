@@ -165,6 +165,7 @@ class DataWorkspaceTests(DataTestClient):
         # Ensure we get some expected fields
         expected_fields = {
             "id",
+            "case_type",
             "feedback_submission_date",
             "url",
             "user_journey",
