@@ -20,6 +20,7 @@ from api.audit_trail import service as audit_trail_service
 
 from api.f680.managers import F680ApplicationQuerySet
 from api.f680 import enums
+from api.f680.utils import json_to_security_grading_field_helper
 from api.core.model_mixins import Clonable
 from api.staticdata.statuses.enums import CaseStatusIdEnum, CaseSubStatusIdEnum
 
@@ -95,25 +96,15 @@ class F680Application(BaseApplication, Clonable):
                 "raw_answer"
             ],
             organisation=self.organisation,
-            security_grading_prefix=(
-                product_information_fields["prefix"]["raw_answer"]
-                if "security_classification" in product_information_fields
-                else None
+            security_grading_prefix=json_to_security_grading_field_helper(
+                product_information_fields, "security_grading_prefix"
             ),
-            security_grading_prefix_other=(
-                product_information_fields["other_prefix"]["raw_answer"]
-                if "other_prefix" in product_information_fields
-                else None
+            security_grading_prefix_other=json_to_security_grading_field_helper(
+                product_information_fields, "security_grading_prefix_other"
             ),
-            security_grading=(
-                product_information_fields["security_classification"]["raw_answer"]
-                if "security_classification" in product_information_fields
-                else None
-            ),
-            security_grading_other=(
-                product_information_fields["other_security_classification"]["raw_answer"]
-                if "other_security_classification" in product_information_fields
-                else None
+            security_grading=json_to_security_grading_field_helper(product_information_fields, "security_grading"),
+            security_grading_other=json_to_security_grading_field_helper(
+                product_information_fields, "security_grading_other"
             ),
         )
 
@@ -144,13 +135,9 @@ class F680Application(BaseApplication, Clonable):
                 security_grading_prefix=item_fields["prefix"]["raw_answer"],
                 security_grading=item_fields["security_classification"]["raw_answer"],
                 intended_use=item_fields["end_user_intended_end_use"]["raw_answer"],
-                security_grading_prefix_other=(
-                    item_fields["other_prefix"]["raw_answer"] if "other_prefix" in item_fields else None
-                ),
-                security_grading_other=(
-                    item_fields["other_security_classification"]["raw_answer"]
-                    if "other_security_classification" in item_fields
-                    else None
+                security_grading_prefix_other=json_to_security_grading_field_helper(item_fields, "other_prefix"),
+                security_grading_other=json_to_security_grading_field_helper(
+                    item_fields, "other_security_classification"
                 ),
                 approval_types=application_data["sections"]["approval_type"]["fields"]["approval_choices"][
                     "raw_answer"
