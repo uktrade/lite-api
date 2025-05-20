@@ -1,3 +1,4 @@
+from api.applications.enums import DefaultDuration
 from api.applications.models import StandardApplication
 from api.applications.serializers.standard_application import StandardApplicationViewSerializer
 from api.application_manifests.base import BaseManifest
@@ -39,3 +40,11 @@ class ApplicationManifest(BaseManifest):
         "location": "Department for International Trade",
         "image_name": "dit_emblem.png",
     }
+    # ensure temporary applications are considered
+    default_duration = DefaultDuration.PERMANENT_STANDARD.value
+
+
+@application_manifest_registry.register(CaseTypeReferenceEnum.OIEL)
+class OpenApplicationManifest(ApplicationManifest):
+    # TODO open / open eu, how are we determining that
+    default_duration = DefaultDuration.PERMANENT_OPEN.value
