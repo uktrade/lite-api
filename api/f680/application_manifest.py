@@ -1,12 +1,12 @@
-from api.f680.models import F680Application
-from api.f680.caseworker.serializers import F680ApplicationSerializer
-from api.f680.exporter.serializers import F680ApplicationSerializer as ExporterF680ApplicationSerializer
 from api.application_manifests.base import BaseManifest
 from api.application_manifests.registry import application_manifest_registry
 from api.cases.enums import (
     ApplicationFeatures,
     CaseTypeReferenceEnum,
 )
+from api.f680.caseworker.serializers import F680ApplicationSerializer
+from api.f680.exporter.serializers import F680ApplicationSerializer as ExporterF680ApplicationSerializer
+from api.f680.models import F680Application
 from gov_notify.enums import TemplateType
 
 
@@ -25,6 +25,11 @@ class F680ApplicationManifest(BaseManifest):
             ApplicationFeatures.LICENCE_ISSUE: False,
             ApplicationFeatures.ROUTE_TO_COUNTERSIGNING_QUEUES: False,
         }
+
+    def has_feature(self, feature_name, default=None):
+        if hasattr(self, 'features'):
+            return self.features.get(feature_name, default)
+        return self._default_settings.get(feature_name, default)
 
 
     ecju_max_days = 30
