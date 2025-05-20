@@ -1,5 +1,4 @@
 from django.db import transaction
-from django.utils import timezone
 
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -11,12 +10,9 @@ from api.core.context_processors import (
     organisation_serializer_context_processor,
 )
 from api.cases.enums import CaseTypeEnum
-from api.cases.celery_tasks import get_application_target_sla
 from api.cases.models import CaseQueueMovement
 from api.core.authentication import ExporterAuthentication
 from api.organisations.filters import CurrentExporterUserOrganisationFilter
-from api.staticdata.statuses.enums import CaseStatusEnum
-from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
 from lite_routing.routing_rules_internal.flagging_engine import apply_flagging_rules_to_case
 from lite_routing.routing_rules_internal.routing_engine import run_routing_rules
 
@@ -57,17 +53,11 @@ class F680ApplicationViewSet(viewsets.ModelViewSet):
 
         # TODO: some sort of validation that we have everything we need on the application -
         #   this may duplicate frontend validation in some way so needs some consideration.
-        old_application_status = application.status.status
-        application.status = get_case_status_by_status(CaseStatusEnum.SUBMITTED)
-        application.submitted_at = timezone.now()
-        application.sla_remaining_days = get_application_target_sla(application.case_type.sub_type)
-        application.sla_days = 0
-        application.submitted_by = request.user.exporteruser
         application.agreed_to_foi = application_declaration_serializer.data["agreed_to_foi"]
         application.foi_reason = application_declaration_serializer.data.get("foi_reason", "")
 
-        application.save()
-        application.on_submit(old_application_status, application_json_serializer.data)
+        application.submitted_by = request.user.exporteruser
+        application.on_submit(application_json_serializer.data)
 
         apply_flagging_rules_to_case(application)
         queues_assigned = run_routing_rules(application)

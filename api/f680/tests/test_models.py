@@ -32,7 +32,7 @@ class TestF680Application:
         serializer = SubmittedApplicationJSONSerializer(data=f680_application.application)
         serializer.is_valid(raise_exception=True)
         f680_application.submitted_by = ExporterUserFactory()
-        f680_application.on_submit(f680_application.status.status, serializer.data)
+        f680_application.on_submit(serializer.data)
         f680_application.refresh_from_db()
         assert f680_application.name == "some name"
 
@@ -86,7 +86,7 @@ class TestF680Application:
         f680_application = F680ApplicationFactory()
         assert f680_application.name is None
         with pytest.raises(KeyError):
-            f680_application.on_submit(f680_application.status.status, {})
+            f680_application.on_submit({})
 
     def test_clone_application(self, data_application_json):
         f680_application = F680ApplicationFactory(
