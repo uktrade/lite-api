@@ -65,7 +65,7 @@ def is_case_already_finalised(case):
 
     # If a licence does not need to be issued for this application type then exit
     application_manifest = case.get_application_manifest()
-    if not application_manifest.get_setting(ApplicationFeatures.LICENCE_ISSUE):
+    if not application_manifest.has_feature(ApplicationFeatures.LICENCE_ISSUE):
         return True, None
 
     # If a licence exists return it. If not, the application was rejected so no licence present
