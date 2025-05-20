@@ -377,6 +377,24 @@ class StandardApplication(BaseApplication, Clonable):
 
         return cloned_application
 
+    def manage_decisions(self, user, decisions, licence=None):
+        decision_actions = self.get_decision_actions()
+        ordered_decisions = sorted(decisions, reverse=True)
+        for advice_type in ordered_decisions:
+            decision_actions[advice_type](self)
+            self.create_licence_decisions(advice_type, licence)
+            licence_reference = licence.reference_code if licence and advice_type == AdviceType.APPROVE else ""
+            audit_trail_service.create(
+                actor=user,
+                verb=AuditType.CREATED_FINAL_RECOMMENDATION,
+                target=self,
+                payload={
+                    "case_reference": self.reference_code,
+                    "decision": advice_type,
+                    "licence_reference": licence_reference,
+                },
+            )
+
     def get_required_decision_document_types(self):
         case = self.case_ptr
         required_decisions = set(
@@ -538,7 +556,6 @@ class GoodOnApplication(AbstractGoodOnApplication, Clonable):
 
     good = models.ForeignKey(Good, related_name="goods_on_application", on_delete=models.CASCADE)
 
-    # Every application except Exhibition applications contains the following data, as a result these can be null
     quantity = models.FloatField(null=True, blank=True, default=None)
     unit = models.CharField(choices=Units.choices, max_length=50, null=True, blank=True, default=None)
     value = models.DecimalField(max_digits=15, decimal_places=2, null=True, blank=True, default=None)

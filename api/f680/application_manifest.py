@@ -15,6 +15,9 @@ class F680ApplicationManifest(BaseManifest):
     model_class = F680Application
     caseworker_serializers = {"view": F680ApplicationSerializer}
     exporter_serializers = {"view": ExporterF680ApplicationSerializer}
+    # Use and add manifest features sparingly.
+    # Consider if using an IF statement based on these flags is the best approach.
+    # Maybe create a dedicated end point instead.
     features = {
         ApplicationFeatures.LICENCE_ISSUE: False,
         ApplicationFeatures.ROUTE_TO_COUNTERSIGNING_QUEUES: False,
@@ -28,7 +31,7 @@ class F680ApplicationManifest(BaseManifest):
         },
     }
     document_signing = {
-        "signing_reason": "For Head Global Issues",
+        "signing_reason": "For the Secretary of State for Defence",
         "location": "Export Control Joint Unit MOD Team",
         "image_name": "mod_emblem.png",
     }

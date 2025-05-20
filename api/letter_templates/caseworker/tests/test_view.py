@@ -5,7 +5,6 @@ from urllib import parse
 from parameterized import parameterized
 
 from api.cases.enums import AdviceType
-from api.cases.enums import CaseTypeEnum
 from test_helpers.clients import DataTestClient
 
 
@@ -13,21 +12,6 @@ class LetterTemplatesListTests(DataTestClient):
 
     def setUp(self):
         super().setUp()
-
-        # We need to shift these out to factories
-        self.create_letter_template(
-            name="F680 Approval", case_types=[CaseTypeEnum.F680.id], decisions=[AdviceType.ids[AdviceType.APPROVE]]
-        )
-        self.create_letter_template(
-            name="F680 Refusal", case_types=[CaseTypeEnum.F680.id], decisions=[AdviceType.ids[AdviceType.REFUSE]]
-        )
-        self.create_letter_template(
-            name="SIEL Approval", case_types=[CaseTypeEnum.SIEL.id], decisions=[AdviceType.ids[AdviceType.APPROVE]]
-        )
-
-        self.create_letter_template(
-            name="SIEL Refusal", case_types=[CaseTypeEnum.SIEL.id], decisions=[AdviceType.ids[AdviceType.REFUSE]]
-        )
 
     @parameterized.expand(
         [
@@ -44,10 +28,46 @@ class LetterTemplatesListTests(DataTestClient):
                 2,
             ],
             [
-                {"decision": AdviceType.APPROVE},
-                ["SIEL Approval", "F680 Approval"],
-                ["Approve"],
+                {"case_type": "standard"},
+                ["Inform letter", "No licence required letter template", "Refusal letter template", "SIEL template"],
+                ["Approve", "Inform", "No Licence Required", "Refuse"],
+                4,
+            ],
+            [
+                {"case_type": "open"},
+                ["OIEL Approval", "OIEL Refusal"],
+                ["Approve", "Refuse"],
                 2,
+            ],
+            [
+                {"decision": AdviceType.APPROVE},
+                ["SIEL template", "F680 Approval", "OIEL Approval"],
+                ["Approve"],
+                3,
+            ],
+            [
+                {"case_type": "standard", "decision": AdviceType.APPROVE},
+                ["SIEL template"],
+                ["Approve"],
+                1,
+            ],
+            [
+                {"case_type": "standard", "decision": AdviceType.REFUSE},
+                ["Refusal letter template"],
+                ["Refuse"],
+                1,
+            ],
+            [
+                {"case_type": "open", "decision": AdviceType.APPROVE},
+                ["OIEL Approval"],
+                ["Approve"],
+                1,
+            ],
+            [
+                {"case_type": "open", "decision": AdviceType.REFUSE},
+                ["OIEL Refusal"],
+                ["Refuse"],
+                1,
             ],
             [
                 {"case_type": "f680_clearance", "decision": AdviceType.APPROVE},
@@ -62,10 +82,28 @@ class LetterTemplatesListTests(DataTestClient):
                 1,
             ],
             [
+                {"case_type": "standard", "decision": [AdviceType.APPROVE, AdviceType.REFUSE]},
+                ["SIEL template", "Refusal letter template"],
+                ["Approve", "Refuse"],
+                2,
+            ],
+            [
+                {"case_type": "open", "decision": [AdviceType.APPROVE, AdviceType.REFUSE]},
+                ["OIEL Approval", "OIEL Refusal"],
+                ["Approve", "Refuse"],
+                2,
+            ],
+            [
                 {"case_type": "f680_clearance", "decision": [AdviceType.APPROVE, AdviceType.REFUSE]},
                 ["F680 Approval", "F680 Refusal"],
                 ["Approve", "Refuse"],
                 2,
+            ],
+            [
+                {"case_type": "standard", "decision": AdviceType.NO_LICENCE_REQUIRED},
+                ["No licence required letter template"],
+                ["No Licence Required"],
+                1,
             ],
         ]
     )

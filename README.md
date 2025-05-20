@@ -62,12 +62,15 @@ Service for handling backend calls in LITE.
 - Starting the service for the first time
   - `docker-compose up` - to start the API's Django server
 - Go to the caseworker home page (e.g. `http://localhost:8200`)
-- If your database is empty (i.e. you just ran the migrations) then at this point you might want to seed your database with the static data
+Unless you chose Option 3 which already seeded and populated the database, you will now need to do this manually.
+- If your database is empty (i.e. you just ran the migrations) then at this point you might want to seed your database with the static data (such as users, teams and countries)
   - `docker exec -it api pipenv run ./manage.py seedall` - running with Docker
   - `pipenv run ./manage.py seedall` - without Docker
-- You'll also want to populate the db with some test values
+- You'll also want to populate the db with some test licence application data
   - `docker exec -it api pipenv run ./manage.py create_test_data 10` - running with Docker
   - `pipenv run ./manage.py create_test_data 10` - without Docker
+  - This command looks for and requires the following user `{user = {"first_name": "TAU","last_name": "User","email": "tautest@example.com"}}`. If it errors due to not finding the user then seed them into the database - see [Add a single user](#add-a-single-user)
+  - It also requires the ENV variables to be set to `localhost`
 
 - Starting the service
   - In general you can use `docker-compose up --build` if you want to make sure new changes are included in the build
@@ -153,8 +156,12 @@ Gegenerate diagrams
 
 ## Running tests
 
+Locally
 - `pipenv run pytest`
 - `pipenv run pytest --reuse-db` to speed up tests
+
+In Docker
+- Running `docker exec -it api pipenv run pytest` or run `pipenv run pytest` in Docker Desktop with any desired flags
 
 ## Running code coverage
 

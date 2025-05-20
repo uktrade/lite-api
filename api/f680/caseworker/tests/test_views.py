@@ -147,6 +147,21 @@ class TestF680RecommendationViewSet:
             for item in Recommendation.objects.filter(case=f680_application)
         ]
 
+    # MOD-ECJU call this endpoint when they GET Case detail so we need to check they can get a response
+    # even though they don't make recommendations and a case can be without a recommendation.
+    @freeze_time("2025-01-01 12:00:01")
+    def test_GET_recommendation_details_mod_ecju_caseworker_success(
+        self, get_hawk_client, url, team_case_advisor, team_case_advisor_headers, organisation
+    ):
+        f680_application = SubmittedF680ApplicationFactory(organisation=organisation)
+        gov_user = team_case_advisor(TeamIdEnum.MOD_ECJU)
+
+        headers = {"HTTP_GOV_USER_TOKEN": user_to_token(gov_user.baseuser_ptr)}
+        api_client, target_url = get_hawk_client("GET", url(f680_application))
+        response = api_client.get(target_url, **headers)
+
+        assert response.status_code == 200
+
     def test_GET_recommendation_raises_notfound_error(
         self, get_hawk_client, get_f680_application, team_case_advisor_headers
     ):
@@ -470,13 +485,11 @@ class TestF680RecommendationViewSet:
         }
 
     def test_POST_recommendation_invalid_application_raises_error(self, get_hawk_client, team_case_advisor_headers):
-        url = reverse(
-            "caseworker_f680:recommendation", kwargs={"pk": "138d3a5f-5b5d-457d-8db0-723e14b36de4"}  # /PS-IGNORE
-        )
+        url = reverse("caseworker_f680:recommendation", kwargs={"pk": uuid4()})  # /PS-IGNORE
         headers = team_case_advisor_headers(TeamIdEnum.MOD_CAPPROT)
         # Data is intentionally empty as we fail before validating the data
-        api_client, target_url = get_hawk_client("POST", url, data=[])
-        response = api_client.post(target_url, [], **headers)
+        api_client, target_url = get_hawk_client("POST", url, data=[{}])
+        response = api_client.post(target_url, [{}], **headers)
         assert response.status_code == 404
 
     def test_DELETE_user_recommendation_success(self, get_hawk_client, get_f680_application, url, team_case_advisor):

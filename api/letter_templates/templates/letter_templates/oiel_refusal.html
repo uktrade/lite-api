@@ -1,0 +1,23 @@
+{% extends "letter_templates/dbt_letter_base.html" %}
+{% load static custom_tags %}
+
+{% block title %}Refusal letter{% endblock %}
+
+{% block body %}
+
+  <h2 class="govuk-heading-l">Products</h3>
+  <div class="govuk-body">We have refused a licence for this application under the <a href="https://questions-statements.parliament.uk/written-statements/detail/2021-12-08/hcws449" class="govuk-link" rel="noreferrer noopener" target="_blank">Open Export Licensing Criteria</a>. Refer to the end of this document for the criteria text.</div>
+  <ul class="govuk-list govuk-list--bullet">
+    {% for good in goods.refuse %}
+      <li>
+        {{good.good.name}}
+      </li>
+    {% endfor %}
+  </ul>
+  <h2 class="govuk-heading-l">Open Export Licensing Criteria</h3>
+  {% for dr in goods.refuse.0.denial_reasons %}
+    <h3 class="govuk-heading-m">Criterion {{dr.display_value}}</h3>
+    <div class="govuk-body">{{ dr.description | linebreaks }}</div>
+  {% endfor %}
+
+{% endblock %}
