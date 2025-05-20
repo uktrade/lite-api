@@ -739,8 +739,6 @@ class GoodOnApplicationSerializer(serializers.ModelSerializer):
             "unit",
             "value",
             "control_list_entries",
-            "destinations",
-            "wassenaar",
             "submitted_at",
             "goods_starting_point",
             "regime_entries",
@@ -752,22 +750,6 @@ class GoodOnApplicationSerializer(serializers.ModelSerializer):
 
     def get_control_list_entries(self, obj):
         return [cle.rating for cle in obj.get_control_list_entries().all()]
-
-    def get_wassenaar(self, obj):
-        return obj.good.flags.filter(name="WASSENAAR").exists()
-
-    def get_destinations(self, obj):
-        destinations = (
-            obj.application.parties.filter(
-                deleted_at__isnull=True,
-            )
-            .values(
-                "party__country__name",
-            )
-            .distinct()
-        )
-
-        return [dest["party__country__name"] for dest in destinations]
 
 
 class GoodOnApplicationPrecedentSerializer(GoodOnApplicationSerializer):
