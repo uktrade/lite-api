@@ -24,6 +24,32 @@ from api.core.model_mixins import Clonable
 from api.staticdata.statuses.enums import CaseStatusIdEnum, CaseSubStatusIdEnum
 
 
+class SecurityGradingMixin:
+    @property
+    def security_grading_final(self):
+        composed_security_grading_prefix = (
+            self.composed_security_grading_prefix.upper() if self.composed_security_grading_prefix else ""
+        )
+        composed_security_grading = self.composed_security_grading.upper() if self.composed_security_grading else ""
+        return f"{composed_security_grading_prefix} {composed_security_grading}"
+
+    @property
+    def composed_security_grading_prefix(self):
+        return (
+            self.security_grading_prefix_other
+            if self.security_grading_prefix == enums.SecurityGradingPrefix.OTHER
+            else self.get_security_grading_prefix_display()
+        )
+
+    @property
+    def composed_security_grading(self):
+        return (
+            self.security_grading_other
+            if self.security_grading == enums.SecurityGrading.OTHER
+            else self.get_security_grading_display()
+        )
+
+
 class F680Application(BaseApplication, Clonable):
     objects = F680ApplicationQuerySet.as_manager()
 
@@ -218,7 +244,7 @@ class Recipient(TimestampableModel):
 # TODO: Eventually we may want to use this model more widely.  We can do that
 #   but for now baking it in to the f680 application avoids us having to guess
 #   at unknown futures
-class Product(TimestampableModel):
+class Product(TimestampableModel, SecurityGradingMixin):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.TextField()
     description = models.TextField()
@@ -232,32 +258,8 @@ class Product(TimestampableModel):
     security_grading_other = models.TextField(null=True, default=None)
     organisation = models.ForeignKey(Organisation, related_name="organisation_product", on_delete=models.CASCADE)
 
-    @property
-    def security_grading_final(self):
-        composed_security_grading_prefix = (
-            self.composed_security_grading_prefix.upper() if self.composed_security_grading_prefix else ""
-        )
-        composed_security_grading = self.composed_security_grading.upper() if self.composed_security_grading else ""
-        return f"{composed_security_grading_prefix} {composed_security_grading}"
 
-    @property
-    def composed_security_grading_prefix(self):
-        return (
-            self.security_grading_prefix_other
-            if self.security_grading_prefix == enums.SecurityGradingPrefix.OTHER
-            else self.get_security_grading_prefix_display()
-        )
-
-    @property
-    def composed_security_grading(self):
-        return (
-            self.security_grading_other
-            if self.security_grading == enums.SecurityGrading.OTHER
-            else self.get_security_grading_display()
-        )
-
-
-class SecurityReleaseRequest(TimestampableModel):
+class SecurityReleaseRequest(TimestampableModel, SecurityGradingMixin):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     recipient = models.ForeignKey(Recipient, on_delete=models.CASCADE, related_name="security_release_requests")
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name="security_release_requests")
@@ -272,35 +274,15 @@ class SecurityReleaseRequest(TimestampableModel):
     # We need details of the release, this doesn't appear to be in the frontend flows yet..
     intended_use = models.TextField()
 
-    @property
-    def security_grading_final(self):
-        composed_security_grading_prefix = (
-            self.composed_security_grading_prefix.upper() if self.composed_security_grading_prefix else ""
-        )
-        composed_security_grading = self.composed_security_grading.upper() if self.composed_security_grading else ""
-        return f"{composed_security_grading_prefix} {composed_security_grading}"
 
-    @property
-    def composed_security_grading_prefix(self):
-        return (
-            self.security_grading_prefix_other
-            if self.security_grading_prefix == enums.SecurityGradingPrefix.OTHER
-            else self.get_security_grading_prefix_display()
-        )
-
-    @property
-    def composed_security_grading(self):
-        return (
-            self.security_grading_other
-            if self.security_grading == enums.SecurityGrading.OTHER
-            else self.get_security_grading_display()
-        )
-
-
-class Recommendation(TimestampableModel):
+class Recommendation(TimestampableModel, SecurityGradingMixin):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     case = models.ForeignKey(Case, related_name="recommendations", on_delete=models.CASCADE)
     type = models.CharField(choices=enums.RecommendationType.choices, max_length=30)
+    security_grading_prefix = models.CharField(
+        choices=enums.SecurityGrading.security_release_choices, blank=True, null=True, max_length=50
+    )
+    security_grading_prefix_other = models.TextField(default="", blank=True, null=True)
     security_grading = models.CharField(
         choices=enums.SecurityGrading.security_release_choices, blank=True, null=True, max_length=50
     )
