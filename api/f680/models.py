@@ -96,15 +96,15 @@ class F680Application(BaseApplication, Clonable):
                 "raw_answer"
             ],
             organisation=self.organisation,
-            security_grading_prefix=json_to_security_grading_field_helper(
-                product_information_fields, "security_grading_prefix"
-            ),
+            security_grading_prefix=json_to_security_grading_field_helper(product_information_fields, "prefix"),
             security_grading_prefix_other=json_to_security_grading_field_helper(
-                product_information_fields, "security_grading_prefix_other"
+                product_information_fields, "other_prefix"
             ),
-            security_grading=json_to_security_grading_field_helper(product_information_fields, "security_grading"),
+            security_grading=json_to_security_grading_field_helper(
+                product_information_fields, "security_classification"
+            ),
             security_grading_other=json_to_security_grading_field_helper(
-                product_information_fields, "security_grading_other"
+                product_information_fields, "other_security_classification"
             ),
         )
 
