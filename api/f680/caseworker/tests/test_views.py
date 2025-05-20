@@ -127,8 +127,7 @@ class TestF680RecommendationViewSet:
                 "case": str(item.case_id),
                 "type": {"key": "approve", "value": "Approve"},
                 "created_at": item.created_at.strftime("%Y-%m-%dT%H:%M:%SZ"),
-                "security_grading": {"key": "official", "value": "OFFICIAL"},
-                "security_grading_other": item.security_grading_other,
+                "security_grading_final": item.security_grading_final,
                 "conditions": item.conditions,
                 "refusal_reasons": item.refusal_reasons,
                 "security_release_request": str(item.security_release_request_id),
@@ -251,6 +250,7 @@ class TestF680RecommendationViewSet:
         data = [
             {
                 "type": recommendation_type,
+                "security_grading_prefix": enums.SecurityGradingPrefix.UK,
                 "security_grading": enums.SecurityGrading.OFFICIAL_SENSITIVE,
                 "conditions": f"Conditions for {rr.recipient.country.name}",
                 "refusal_reasons": "",
@@ -302,6 +302,7 @@ class TestF680RecommendationViewSet:
         data = [
             {
                 "type": recommendation_type,
+                "security_grading_prefix": enums.SecurityGradingPrefix.UK,
                 "security_grading": enums.SecurityGrading.OFFICIAL_SENSITIVE,
                 "conditions": f"Conditions for {rr.recipient.country.name}",
                 "refusal_reasons": "",
@@ -371,6 +372,7 @@ class TestF680RecommendationViewSet:
             data = [
                 {
                     "type": recommendation_type,
+                    "security_grading_prefix": enums.SecurityGradingPrefix.UK,
                     "security_grading": enums.SecurityGrading.OFFICIAL_SENSITIVE,
                     "conditions": f"Conditions for {rr.recipient.country.name}",
                     "refusal_reasons": "",
@@ -400,6 +402,7 @@ class TestF680RecommendationViewSet:
         (
             (
                 {
+                    "security_grading_prefix": enums.SecurityGradingPrefix.OCCAR,
                     "security_grading": enums.SecurityGrading.OFFICIAL_SENSITIVE,
                     "conditions": "Conditions for Australia",
                     "refusal_reasons": "",
@@ -412,11 +415,17 @@ class TestF680RecommendationViewSet:
                     "conditions": "Conditions for Australia",
                     "refusal_reasons": "",
                 },
-                [{"security_grading": ["This field is required."]}],
+                [
+                    {
+                        "security_grading_prefix": ["This field is required."],
+                        "security_grading": ["This field is required."],
+                    }
+                ],
             ),
             (
                 {
                     "type": enums.RecommendationType.APPROVE,
+                    "security_grading_prefix": enums.SecurityGradingPrefix.OCCAR,
                     "security_grading": enums.SecurityGrading.OFFICIAL_SENSITIVE,
                     "refusal_reasons": "",
                 },
@@ -425,6 +434,7 @@ class TestF680RecommendationViewSet:
             (
                 {
                     "type": enums.RecommendationType.APPROVE,
+                    "security_grading_prefix": enums.SecurityGradingPrefix.OCCAR,
                     "security_grading": enums.SecurityGrading.OFFICIAL_SENSITIVE,
                     "conditions": "No concerns",
                 },
@@ -433,6 +443,7 @@ class TestF680RecommendationViewSet:
             (
                 {
                     "type": enums.RecommendationType.APPROVE,
+                    "security_grading_prefix": enums.SecurityGradingPrefix.OCCAR,
                     "security_grading": enums.SecurityGrading.OFFICIAL_SENSITIVE,
                     "conditions": "No concerns",
                     "refusal_reasons": "",
@@ -471,6 +482,7 @@ class TestF680RecommendationViewSet:
         data = [
             {
                 "type": enums.RecommendationType.APPROVE,
+                "security_grading_prefix": "",
                 "security_grading": "",
                 "conditions": "No concerns",
                 "security_release_request": str(release_request.id),
@@ -480,6 +492,7 @@ class TestF680RecommendationViewSet:
         api_client, target_url = get_hawk_client("POST", url(f680_application), data=data)
         response = api_client.post(target_url, data, **headers)
         assert response.status_code == 400
+
         assert response.json() == {
             "errors": [{"non_field_errors": ["security_grading is required for recommendation"]}]
         }
