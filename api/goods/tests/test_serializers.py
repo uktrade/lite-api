@@ -6,34 +6,13 @@ from django.utils import timezone
 from freezegun import freeze_time
 from rest_framework import status
 
-from api.applications.tests.factories import (
-    GoodOnApplicationFactory,
-    StandardApplicationFactory,
-)
 from api.goods.enums import ItemCategory
 from test_helpers.clients import DataTestClient
 
 
 from api.goods.tests.factories import GoodFactory
-from api.goods.serializers import GoodSerializerExporterFullDetail, GoodOnApplicationSerializer, GoodSerializerInternal
+from api.goods.serializers import GoodSerializerExporterFullDetail, GoodSerializerInternal
 from api.staticdata.report_summaries.models import ReportSummaryPrefix, ReportSummarySubject
-
-
-class GoodOnApplicationSerializerTests(DataTestClient):
-    def setUp(self):
-        super().setUp()
-
-        self.application = StandardApplicationFactory.create()
-        good = GoodFactory.create(organisation=self.organisation)
-
-        self.a_good_on_application = GoodOnApplicationFactory.create(
-            application=self.application,
-            good=good,
-        )
-
-    def test_valid(self):
-        serialized = GoodOnApplicationSerializer(self.a_good_on_application)
-        self.assertTrue(serialized.is_valid())
 
 
 class GoodSerializerInternalTests(DataTestClient):
