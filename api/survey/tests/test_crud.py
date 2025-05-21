@@ -18,14 +18,13 @@ class SurveyResponseUpdateTests(DataTestClient):
 
     @parameterized.expand(
         [
-            ({},),
             ({"case_type": "00000000-0000-0000-0000-000000000004"},),  # SIEL
             ({"case_type": "00000000-0000-0000-0000-000000000007"},),  # F680
         ]
     )
     def test_update_survey_response(self, request_data):
         survey = SurveyResponseFactory(
-            case_type_id=request_data.get("case_type"),
+            case_type_id=request_data["case_type"],
             satisfaction_rating=RecommendationChoiceType.SATISFIED,
             user_journey=UserJourney.APPLICATION_SUBMISSION,
         )

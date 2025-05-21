@@ -36,7 +36,6 @@ class TestSurveyResponseTests:
     @pytest.mark.parametrize(
         "request_data",
         (
-            {},
             {"case_type": "00000000-0000-0000-0000-000000000004"},  # SIEL
             {"case_type": "00000000-0000-0000-0000-000000000007"},  # F680
         ),
@@ -55,6 +54,6 @@ class TestSurveyResponseTests:
         assert actual == {
             "id": str(survey_response.id),
             "satisfaction_rating": RecommendationChoiceType.SATISFIED,
-            "case_type": request_data.get("case_type"),
+            "case_type": request_data["case_type"],
             "user_journey": UserJourney.APPLICATION_SUBMISSION,
         }

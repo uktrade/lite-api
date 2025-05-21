@@ -18,7 +18,7 @@ from api.survey.enums import (
 class SurveyResponse(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False, db_index=True)
     feedback_submission_date = AutoCreatedField(_("feedback_submission_date"))
-    case_type = models.ForeignKey(CaseType, on_delete=models.DO_NOTHING, null=True, blank=True)
+    case_type = models.ForeignKey(CaseType, on_delete=models.DO_NOTHING, blank=True, default=None)
     url = models.TextField(blank=True, default="N/A")
     user_journey = models.CharField(choices=UserJourney.choices, blank=True, default="")
     satisfaction_rating = models.CharField(
