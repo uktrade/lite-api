@@ -12,7 +12,7 @@ class BaseManifest:
             ApplicationFeatures.ROUTE_TO_COUNTERSIGNING_QUEUES: False,
         }
 
-    def has_feature(self, feature_name, default=None):
+    def has_feature(self, feature_name, default=False):
         if hasattr(self, 'features'):
             return self.features.get(feature_name, default)
         return self._default_settings.get(feature_name, default)
