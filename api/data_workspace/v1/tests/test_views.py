@@ -1,7 +1,6 @@
 from parameterized import parameterized
 
 from django.urls import reverse
-from api.survey.models import SurveyResponse
 from rest_framework import status
 
 from api.parties.enums import PartyType
