@@ -751,6 +751,36 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
 
         return self.submit_application(draft, self.exporter_user)
 
+    def create_export_licence_case(
+        self,
+        organisation: Organisation,
+        reference_name="Export Licence Case",
+        parties=True,
+        ultimate_end_users=False,
+        site=True,
+        user=None,
+        num_products=1,
+        reuse_good=False,
+        add_a_good=True,
+    ):
+        """
+        Creates a complete export_licence case
+        """
+        draft = self.create_draft_standard_application(
+            organisation,
+            reference_name,
+            parties=parties,
+            ultimate_end_users=ultimate_end_users,
+            site=site,
+            user=user,
+            num_products=num_products,
+            reuse_good=reuse_good,
+            add_a_good=add_a_good,
+            case_type_id=CaseTypeEnum.EXPORT_LICENCE.id,
+        )
+
+        return self.submit_application(draft, self.exporter_user)
+
     def create_end_user_advisory(self, note: str, reasoning: str, organisation: Organisation):
         end_user = self.create_party("name", self.organisation, PartyType.END_USER)
         end_user_advisory_query = EndUserAdvisoryQuery.objects.create(

@@ -429,13 +429,16 @@ class ApplicationFinaliseView(APIView):
         Finalise an application
         """
         application = get_application(pk)
-        # Check permissions
-        licence_data = request.data.copy()
-        licence_data["case_type"] = "oiel"
-        if licence_data.get("case_type") in ["oiel", "siel"]:
-            application.case_type = CaseType.objects.get(reference=licence_data.get("case_type"))
-            application.save()
 
+        licence_data = request.data.copy()
+
+        # TODO this is a bit heavy handed
+        if application.case_type.reference == "export_licence":
+            if licence_data.get("case_type") in ["oiel", "siel"]:
+                application.case_type = CaseType.objects.get(reference=licence_data["case_type"])
+                application.save()
+
+        # Check permissions
         is_mod_clearance = application.case_type.sub_type in CaseTypeSubTypeEnum.mod
         if not can_status_be_set_by_gov_user(
             request.user.govuser, application.status.status, CaseStatusEnum.FINALISED, is_mod_clearance

@@ -14,7 +14,7 @@ from api.applications.tests.factories import GoodOnApplicationFactory
 from api.audit_trail.enums import AuditType
 from api.audit_trail.models import Audit
 from api.audit_trail.serializers import AuditSerializer
-from api.cases.enums import AdviceType, AdviceLevel, CountersignOrder
+from api.cases.enums import AdviceType, AdviceLevel, CaseTypeEnum, CountersignOrder
 from api.cases.models import Advice, Case
 from api.cases.tests.factories import CountersignAdviceFactory, FinalAdviceFactory, UserAdviceFactory
 from api.core.constants import GovPermissions
@@ -56,6 +56,27 @@ class FinaliseApplicationTests(DataTestClient):
         data = {"action": AdviceType.APPROVE, "duration": 60}
         data.update(self.post_date)
 
+        response = self.client.put(self.url, data=data, **self.gov_headers)
+        response_data = response.json()
+        self.standard_application.refresh_from_db()
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response_data["case"], str(self.standard_application.id))
+        self.assertEqual(response_data["reference_code"], f"{self.standard_application.reference_code}")
+        self.assertEqual(response_data["start_date"], self.date.strftime("%Y-%m-%d"))
+        self.assertEqual(response_data["duration"], data["duration"])
+        self.assertEqual(response_data["status"], LicenceStatus.DRAFT)
+        self.assertTrue(Licence.objects.filter(case=self.standard_application, status=LicenceStatus.DRAFT).exists())
+
+        # The case should not be finalised until the case is complete
+        self.assertNotEqual(self.standard_application.status, self.finalised_status)
+
+    @parameterized.expand([CaseTypeEnum.SIEL.reference, CaseTypeEnum.OIEL.reference])
+    def test_approve_export_licence_siel_success(self, case_type):
+        self._set_user_permission([GovPermissions.MANAGE_LICENCE_FINAL_ADVICE, GovPermissions.MANAGE_LICENCE_DURATION])
+        data = {"action": AdviceType.APPROVE, "duration": 60, "case_type": case_type}
+        data.update(self.post_date)
+        self.standard_application = self.create_export_licence_case(self.organisation)
         response = self.client.put(self.url, data=data, **self.gov_headers)
         response_data = response.json()
         self.standard_application.refresh_from_db()
