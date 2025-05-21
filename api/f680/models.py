@@ -1,3 +1,4 @@
+from django.utils import timezone
 import uuid
 
 from dateutil.relativedelta import relativedelta
@@ -8,10 +9,12 @@ from django.contrib.postgres.fields import ArrayField
 from copy import deepcopy
 
 from api.applications.models import BaseApplication
+from api.cases.celery_tasks import get_application_target_sla
 from api.cases.models import Case
 from api.common.models import TimestampableModel
 from api.organisations.models import Organisation
 from api.staticdata.countries.models import Country
+from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
 from api.teams.models import Team
 from api.users.models import GovUser
 from api.cases.enums import AdviceType
@@ -21,12 +24,11 @@ from api.audit_trail import service as audit_trail_service
 from api.f680.managers import F680ApplicationQuerySet
 from api.f680 import enums
 from api.core.model_mixins import Clonable
-from api.staticdata.statuses.enums import CaseStatusIdEnum, CaseSubStatusIdEnum
+from api.staticdata.statuses.enums import CaseStatusEnum, CaseStatusIdEnum, CaseSubStatusIdEnum
 
 
 class F680Application(BaseApplication, Clonable):
     objects = F680ApplicationQuerySet.as_manager()
-
     application = models.JSONField()
 
     clone_exclusions = [
@@ -83,8 +85,17 @@ class F680Application(BaseApplication, Clonable):
         return self.security_release_requests.first().product
 
     def on_submit(self, application_data):
+
+        previous_status = self.status.status
+
         self.name = application_data["sections"]["general_application_details"]["fields"]["name"]["raw_answer"]
+        self.status = get_case_status_by_status(CaseStatusEnum.SUBMITTED)
+        self.submitted_at = timezone.now()
+        self.sla_remaining_days = get_application_target_sla(self.case_type.sub_type)
+        self.sla_days = 0
+
         self.save()
+        self.audit_on_submit(previous_status)
 
         product_information_fields = application_data["sections"]["product_information"]["fields"]
         # Create the Product for this application - F680s just have the one
