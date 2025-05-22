@@ -31,6 +31,7 @@ class TestF680Application:
         assert f680_application.name is None
         serializer = SubmittedApplicationJSONSerializer(data=f680_application.application)
         serializer.is_valid(raise_exception=True)
+        f680_application.submitted_by = ExporterUserFactory()
         f680_application.on_submit(serializer.data)
         f680_application.refresh_from_db()
         assert f680_application.name == "some name"
@@ -39,6 +40,8 @@ class TestF680Application:
         product = Product.objects.first()
         assert product.name == "some product name"
         assert product.description == "some product description"
+        assert product.security_grading_prefix == "other"
+        assert product.security_grading_prefix_other == "Some prefix"
         assert product.security_grading == "official"
         assert product.security_grading_other == "some other grading"
         assert product.organisation == f680_application.organisation
@@ -55,6 +58,7 @@ class TestF680Application:
         assert australia_recipient.organisation == f680_application.organisation
         assert australia_recipient.role == "consultant"
         assert australia_release.product == product
+        assert australia_release.security_grading_prefix_other == "Some prefix"
         assert australia_release.security_grading == "secret"
         assert australia_release.intended_use == "australia intended use"
 
@@ -66,6 +70,8 @@ class TestF680Application:
         assert france_recipient.type == "ultimate-end-user"
         assert france_recipient.organisation == f680_application.organisation
         assert france_release.product == product
+        assert france_release.product == product
+        assert france_release.security_grading_prefix_other == "Some prefix"
         assert france_release.security_grading == "official"
         assert france_release.security_grading_other == "some other grading"
         assert france_release.intended_use == "france intended use"
@@ -78,6 +84,8 @@ class TestF680Application:
         assert uae_recipient.type == "end-user"
         assert uae_recipient.organisation == f680_application.organisation
         assert uae_release.product == product
+        assert uae_release.product == product
+        assert uae_release.security_grading_prefix_other == "Some prefix"
         assert uae_release.security_grading == "top-secret"
         assert uae_release.intended_use == "uae intended use"
 
