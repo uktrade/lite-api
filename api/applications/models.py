@@ -203,6 +203,9 @@ class BaseApplication(ApplicationPartyMixin, Case):
         ordering = ["created_at"]
 
     def on_submit(self, old_status):
+        self.audit_on_submit(old_status)
+
+    def audit_on_submit(self, old_status):
         additional_payload = {}
         if self.amendment_of:
             # Add an audit entry to the case that was superseded by this amendment
