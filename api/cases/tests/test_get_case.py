@@ -522,6 +522,7 @@ class CaseGetTests(DataTestClient):
                         "key": request.security_grading,
                         "value": request.get_security_grading_display(),
                     },
+                    "security_grading_other": request.security_grading_other,
                     "security_grading_final": request.security_grading_final,
                     "approval_types": request.approval_types,
                     "intended_use": request.intended_use,
@@ -534,6 +535,7 @@ class CaseGetTests(DataTestClient):
                 "name": product.name,
                 "description": product.description,
                 "security_grading": {"key": product.security_grading, "value": product.get_security_grading_display()},
+                "security_grading_other": product.security_grading_other,
                 "security_grading_final": product.security_grading_final,
             },
             "case_type": {

@@ -32,6 +32,7 @@ class ProductSerializer(serializers.ModelSerializer):
             "name",
             "description",
             "security_grading",
+            "security_grading_other",
             "security_grading_final",
         ]
 
@@ -65,6 +66,7 @@ class SecurityReleaseRequestSerializer(serializers.ModelSerializer):
             "id",
             "recipient",
             "security_grading",
+            "security_grading_other",
             "security_grading_final",
             "approval_types",
             "intended_use",
