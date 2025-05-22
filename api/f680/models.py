@@ -23,6 +23,7 @@ from api.audit_trail import service as audit_trail_service
 
 from api.f680.managers import F680ApplicationQuerySet
 from api.f680 import enums
+from api.f680.utils import get_application_answer
 from api.core.model_mixins import Clonable
 from api.staticdata.statuses.enums import CaseStatusEnum, CaseStatusIdEnum, CaseSubStatusIdEnum
 
@@ -99,22 +100,17 @@ class F680Application(BaseApplication, Clonable):
 
         product_information_fields = application_data["sections"]["product_information"]["fields"]
         # Create the Product for this application - F680s just have the one
+
         product = Product.objects.create(
             name=application_data["sections"]["product_information"]["fields"]["product_name"]["raw_answer"],
             description=application_data["sections"]["product_information"]["fields"]["product_description"][
                 "raw_answer"
             ],
             organisation=self.organisation,
-            security_grading=(
-                product_information_fields["security_classification"]["raw_answer"]
-                if "security_classification" in product_information_fields
-                else None
-            ),
-            security_grading_other=(
-                product_information_fields["other_security_classification"]["raw_answer"]
-                if "other_security_classification" in product_information_fields
-                else None
-            ),
+            security_grading_prefix=get_application_answer(product_information_fields, "prefix"),
+            security_grading_prefix_other=get_application_answer(product_information_fields, "other_prefix"),
+            security_grading=get_application_answer(product_information_fields, "security_classification"),
+            security_grading_other=get_application_answer(product_information_fields, "other_security_classification"),
         )
 
         # Create a Recipient and SecurityRelease for each.  In F680s caseworkers
@@ -141,13 +137,11 @@ class F680Application(BaseApplication, Clonable):
                 recipient=recipient,
                 product=product,
                 application=self,
+                security_grading_prefix=item_fields["prefix"]["raw_answer"],
                 security_grading=item_fields["security_classification"]["raw_answer"],
                 intended_use=item_fields["end_user_intended_end_use"]["raw_answer"],
-                security_grading_other=(
-                    item_fields["other_security_classification"]["raw_answer"]
-                    if "other_security_classification" in item_fields
-                    else None
-                ),
+                security_grading_prefix_other=get_application_answer(item_fields, "other_prefix"),
+                security_grading_other=get_application_answer(item_fields, "other_security_classification"),
                 approval_types=application_data["sections"]["approval_type"]["fields"]["approval_choices"][
                     "raw_answer"
                 ],
@@ -218,11 +212,39 @@ class Product(TimestampableModel):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.TextField()
     description = models.TextField()
+    security_grading_prefix = models.CharField(
+        choices=enums.SecurityGradingPrefix.prefix_choices, max_length=50, null=True, default=None
+    )
+    security_grading_prefix_other = models.TextField(null=True, default=None)
     security_grading = models.CharField(
         choices=enums.SecurityGrading.product_choices, max_length=50, null=True, default=None
     )
     security_grading_other = models.TextField(null=True, default=None)
     organisation = models.ForeignKey(Organisation, related_name="organisation_product", on_delete=models.CASCADE)
+
+    @property
+    def security_grading_final(self):
+        composed_security_grading_prefix = (
+            self.composed_security_grading_prefix.upper() if self.composed_security_grading_prefix else ""
+        )
+        composed_security_grading = self.composed_security_grading.upper() if self.composed_security_grading else ""
+        return f"{composed_security_grading_prefix} {composed_security_grading}"
+
+    @property
+    def composed_security_grading_prefix(self):
+        return (
+            self.security_grading_prefix_other
+            if self.security_grading_prefix == enums.SecurityGradingPrefix.OTHER
+            else self.get_security_grading_prefix_display()
+        )
+
+    @property
+    def composed_security_grading(self):
+        return (
+            self.security_grading_other
+            if self.security_grading == enums.SecurityGrading.OTHER
+            else self.get_security_grading_display()
+        )
 
 
 class SecurityReleaseRequest(TimestampableModel):
@@ -230,11 +252,39 @@ class SecurityReleaseRequest(TimestampableModel):
     recipient = models.ForeignKey(Recipient, on_delete=models.CASCADE, related_name="security_release_requests")
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name="security_release_requests")
     application = models.ForeignKey(F680Application, on_delete=models.CASCADE, related_name="security_release_requests")
+    security_grading_prefix = models.CharField(
+        choices=enums.SecurityGradingPrefix.prefix_choices, max_length=50, null=True, default=None
+    )
+    security_grading_prefix_other = models.TextField(null=True, default=None)
     security_grading = models.CharField(choices=enums.SecurityGrading.security_release_choices, max_length=50)
     security_grading_other = models.TextField(null=True, default=None)
     approval_types = ArrayField(models.CharField(choices=enums.ApprovalTypes.choices, max_length=50))
     # We need details of the release, this doesn't appear to be in the frontend flows yet..
     intended_use = models.TextField()
+
+    @property
+    def security_grading_final(self):
+        composed_security_grading_prefix = (
+            self.composed_security_grading_prefix.upper() if self.composed_security_grading_prefix else ""
+        )
+        composed_security_grading = self.composed_security_grading.upper() if self.composed_security_grading else ""
+        return f"{composed_security_grading_prefix} {composed_security_grading}"
+
+    @property
+    def composed_security_grading_prefix(self):
+        return (
+            self.security_grading_prefix_other
+            if self.security_grading_prefix == enums.SecurityGradingPrefix.OTHER
+            else self.get_security_grading_prefix_display()
+        )
+
+    @property
+    def composed_security_grading(self):
+        return (
+            self.security_grading_other
+            if self.security_grading == enums.SecurityGrading.OTHER
+            else self.get_security_grading_display()
+        )
 
 
 class Recommendation(TimestampableModel):

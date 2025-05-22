@@ -127,7 +127,7 @@ class TestF680RecommendationViewSet:
                 "case": str(item.case_id),
                 "type": {"key": "approve", "value": "Approve"},
                 "created_at": item.created_at.strftime("%Y-%m-%dT%H:%M:%SZ"),
-                "security_grading": {"key": "official", "value": "Official"},
+                "security_grading": {"key": "official", "value": "OFFICIAL"},
                 "security_grading_other": item.security_grading_other,
                 "conditions": item.conditions,
                 "refusal_reasons": item.refusal_reasons,
@@ -212,6 +212,8 @@ class TestF680RecommendationViewSet:
             assert release_request.recipient.name == item["recipient"]["name"]
             assert release_request.recipient.type == item["recipient"]["type"]["key"]
             assert release_request.security_grading == item["security_grading"]["key"]
+            assert release_request.security_grading_other == item["security_grading_other"]
+            assert release_request.security_grading_final == item["security_grading_final"]
             assert release_request.approval_types == item["approval_types"]
             assert release_request.intended_use == item["intended_use"]
 

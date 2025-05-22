@@ -480,23 +480,26 @@ class CaseGetTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         expected_case_data = {
-            "application": {"some": "json"},
             "id": str(application.id),
-            "name": "some name",
+            "application": {"some": "json"},
+            "status": {"id": str(application.status.id), "key": "submitted", "value": "Submitted"},
+            "reference_code": application.reference_code,
+            "sub_status": None,
             "organisation": {
                 "id": str(application.organisation.id),
                 "name": application.organisation.name,
-                "status": application.organisation.status,
                 "type": application.organisation.type,
+                "status": application.organisation.status,
             },
-            "product": {
-                "id": str(product.id),
-                "name": product.name,
-                "description": product.description,
-                "security_grading": {"key": product.security_grading, "value": product.get_security_grading_display()},
-                "security_grading_other": product.security_grading_other,
+            "submitted_at": "2025-01-01T12:00:01Z",
+            "submitted_by": {
+                "id": str(application.submitted_by.baseuser_ptr.id),
+                "first_name": application.submitted_by.first_name,
+                "last_name": application.submitted_by.last_name,
+                "email": application.submitted_by.email,
+                "pending": application.submitted_by.pending,
             },
-            "reference_code": application.reference_code,
+            "name": "some name",
             "security_release_requests": [
                 {
                     "id": str(request.id),
@@ -520,20 +523,20 @@ class CaseGetTests(DataTestClient):
                         "value": request.get_security_grading_display(),
                     },
                     "security_grading_other": request.security_grading_other,
+                    "security_grading_final": request.security_grading_final,
                     "approval_types": request.approval_types,
                     "intended_use": request.intended_use,
                     "product_id": str(request.product.id),
                 }
                 for request in security_release_requests
             ],
-            "status": {"id": str(application.status.id), "key": "submitted", "value": "Submitted"},
-            "submitted_at": "2025-01-01T12:00:01Z",
-            "submitted_by": {
-                "id": str(application.submitted_by.baseuser_ptr.id),
-                "first_name": application.submitted_by.first_name,
-                "last_name": application.submitted_by.last_name,
-                "email": application.submitted_by.email,
-                "pending": application.submitted_by.pending,
+            "product": {
+                "id": str(product.id),
+                "name": product.name,
+                "description": product.description,
+                "security_grading": {"key": product.security_grading, "value": product.get_security_grading_display()},
+                "security_grading_other": product.security_grading_other,
+                "security_grading_final": product.security_grading_final,
             },
             "case_type": {
                 "id": str(application.case_type_id),
@@ -541,6 +544,5 @@ class CaseGetTests(DataTestClient):
                 "type": {"key": "security_clearance", "value": "Security Clearance"},
                 "sub_type": {"key": "f680_clearance", "value": "MOD F680 Clearance"},
             },
-            "sub_status": None,
         }
         self.assertEqual(response_data["case"]["data"], expected_case_data)
