@@ -21,6 +21,7 @@ from api.f680.enums import (
     RecipientRole,
     RecipientType,
     RecommendationType,
+    SecurityGradingPrefix,
     SecurityGrading,
     SecurityReleaseOutcomes,
     SecurityReleaseOutcomeDuration,
@@ -61,7 +62,10 @@ class SubmittedF680ApplicationFactory(F680ApplicationFactory):
 class F680ProductFactory(factory.django.DjangoModelFactory):
     name = factory.LazyAttribute(lambda n: faker.name())
     description = factory.LazyAttribute(lambda n: faker.name())
+    security_grading_prefix = factory.fuzzy.FuzzyChoice(SecurityGradingPrefix.prefix_choices, getter=lambda t: t[0])
     security_grading = factory.fuzzy.FuzzyChoice(SecurityGrading.product_choices, getter=lambda t: t[0])
+    security_grading_prefix_other = factory.LazyAttribute(lambda n: faker.name())
+    security_grading_other = factory.LazyAttribute(lambda n: faker.name())
     organisation = factory.SubFactory(OrganisationFactory)
 
     class Meta:
@@ -84,7 +88,10 @@ class F680SecurityReleaseRequestFactory(factory.django.DjangoModelFactory):
     recipient = factory.SubFactory(F680RecipientFactory)
     product = factory.SubFactory(F680ProductFactory)
     application = factory.SubFactory(SubmittedF680ApplicationFactory)
+    security_grading_prefix = factory.fuzzy.FuzzyChoice(SecurityGradingPrefix.prefix_choices, getter=lambda t: t[0])
     security_grading = factory.fuzzy.FuzzyChoice(SecurityGrading.security_release_choices, getter=lambda t: t[0])
+    security_grading_prefix_other = factory.LazyAttribute(lambda n: faker.name())
+    security_grading_other = factory.LazyAttribute(lambda n: faker.name())
     approval_types = factory.List(
         [
             ApprovalTypes.INITIAL_DISCUSSION_OR_PROMOTING,

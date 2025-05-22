@@ -23,6 +23,7 @@ from api.staticdata.statuses.serializers import CaseSubStatusSerializer
 
 class ProductSerializer(serializers.ModelSerializer):
     security_grading = KeyValueChoiceField(choices=enums.SecurityGrading.product_choices)
+    security_grading_final = serializers.CharField(allow_blank=True, allow_null=True)
 
     class Meta:
         model = Product
@@ -32,6 +33,7 @@ class ProductSerializer(serializers.ModelSerializer):
             "description",
             "security_grading",
             "security_grading_other",
+            "security_grading_final",
         ]
 
 
@@ -56,6 +58,7 @@ class SecurityReleaseRequestSerializer(serializers.ModelSerializer):
     recipient = RecipientSerializer()
     product_id = serializers.UUIDField()
     security_grading = KeyValueChoiceField(choices=enums.SecurityGrading.security_release_choices)
+    security_grading_final = serializers.CharField(allow_blank=True, allow_null=True)
 
     class Meta:
         model = SecurityReleaseRequest
@@ -64,6 +67,7 @@ class SecurityReleaseRequestSerializer(serializers.ModelSerializer):
             "recipient",
             "security_grading",
             "security_grading_other",
+            "security_grading_final",
             "approval_types",
             "intended_use",
             "product_id",

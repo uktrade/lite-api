@@ -494,6 +494,7 @@ class TestF680ApplicationViewSet:
                                     "product_description": [
                                         ErrorDetail(string="This field is required.", code="required")
                                     ],
+                                    "prefix": [ErrorDetail(string="This field is required.", code="required")],
                                 }
                             },
                             "user_information": {
