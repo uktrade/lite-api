@@ -31,7 +31,6 @@ class F680ApplicationManifest(BaseManifest):
             return self.features.get(feature_name, default)
         return self._default_settings.get(feature_name, default)
 
-
     ecju_max_days = 30
     notification_config = {
         "ecju_query": {"template": TemplateType.EXPORTER_F680_ECJU_QUERY, "frontend_url": "/"},
