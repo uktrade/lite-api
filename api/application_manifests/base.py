@@ -13,6 +13,6 @@ class BaseManifest:
         }
 
     def has_feature(self, feature_name, default=False):
-        if hasattr(self, 'features'):
+        if hasattr(self, "features"):
             return self.features.get(feature_name, default)
         return self._default_settings.get(feature_name, default)

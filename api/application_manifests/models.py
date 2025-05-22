@@ -4,11 +4,7 @@ from api.cases.enums import CaseTypeReferenceEnum
 
 
 class ApplicationManifestFeatures(models.Model):
-    case_type = models.CharField(
-        max_length=255,
-        choices=CaseTypeReferenceEnum.choices,
-        unique=True
-    )
+    case_type = models.CharField(max_length=255, choices=CaseTypeReferenceEnum.choices, unique=True)
 
     features = models.JSONField(default=dict)
 

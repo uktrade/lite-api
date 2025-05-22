@@ -482,6 +482,8 @@ class LicenceDecisionType:
 
 
 from enum import Enum
+
+
 class ApplicationFeatures(Enum):
     LICENCE_ISSUE = "licence_issue"
     ROUTE_TO_COUNTERSIGNING_QUEUES = "route_to_countersigning_queues"
