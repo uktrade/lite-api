@@ -1,6 +1,7 @@
 from rest_framework import serializers
-from models import ApplicationManifestFeatures
+
 from api.cases.enums import ApplicationFeatures
+from models import ApplicationManifestFeatures
 
 
 class ApplicationManifestFeatureSerializer(serializers.ModelSerializer):
@@ -16,7 +17,8 @@ class ApplicationManifestFeatureSerializer(serializers.ModelSerializer):
         valid_features = set(ApplicationFeatures.__members__.keys())
         provided_features = set(value.keys())
 
-        if invalid_features := provided_features - valid_features:
+        invalid_features = provided_features - valid_features
+        if invalid_features:
             raise serializers.ValidationError(
                 f"Invalid Features: {', '.join(invalid_features)}"
             )
