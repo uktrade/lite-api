@@ -203,6 +203,9 @@ class BaseApplication(ApplicationPartyMixin, Case):
         ordering = ["created_at"]
 
     def on_submit(self, old_status):
+        self.audit_on_submit(old_status)
+
+    def audit_on_submit(self, old_status):
         additional_payload = {}
         if self.amendment_of:
             # Add an audit entry to the case that was superseded by this amendment
@@ -556,7 +559,6 @@ class GoodOnApplication(AbstractGoodOnApplication, Clonable):
 
     good = models.ForeignKey(Good, related_name="goods_on_application", on_delete=models.CASCADE)
 
-    # Every application except Exhibition applications contains the following data, as a result these can be null
     quantity = models.FloatField(null=True, blank=True, default=None)
     unit = models.CharField(choices=Units.choices, max_length=50, null=True, blank=True, default=None)
     value = models.DecimalField(max_digits=15, decimal_places=2, null=True, blank=True, default=None)

@@ -31,6 +31,7 @@ class TestF680Application:
         assert f680_application.name is None
         serializer = SubmittedApplicationJSONSerializer(data=f680_application.application)
         serializer.is_valid(raise_exception=True)
+        f680_application.submitted_by = ExporterUserFactory()
         f680_application.on_submit(serializer.data)
         f680_application.refresh_from_db()
         assert f680_application.name == "some name"
