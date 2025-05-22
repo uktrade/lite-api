@@ -2,7 +2,13 @@ from copy import deepcopy
 
 import pytest
 
-from api.f680.tests.f680_test_data import AUSTRALIA_RELEASE_ID, FRANCE_RELEASE_ID, UAE_RELEASE_ID, APPLICATION_JSON
+from api.f680.tests.f680_test_data import (
+    AUSTRALIA_RELEASE_ID,
+    FRANCE_RELEASE_ID,
+    UAE_RELEASE_ID,
+    APPLICATION_JSON,
+    APPLICATION_JSON_NO_SECURITY_PREFIX,
+)
 
 
 @pytest.fixture
@@ -23,3 +29,8 @@ def data_uae_release_id():
 @pytest.fixture
 def data_application_json():
     return deepcopy(APPLICATION_JSON)
+
+
+@pytest.fixture
+def data_application_json_no_security_prefix():
+    return deepcopy(APPLICATION_JSON_NO_SECURITY_PREFIX)
