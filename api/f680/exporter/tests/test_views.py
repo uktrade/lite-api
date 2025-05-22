@@ -440,6 +440,67 @@ class TestF680ApplicationViewSet:
 
         assert case_status_audits[0] == {"status": {"new": CaseStatusEnum.SUBMITTED, "old": CaseStatusEnum.DRAFT}}
 
+    @freeze_time("2025-01-01 12:00:01")
+    def test_POST_submit_no_product_security_classifcation_prefix_success(
+        self,
+        api_client,
+        exporter_headers,
+        exporter_user,
+        organisation,
+        data_application_json_no_security_prefix,
+    ):
+        f680_application = F680ApplicationFactory(
+            organisation=organisation,
+            application=data_application_json_no_security_prefix,
+            reference_code=None,
+        )
+
+        url = reverse("exporter_f680:application_submit", kwargs={"f680_application_id": f680_application.id})
+        response = api_client.post(url, {"agreed_to_foi": False}, **exporter_headers)
+
+        assert response.status_code == status.HTTP_200_OK
+        f680_application.refresh_from_db()
+        assert f680_application.status.status == "submitted"
+        assert f680_application.submitted_at == timezone.now()
+        assert f680_application.sla_days == 0
+        assert f680_application.submitted_by == exporter_user
+        assert f680_application.reference_code.startswith("F680")
+
+        expected_result = {
+            "id": str(f680_application.id),
+            "name": "some name",
+            "application": data_application_json_no_security_prefix,
+            "reference_code": f680_application.reference_code,
+            "organisation": {
+                "id": str(organisation.id),
+                "name": organisation.name,
+                "type": organisation.type,
+                "status": organisation.status,
+            },
+            "submitted_at": timezone.now().strftime("%Y-%m-%dT%H:%M:%SZ"),
+            "submitted_by": {
+                "email": exporter_user.email,
+                "first_name": exporter_user.first_name,
+                "id": str(exporter_user.baseuser_ptr_id),
+                "last_name": exporter_user.last_name,
+                "pending": exporter_user.pending,
+            },
+            "case_type": {
+                "id": str(f680_application.case_type_id),
+                "reference": {"key": "f680", "value": "MOD F680 Clearance"},
+                "type": {"key": "security_clearance", "value": "Security Clearance"},
+                "sub_type": {"key": "f680_clearance", "value": "MOD F680 Clearance"},
+            },
+            "status": {"id": f680_application.status_id, "key": "submitted", "value": "Submitted"},
+        }
+        assert response.data == expected_result
+        # Check Audit
+        case_status_audits = Audit.objects.filter(
+            target_object_id=f680_application.id, verb=AuditType.UPDATED_STATUS
+        ).values_list("payload", flat=True)
+
+        assert case_status_audits[0] == {"status": {"new": CaseStatusEnum.SUBMITTED, "old": CaseStatusEnum.DRAFT}}
+
     @pytest.mark.parametrize(
         "application_json, expected_result",
         (
@@ -494,7 +555,6 @@ class TestF680ApplicationViewSet:
                                     "product_description": [
                                         ErrorDetail(string="This field is required.", code="required")
                                     ],
-                                    "prefix": [ErrorDetail(string="This field is required.", code="required")],
                                 }
                             },
                             "user_information": {
