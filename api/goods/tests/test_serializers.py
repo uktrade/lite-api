@@ -6,6 +6,7 @@ from django.utils import timezone
 from freezegun import freeze_time
 from rest_framework import status
 
+
 from api.applications.tests.factories import (
     GoodOnApplicationFactory,
     StandardApplicationFactory,

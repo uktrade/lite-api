@@ -997,9 +997,9 @@ class GoodOnPrecedentList(ListAPIView):
     serializer_class = GoodOnApplicationPrecedentSerializer
 
     def get_queryset(self):
-        case = get_case(self.kwargs["pk"])
+        case = self.kwargs["pk"]
         goods = (
-            GoodOnApplication.objects.filter(application=case)
+            GoodOnApplication.objects.filter(application__id=case)
             .order_by("good_id")
             .distinct("good_id")
             .values_list("good_id", flat=True)
@@ -1011,7 +1011,7 @@ class GoodOnPrecedentList(ListAPIView):
                 good__in=goods,
                 good__status=GoodStatus.VERIFIED,
             )
-            .exclude(application=case)
+            .exclude(application__id=case)
             # Ensure any precedents we return have a non-None value for is_good_controlled.
             # GoodOnApplication records with is_good_controlled=None are either not yet assessed
             # or are legacy records
@@ -1019,14 +1019,22 @@ class GoodOnPrecedentList(ListAPIView):
             .select_related(
                 "report_summary_prefix",
                 "report_summary_subject",
+                "application",
+                "good",
+                "firearm_details",
             )
             .prefetch_related(
                 "good",
                 "good__flags",
+                "good__good__flags",
                 "good__control_list_entries",
+                "control_list_entries",
+                "regime_entries",
+                "regime_entries__subsection",
                 "application",
                 "application__queues",
-                "control_list_entries",
+                "application__baseapplication",
+                "application__standardapplication",
             )
         )
 

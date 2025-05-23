@@ -776,13 +776,26 @@ class GoodOnApplicationPrecedentSerializer(GoodOnApplicationSerializer):
 
     class Meta:
         model = GoodOnApplication
-        fields = list(GoodOnApplicationSerializer.Meta.fields) + [
+        fields = (
+            "id",
+            "queue",
+            "application",
+            "reference",
+            "good",
+            "report_summary",
+            "quantity",
+            "unit",
+            "value",
+            "control_list_entries",
+            "submitted_at",
+            "goods_starting_point",
+            "regime_entries",
             "is_good_controlled",
             "is_ncsc_military_information_security",
             "comment",
             "report_summary_prefix",
             "report_summary_subject",
-        ]
+        )
 
 
 class GoodSerializerInternal(serializers.Serializer):

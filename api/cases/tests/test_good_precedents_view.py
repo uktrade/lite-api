@@ -133,8 +133,6 @@ class GoodPrecedentsListViewTests(DataTestClient):
                     "unit": "NAR",
                     "value": None,
                     "control_list_entries": ["ML1a"],
-                    "destinations": expected_destinations,
-                    "wassenaar": True,
                     "submitted_at": application.submitted_at.astimezone(timezone("UTC")).strftime(
                         "%Y-%m-%dT%H:%M:%S.%f"
                     )[:-3]
@@ -226,7 +224,6 @@ class GoodPrecedentsListViewTests(DataTestClient):
                     "application": str(precedent_application.id),
                     "comment": "12-bit ADC",
                     "control_list_entries": ["ML1a"],
-                    "destinations": ["Italy", "Spain"],
                     "good": str(good_on_application.good.id),
                     "goods_starting_point": "GB",
                     "id": str(good_on_application.id),
@@ -262,7 +259,6 @@ class GoodPrecedentsListViewTests(DataTestClient):
                     + "Z",
                     "unit": "NAR",
                     "value": None,
-                    "wassenaar": True,
                 }
             ],
             "total_pages": 1,
