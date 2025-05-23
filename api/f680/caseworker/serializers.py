@@ -122,7 +122,7 @@ class F680RecommendationSerializer(serializers.ModelSerializer):
     team = PrimaryKeyRelatedField(queryset=Team.objects.all())
     type = KeyValueChoiceField(choices=enums.RecommendationType.choices)
     security_grading_prefix = KeyValueChoiceField(
-        choices=enums.SecurityGradingPrefix.prefix_choices, allow_blank=True, allow_null=True, required=False
+        choices=enums.SecurityGradingPrefix.prefix_choices, allow_blank=True, allow_null=True
     )
     security_grading_prefix_other = serializers.CharField(allow_blank=True, allow_null=True, required=False)
     security_grading = KeyValueChoiceField(
