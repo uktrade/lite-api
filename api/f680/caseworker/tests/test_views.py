@@ -124,13 +124,13 @@ class TestF680RecommendationViewSet:
         assert response.json() == [
             {
                 "id": str(item.id),
-                "case": str(item.case_id),
-                "type": {"key": "approve", "value": "Approve"},
                 "created_at": item.created_at.strftime("%Y-%m-%dT%H:%M:%SZ"),
+                "type": {"key": "approve", "value": "Approve"},
+                "security_grading": item.security_grading,
+                "security_grading_other": item.security_grading_other,
                 "security_grading_final": item.security_grading_final,
                 "conditions": item.conditions,
                 "refusal_reasons": item.refusal_reasons,
-                "security_release_request": str(item.security_release_request_id),
                 "user": {
                     "id": str(item.user.baseuser_ptr_id),
                     "first_name": item.user.baseuser_ptr.first_name,
@@ -142,6 +142,8 @@ class TestF680RecommendationViewSet:
                     "name": item.team.name,
                     "alias": item.team.alias,
                 },
+                "case": str(item.case_id),
+                "security_release_request": str(item.security_release_request_id),
             }
             for item in Recommendation.objects.filter(case=f680_application)
         ]

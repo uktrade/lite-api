@@ -35,7 +35,8 @@ class SecurityGradingMixin:
             self.composed_security_grading_prefix.upper() if self.composed_security_grading_prefix else ""
         )
         composed_security_grading = self.composed_security_grading.upper() if self.composed_security_grading else ""
-        return f"{composed_security_grading_prefix} {composed_security_grading}"
+
+        return f"{composed_security_grading_prefix} {composed_security_grading}" if composed_security_grading else None
 
     @property
     def composed_security_grading_prefix(self):
