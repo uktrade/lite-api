@@ -121,6 +121,10 @@ class F680RecommendationSerializer(serializers.ModelSerializer):
     user = PrimaryKeyRelatedField(queryset=GovUser.objects.filter(status=UserStatuses.ACTIVE))
     team = PrimaryKeyRelatedField(queryset=Team.objects.all())
     type = KeyValueChoiceField(choices=enums.RecommendationType.choices)
+    security_grading_prefix = KeyValueChoiceField(
+        choices=enums.SecurityGradingPrefix.prefix_choices, allow_blank=True, allow_null=True
+    )
+    security_grading_prefix_other = serializers.CharField(allow_blank=True, allow_null=True, required=False)
     security_grading = KeyValueChoiceField(
         choices=enums.SecurityGrading.security_release_choices, allow_blank=True, allow_null=True
     )
@@ -134,6 +138,8 @@ class F680RecommendationSerializer(serializers.ModelSerializer):
         fields = (
             "id",
             "type",
+            "security_grading_prefix",
+            "security_grading_prefix_other",
             "security_grading",
             "security_grading_other",
             "conditions",

@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
 from api.core.serializers import KeyValueChoiceField
-from api.f680.enums import RecommendationType, SecurityGrading
+from api.f680.enums import RecommendationType
 from api.f680.caseworker.serializers import ProductSerializer, SecurityReleaseRequestSerializer
 from api.f680.models import Recommendation
 
@@ -39,7 +39,7 @@ class F680RecommendationViewSerializer(serializers.ModelSerializer):
     user = GovUserViewSerializer()
     team = TeamViewSerializer()
     type = KeyValueChoiceField(choices=RecommendationType.choices)
-    security_grading = KeyValueChoiceField(choices=SecurityGrading.security_release_choices)
+    security_grading_final = serializers.CharField(allow_blank=True, allow_null=True, required=False)
 
     class Meta:
         model = Recommendation
@@ -49,6 +49,7 @@ class F680RecommendationViewSerializer(serializers.ModelSerializer):
             "type",
             "security_grading",
             "security_grading_other",
+            "security_grading_final",
             "conditions",
             "refusal_reasons",
             "user",
