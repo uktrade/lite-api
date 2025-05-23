@@ -122,7 +122,7 @@ class F680RecommendationSerializer(serializers.ModelSerializer):
     team = PrimaryKeyRelatedField(queryset=Team.objects.all())
     type = KeyValueChoiceField(choices=enums.RecommendationType.choices)
     security_grading_prefix = KeyValueChoiceField(
-        choices=enums.SecurityGradingPrefix.prefix_choices, allow_blank=True, allow_null=True
+        choices=enums.SecurityGradingPrefix.prefix_choices, allow_blank=True, allow_null=True, required=False
     )
     security_grading_prefix_other = serializers.CharField(allow_blank=True, allow_null=True, required=False)
     security_grading = KeyValueChoiceField(
@@ -163,7 +163,7 @@ class SecurityReleaseOutcomeSerializer(serializers.ModelSerializer):
     user = PrimaryKeyRelatedField(queryset=GovUser.objects.filter(status=UserStatuses.ACTIVE))
     team = PrimaryKeyRelatedField(queryset=Team.objects.all())
     security_grading_prefix = KeyValueChoiceField(
-        choices=enums.SecurityGradingPrefix.prefix_choices, allow_blank=True, allow_null=True
+        choices=enums.SecurityGradingPrefix.prefix_choices, allow_blank=True, allow_null=True, required=False
     )
     security_grading_prefix_other = serializers.CharField(allow_blank=True, allow_null=True, required=False)
     security_grading = KeyValueChoiceField(
@@ -243,6 +243,7 @@ class SecurityReleaseOutcomeLetterSerializer(serializers.ModelSerializer):
             "conditions",
             "refusal_reasons",
             "security_grading",
+            "security_grading_final",
             "approval_types",
             "validity_start_date",
             "validity_end_date",
