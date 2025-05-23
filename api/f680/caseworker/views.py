@@ -110,7 +110,7 @@ class F680OutcomeViewSet(F680CaseworkerApplicationMixin, viewsets.ModelViewSet):
             payload={
                 "security_release_request_ids": security_release_request_ids,
                 "additional_text": f"Outcome was {outcome}",
-                "security_grading": serializer.data["security_grading"],
+                "security_grading": serializer.data["security_grading_final"],
             },
         )
         headers = self.get_success_headers(serializer.data)

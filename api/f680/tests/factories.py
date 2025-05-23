@@ -123,6 +123,7 @@ class F680RecommendationFactory(factory.django.DjangoModelFactory):
 class F680SecurityReleaseOutcomeFactory(factory.django.DjangoModelFactory):
     outcome = factory.fuzzy.FuzzyChoice(SecurityReleaseOutcomes.choices, getter=lambda t: t[0])
     case = factory.SubFactory(SubmittedF680ApplicationFactory)
+    security_grading_prefix = factory.fuzzy.FuzzyChoice(SecurityGradingPrefix.prefix_choices, getter=lambda t: t[0])
     security_grading = factory.fuzzy.FuzzyChoice(SecurityGrading.security_release_choices, getter=lambda t: t[0])
     conditions = factory.LazyAttribute(lambda n: faker.sentence())
     user = factory.SubFactory(GovUserFactory)
