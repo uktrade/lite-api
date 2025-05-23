@@ -548,6 +548,7 @@ class TestF680OutcomeViewSet:
         outcome = F680SecurityReleaseOutcomeFactory(
             case=f680_application,
             outcome=enums.SecurityReleaseOutcomes.APPROVE,
+            security_grading_prefix=enums.SecurityGradingPrefix.NATO,
             security_grading=enums.SecurityGrading.OFFICIAL_SENSITIVE,
             conditions="No concerns",
             approval_types=["training"],
@@ -564,14 +565,24 @@ class TestF680OutcomeViewSet:
             {
                 "id": str(outcome.id),
                 "case": str(f680_application.id),
-                "approval_types": outcome.approval_types,
-                "conditions": outcome.conditions,
-                "outcome": outcome.outcome,
-                "refusal_reasons": "",
-                "security_grading": outcome.security_grading,
-                "security_release_requests": release_request_ids,
-                "team": str(outcome.team.id),
                 "user": str(outcome.user.baseuser_ptr.id),
+                "team": str(outcome.team.id),
+                "security_release_requests": release_request_ids,
+                "outcome": outcome.outcome,
+                "conditions": outcome.conditions,
+                "refusal_reasons": "",
+                "security_grading_prefix": {
+                    "key": outcome.security_grading_prefix,
+                    "value": outcome.get_security_grading_prefix_display(),
+                },
+                "security_grading_prefix_other": outcome.security_grading_prefix_other,
+                "security_grading": {
+                    "key": outcome.security_grading,
+                    "value": outcome.get_security_grading_display(),
+                },
+                "security_grading_other": outcome.security_grading_other,
+                "security_grading_final": outcome.security_grading_final,
+                "approval_types": outcome.approval_types,
                 "validity_start_date": validity_start_date.isoformat(),
                 "validity_end_date": validity_end_date.isoformat(),
                 "validity_period": 48,
@@ -609,7 +620,8 @@ class TestF680OutcomeViewSet:
             months=+enums.SecurityReleaseOutcomeDuration.MONTHS_24
         )
         post_data = {
-            "security_grading": "top-secret",
+            "security_grading_prefix": enums.SecurityGradingPrefix.UK,
+            "security_grading": enums.SecurityGrading.TOP_SECRET,
             "outcome": enums.SecurityReleaseOutcomes.APPROVE,
             "conditions": "my conditions",
             "approval_types": ["training"],
@@ -636,14 +648,21 @@ class TestF680OutcomeViewSet:
         assert response.json() == {
             "id": str(outcome.id),
             "case": str(f680_application.id),
-            "approval_types": outcome.approval_types,
-            "conditions": outcome.conditions,
-            "outcome": outcome.outcome,
-            "refusal_reasons": outcome.refusal_reasons,
-            "security_grading": outcome.security_grading,
-            "security_release_requests": release_request_ids,
-            "team": str(outcome.team.id),
             "user": str(outcome.user.baseuser_ptr.id),
+            "team": str(outcome.team.id),
+            "security_release_requests": release_request_ids,
+            "outcome": outcome.outcome,
+            "conditions": outcome.conditions,
+            "refusal_reasons": outcome.refusal_reasons,
+            "security_grading_prefix": {
+                "key": outcome.security_grading_prefix,
+                "value": outcome.get_security_grading_prefix_display(),
+            },
+            "security_grading_prefix_other": outcome.security_grading_prefix_other,
+            "security_grading": {"key": outcome.security_grading, "value": outcome.get_security_grading_display()},
+            "security_grading_other": outcome.security_grading_other,
+            "security_grading_final": outcome.security_grading_final,
+            "approval_types": outcome.approval_types,
             "validity_start_date": validity_start_date.isoformat(),
             "validity_end_date": validity_end_date.isoformat(),
             "validity_period": 24,
@@ -654,7 +673,7 @@ class TestF680OutcomeViewSet:
         assert audit_record.payload == {
             "additional_text": f"Outcome was {outcome.outcome}",
             "security_release_request_ids": release_request_ids,
-            "security_grading": outcome.security_grading,
+            "security_grading": outcome.security_grading_final,
         }
 
     @freeze_time("2025-04-14 12:00:00")
@@ -689,14 +708,18 @@ class TestF680OutcomeViewSet:
         assert response.json() == {
             "id": str(outcome.id),
             "case": str(f680_application.id),
-            "approval_types": outcome.approval_types,
-            "conditions": outcome.conditions,
-            "outcome": outcome.outcome,
-            "refusal_reasons": outcome.refusal_reasons,
-            "security_grading": outcome.security_grading,
-            "security_release_requests": release_request_ids,
-            "team": str(outcome.team.id),
             "user": str(outcome.user.baseuser_ptr.id),
+            "team": str(outcome.team.id),
+            "security_release_requests": release_request_ids,
+            "outcome": outcome.outcome,
+            "conditions": outcome.conditions,
+            "refusal_reasons": outcome.refusal_reasons,
+            "security_grading_prefix": None,
+            "security_grading_prefix_other": "",
+            "security_grading": None,
+            "security_grading_other": "",
+            "security_grading_final": None,
+            "approval_types": outcome.approval_types,
             "validity_start_date": None,
             "validity_end_date": None,
             "validity_period": 0,
@@ -707,7 +730,7 @@ class TestF680OutcomeViewSet:
         assert audit_record.payload == {
             "additional_text": f"Outcome was {outcome.outcome}",
             "security_release_request_ids": release_request_ids,
-            "security_grading": outcome.security_grading,
+            "security_grading": outcome.security_grading_final,
         }
 
     def test_POST_case_not_ready_for_outcome_permission_denied(

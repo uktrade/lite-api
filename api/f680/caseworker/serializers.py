@@ -167,7 +167,7 @@ class SecurityReleaseOutcomeSerializer(serializers.ModelSerializer):
     )
     security_grading_prefix_other = serializers.CharField(allow_blank=True, allow_null=True, required=False)
     security_grading = KeyValueChoiceField(
-        choices=enums.SecurityGrading.security_release_choices, allow_blank=True, allow_null=True
+        choices=enums.SecurityGrading.security_release_choices, allow_blank=True, allow_null=True, required=False
     )
     security_grading_other = serializers.CharField(allow_blank=True, allow_null=True, required=False)
     security_release_requests = PrimaryKeyRelatedField(queryset=SecurityReleaseRequest.objects.all(), many=True)
