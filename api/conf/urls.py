@@ -1,8 +1,7 @@
+from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import path, include
-
-from django.conf import settings
 
 import api.core.views
 from api.healthcheck.views import HealthCheckPingdomView, ServiceAvailableHealthCheckView
@@ -39,6 +38,7 @@ urlpatterns = [
     path("survey/", include("api.survey.urls")),
     path("caseworker/", include("api.conf.caseworker_urls")),
     path("exporter/", include("api.conf.exporter_urls")),
+    path("manifest-feature/", include("api.application_manifests.urls")),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 
 handler500 = "rest_framework.exceptions.server_error"

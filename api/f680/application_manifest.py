@@ -26,11 +26,6 @@ class F680ApplicationManifest(BaseManifest):
             ApplicationFeatures.ROUTE_TO_COUNTERSIGNING_QUEUES: False,
         }
 
-    def has_feature(self, feature_name, default=None):
-        if hasattr(self, "features"):
-            return self.features.get(feature_name, default)
-        return self._default_settings.get(feature_name, default)
-
     ecju_max_days = 30
     notification_config = {
         "ecju_query": {"template": TemplateType.EXPORTER_F680_ECJU_QUERY, "frontend_url": "/"},

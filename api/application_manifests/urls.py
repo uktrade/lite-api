@@ -1,11 +1,10 @@
-from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 
-from views import ApplicationManifestFeaturesViewSet
+from api.application_manifests.views import ApplicationManifestFeaturesViewSet
+
+app_name = "application-manifest"  # Add this namespace
 
 router = DefaultRouter()
-router.register("manifest-settings", ApplicationManifestFeaturesViewSet, basename="manifest-settings")
+router.register("", ApplicationManifestFeaturesViewSet, basename="manifest-feature")
 
-urlpatterns = [
-    path("", include(router.urls)),
-]
+urlpatterns = router.urls

@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
+from api.application_manifests.models import ApplicationManifestFeatures
 from api.cases.enums import ApplicationFeatures
-from models import ApplicationManifestFeatures
 
 
 class ApplicationManifestFeatureSerializer(serializers.ModelSerializer):
@@ -11,7 +11,7 @@ class ApplicationManifestFeatureSerializer(serializers.ModelSerializer):
 
     @staticmethod
     def validate_features(value):
-        valid_features = set(ApplicationFeatures.__members__.keys())
+        valid_features = set(item.value for item in ApplicationFeatures)
         provided_features = set(value.keys())
 
         invalid_features = provided_features - valid_features
