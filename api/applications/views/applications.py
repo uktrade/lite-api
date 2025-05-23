@@ -61,7 +61,7 @@ from api.cases.enums import (
     CaseTypeEnum,
     CaseTypeReferenceEnum,
 )
-from api.cases.models import CaseQueueMovement
+from api.cases.models import CaseQueueMovement, CaseType
 from api.cases.generated_documents.models import GeneratedCaseDocument
 from api.cases.generated_documents.helpers import auto_generate_case_document
 from api.cases.libraries.get_flags import get_flags
@@ -429,6 +429,15 @@ class ApplicationFinaliseView(APIView):
         Finalise an application
         """
         application = get_application(pk)
+
+        licence_data = request.data.copy()
+
+        # TODO this is a bit heavy handed
+        if application.case_type.reference == "export_licence":
+            if licence_data.get("case_type") in ["oiel", "siel"]:
+                application.case_type = CaseType.objects.get(reference=licence_data["case_type"])
+                application.save()
+
         # Check permissions
         is_mod_clearance = application.case_type.sub_type in CaseTypeSubTypeEnum.mod
         if not can_status_be_set_by_gov_user(
@@ -438,8 +447,6 @@ class ApplicationFinaliseView(APIView):
                 data={"errors": [strings.Applications.Generic.Finalise.Error.SET_FINALISED]},
                 status=status.HTTP_400_BAD_REQUEST,
             )
-
-        licence_data = request.data.copy()
 
         action = licence_data.get("action")
         if not action:
@@ -536,7 +543,9 @@ class ApplicationDurationView(APIView):
         """
         application = get_application(pk)
 
-        duration = get_default_duration(application)
+        # TODO delete licence.py which previously helf get_default_duration
+        application_manifest = application.get_application_manifest()
+        duration = application_manifest.default_duration
 
         return JsonResponse(data={"licence_duration": duration}, status=status.HTTP_200_OK)
 
