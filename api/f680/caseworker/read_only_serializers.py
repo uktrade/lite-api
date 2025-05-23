@@ -47,6 +47,8 @@ class F680RecommendationViewSerializer(serializers.ModelSerializer):
             "id",
             "created_at",
             "type",
+            "security_grading",
+            "security_grading_other",
             "security_grading_final",
             "conditions",
             "refusal_reasons",
