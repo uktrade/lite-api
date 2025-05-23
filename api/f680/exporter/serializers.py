@@ -95,7 +95,7 @@ class UserInformationSerializer(serializers.Serializer):
 class ProductInformationFieldsSerializer(serializers.Serializer):
     product_name = FieldSerializer()
     product_description = FieldSerializer()
-    prefix = FieldSerializer()
+    prefix = FieldSerializer(required=False)
     other_prefix = FieldSerializer(required=False)
     security_classification = FieldSerializer(required=False)
     other_security_classification = FieldSerializer(required=False)
