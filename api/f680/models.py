@@ -271,7 +271,7 @@ class Recommendation(TimestampableModel, SecurityGradingMixin):
     case = models.ForeignKey(Case, related_name="recommendations", on_delete=models.CASCADE)
     type = models.CharField(choices=enums.RecommendationType.choices, max_length=30)
     security_grading_prefix = models.CharField(
-        choices=enums.SecurityGrading.security_release_choices, blank=True, null=True, max_length=50
+        choices=enums.SecurityGradingPrefix.prefix_choices, max_length=50, null=True, default=None
     )
     security_grading_prefix_other = models.TextField(default="", blank=True, null=True)
     security_grading = models.CharField(
