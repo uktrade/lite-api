@@ -73,6 +73,8 @@ class UserItemFieldsSerializer(serializers.Serializer):
     end_user_name = FieldSerializer()
     address = FieldSerializer()
     country = FieldSerializer()
+    prefix = FieldSerializer()
+    other_prefix = FieldSerializer(required=False)
     security_classification = FieldSerializer()
     other_security_classification = FieldSerializer(required=False)
     end_user_intended_end_use = FieldSerializer()
@@ -93,6 +95,8 @@ class UserInformationSerializer(serializers.Serializer):
 class ProductInformationFieldsSerializer(serializers.Serializer):
     product_name = FieldSerializer()
     product_description = FieldSerializer()
+    prefix = FieldSerializer(required=False)
+    other_prefix = FieldSerializer(required=False)
     security_classification = FieldSerializer(required=False)
     other_security_classification = FieldSerializer(required=False)
 
