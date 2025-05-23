@@ -162,6 +162,14 @@ class SecurityReleaseOutcomeSerializer(serializers.ModelSerializer):
     case = PrimaryKeyRelatedField(queryset=Case.objects.all())
     user = PrimaryKeyRelatedField(queryset=GovUser.objects.filter(status=UserStatuses.ACTIVE))
     team = PrimaryKeyRelatedField(queryset=Team.objects.all())
+    security_grading_prefix = KeyValueChoiceField(
+        choices=enums.SecurityGradingPrefix.prefix_choices, allow_blank=True, allow_null=True
+    )
+    security_grading_prefix_other = serializers.CharField(allow_blank=True, allow_null=True, required=False)
+    security_grading = KeyValueChoiceField(
+        choices=enums.SecurityGrading.security_release_choices, allow_blank=True, allow_null=True
+    )
+    security_grading_other = serializers.CharField(allow_blank=True, allow_null=True, required=False)
     security_release_requests = PrimaryKeyRelatedField(queryset=SecurityReleaseRequest.objects.all(), many=True)
 
     def validate_approve(self, data):
@@ -210,7 +218,11 @@ class SecurityReleaseOutcomeSerializer(serializers.ModelSerializer):
             "outcome",
             "conditions",
             "refusal_reasons",
+            "security_grading_prefix",
+            "security_grading_prefix_other",
             "security_grading",
+            "security_grading_other",
+            "security_grading_final",
             "approval_types",
             "validity_start_date",
             "validity_end_date",
